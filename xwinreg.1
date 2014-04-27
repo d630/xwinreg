@@ -1,0 +1,436 @@
+.\" Manpage of xwinreg/v0.1.0.5
+.\" written with GNU Emacs/v24.3.1 and markdown-mode/v1.8.1
+.\" generated with Ronn/v0.7.3
+.
+.TH "XWINREG" "1" "2014-03-01" "0.1.0.5" "User Manual"
+.
+.SH "NAME"
+\fBxwinreg\fR \- organize X windows into regions and do tiling layouts
+.
+.SH "SYNOPSIS"
+xwinreg (\-|\-F| )
+.br
+        [\-C|\-T|\-n|\-N|\-a|\-fx|\-fy|\-fw|\-fh|\-wx|\-wy|\-ww|\-wh]
+.br
+        (\-c|\-f|\-H|\-h|[\-l \.\.\.|\-L\.\.\.]|\-M|\-m|\-O|\-o|\-s|\-U|\-v|\-y)
+.
+.SH "REQUIREMENT"
+bc, GNU bash, GNU grep, GNU sed, wmctrl, xprop, xwinpp
+.
+.SH "DESCRIPTION"
+\fBxwinreg\fR is a bash shell script that acts like a stupid third party tiling application on Xorg\. It lets you to organize X windows into frames and regions and then to build your own layouts in a simple way\. Therefore, \fBxwinreg\fR uses \fBxwinpp\fR to prepare a list of X window ids, and \fBwmctrl\fR to interact with your EWMH/NetWM compatible X Window manager\. See section CONCEPTION in this manpage\.
+.
+.SH "OPTIONS"
+.
+.TP
+\fB\-\fR
+Get output from \fBxwinpp\fR by reading from standard input; \fB\-\fR must be the first argument\.
+.
+.TP
+\fB\-F\fR, \fB\-file\fR \fIFILE\fR
+Obtain output of \fBxwinpp\fR from \fIFILE\fR, not from standard input\.
+.
+.TP
+\fB\-C\fR, \fB\-conf\-file\fR \fIFILE\fR
+Read variables from \fIFILE\fR\. See section CONFIGURATION in this manpage\.
+.
+.TP
+\fB\-T\fR, \fB\-tmp\-file\fR \fIFILE\fR
+Before layouting, \fBxwinreg\fR creates a Tmp File, whose variables are needed by all other actions to work with\. With this option you can specify a nonregular file\.
+.
+.TP
+\fB\-n\fR, \fB\-number\-of\-rows\fR \fIINT\fR
+Specify number of rows for grid layouting\.
+.
+.TP
+\fB\-N\fR, \fB\-number\-of\-cols\fR \fIINT\fR
+Specify number of columns for grid layouting\.
+.
+.TP
+\fB\-a\fR, \fB\-frame\-alias\fR \fIFRAMEALIAS\fR
+Instead of options \fB\-fx\fR, \fB\-fy\fR, \fB\-fw\fR and \fB\-fh\fR specify an alias\. See section CONFIGURATION in this manpage\.
+.
+.TP
+\fB\-fx\fR, \fB\-frame\-x\fR \fIPX\fR
+Specify the left edge of the frame\.
+.
+.TP
+\fB\-fy\fR, \fB\-frame\-y\fR \fIPX\fR
+Specify the top edge of the frame\.
+.
+.TP
+\fB\-fw\fR, \fB\-frame\-width\fR \fIPX\fR
+Specify the \fIWIDTH\fR of the frame\.
+.
+.TP
+\fB\-fh\fR, \fB\-frame\-height\fR \fIPX\fR
+Specify the \fIHEIGHT\fR of the frame\.
+.
+.TP
+\fB\-wx\fR, \fB\-workarea\-x\fR \fIPX\fR
+Specify the left edge of the workarea\.
+.
+.TP
+\fB\-wy\fR, \fB\-workarea\-y\fR \fIPX\fR
+Specify the top edge of the workarea\.
+.
+.TP
+\fB\-ww\fR, \fB\-workarea\-width\fR \fIPX\fR
+Specify the \fIWIDTH\fR of the workarea\.
+.
+.TP
+\fB\-wh\fR, \fB\-workarea\-height\fR \fIPX\fR
+Specify the \fIHEIGHT\fR of the workarea\.
+.
+.TP
+\fB\-h\fR, \fB\-help\fR
+Display a short help\.
+.
+.TP
+\fB\-v\fR, \fB\-version\fR
+Print current version of \fBxwinreg\fR\.
+.
+.SH "SUBCOMMANDS"
+.
+.SS "ACTIONS"
+.
+.TP
+\fB\-O\fR, \fB\-reset\fR
+Restore last layout, which has been set in the Tmp File\.
+.
+.TP
+\fB\-c\fR, \fB\-close\fR
+Close windows gracefully\. Specify this action with option \fB\-r\fR\.
+.
+.TP
+\fB\-H\fR, \fB\-hide\fR
+Add window property \fIhidden\fR\. Specify this action with option \fB\-r\fR\.
+.
+.TP
+\fB\-U\fR, \fB\-unhide\fR
+Remove window property \fIhidden\fR\. Specify this action with option \fB\-r\fR\.
+.
+.TP
+\fB\-f\fR, \fB\-focus\fR
+Switch to the desktop containing the windows, raise the windows, and give them focus\. At the end, focus the active window again\. Specify this action with option \fB\-r\fR\.
+.
+.TP
+\fB\-o\fR, \fB\-toggle\-focus\fR
+Tell \fBxwinreg\fR to toggle focus on windows\. Specify this action with option \fB\-d\fR\.
+.
+.TP
+\fB\-M\fR, \fB\-move\-to\-desk\fR
+Move windows to another desktop\. Specify this action with options \fB\-r\fR, \fB\-D\fR and \fB\-W\fR\.
+.
+.TP
+\fB\-y\fR, \fB\-cycle\fR
+Cycle order of regions or windows\. Specify this action with options \fB\-r\fR, \fB\-d\fR, \fB\-w\fR and \fB\-k\fR\.
+.
+.TP
+\fB\-s\fR, \fB\-size\fR
+Size regions or windows\. The sizing is specified by options \fB\-r\fR, \fB\-e\fR, \fB\-R\fR, \fB\-g\fR and \fB\-w\fR\.
+.
+.TP
+\fB\-m\fR, \fB\-move\fR
+Move regions or windows\. The sizing is specified by options \fB\-r\fR, \fB\-e\fR, \fB\-R\fR, \fB\-g\fR, \fB\-w\fR and \fB\-d\fR\.
+.
+.TP
+\fB\-l\fR, \fB\-layout\fR
+Build layout and create Tmp File\. Specify the layout with options \fB\-r\fR, \fB\-x\fR, \fB\-A\fR, \fB\-e\fR, \fB\-G\fR and \fB\-g\fR
+.
+.TP
+\fB\-L\fR, \fB\-layout\-abbrev\fR \fIREGN\fR,\fIWINN\fR,\fISPLIT\fR,\fILENT\fR:\fIGRAV\fR,\fIGEO\fR
+Write action \fB\-l\fR in shorthand\.
+.
+.SS "OPTIONS"
+.
+.TP
+\fB\-r\fR, \fB\-region\fR ( \fIREG\fR | \fIREGN\fR )
+Select, which regions should be processed\. All actions must be called with this option, expect \fB\-O\fR and \fB\-o\fR\.
+.
+.TP
+\fB\-d\fR, \fB\-direction\fR ( \fIODIREC\fR | \fIYDIREC\fR | \fIMDIREC\fR )
+Used with action \fB\-o\fR and \fB\-y\fR\. Moreover, specify action \fB\-m\fR with \fBregion\fR or \fBwindow\fR as reference with it\.
+.
+.TP
+\fB\-D\fR, \fB\-desk\fR \fIDESK\fR
+Move windows to desktop \fIDESK\fR\.
+.
+.TP
+\fB\-e\fR, \fB\-entity\fR ( \fIENT\fR | \fILENT\fR )
+Specify the entity of actions \fB\-m\fR, \fB\-s\fR, \fB\-l\fR and \fB\-L\fR\.
+.
+.TP
+\fB\-R\fR, \fB\-reference\fR \fIREF\fR
+Used with action \fB\-m\fR and \fB\-s\fR\. If entity is \fBpro\fR, you need to specify the reference\.
+.
+.TP
+\fB\-g\fR, \fB\-geo\fR \fIGEO\fR
+Specify the geometry of actions \fB\-m\fR, \fB\-s\fR, \fB\-l\fR and \fB\-L\fR\.
+.
+.TP
+\fB\-x\fR, \fB\-maximum\fR \fIWINN\fR
+Maximal number of windows a region should contain\. Used with actions \fB\-l\fR and \fB\-L\fR\.
+.
+.TP
+\fB\-G\fR, \fB\-gravity\fR \fIGRAV\fR
+Used with actions \fB\-l\fR and \fB\-L\fR to specify the gravity\. If you are indecisive, use \fB0\fR\.
+.
+.TP
+\fB\-A\fR, \fB\-action\fR \fISPLIT\fR
+Used with actions \fB\-l\fR and \fB\-L\fR to tell \fBxwinreg\fR, how a region should be filled with windows\.
+.
+.TP
+\fB\-w\fR, \fB\-window\fR
+Used with actions \fB\-y\fR, \fB\-s\fR and \fB\-m\fR to indicate that windows (not regions) should be processed\.
+.
+.TP
+\fB\-W\fR, \fB\-switch\fR
+Used with action \fB\-M\fR to switch to the desktop after moving\.
+.
+.TP
+\fB\-k\fR, \fB\-stack\fR
+Used with action \fB\-y\fR to keep region position, but cycle windows and \fISPLIT\fR\. Without this option region positions are cycled; together with windows and \fISPLIT\fR\.
+.
+.SH "ARGUMENTS"
+.
+.TP
+\fIFILE\fR
+Regular file or named pipe\.
+.
+.TP
+\fIINT\fR
+Default is \fB2\fR\.
+.
+.TP
+\fIFRAMEALIAS\fR
+\fBnorthwest\fR, \fBnorth\fR, \fBnortheast\fR, \fBeast\fR, \fBsoutheast\fR, \fBsouth\fR, \fBsouthwest\fR or \fBwest\fR\. See also section CONFIGURATION in this manpage\.
+.
+.TP
+\fIPX\fR
+Pixel size specified by an integer\.
+.
+.TP
+\fIREG\fR
+Up to this sample: \fB1\fR, \fB1,3\fR, \fB1\-3\fR or \fB1,2\-3\fR\. Additional: \fBactive\fR or \fBall\fR\. But see section BUGS & REQUESTS in this manpage\. See the contrast to \fIREGN\fR\.
+.
+.TP
+\fIREGN\fR
+Region number specified by an integer\. Used with actions \fB\-l\fR and \fB\-L\fR\.
+.
+.TP
+\fIODIREC\fR
+\fBnext\fR or \fBpreview\fR\. Used with action \fB\-o\fR\.
+.
+.TP
+\fIYDIREC\fR
+\fBclock\fR, \fBanticlock\fR or \fBreverse\fR\. Used with action \fB\-y\fR\.
+.
+.TP
+\fIMDIREC\fR
+\fBnorth\fR, \fBeast\fR, \fBsouth\fR or \fBwest\fR\. Used with action \fB\-m\fR
+.
+.TP
+\fIDESK\fR
+Desktop number specified by an integer or \fBcurr\fR\.
+.
+.TP
+\fIENT\fR
+\fBpx\fR or \fBpro\fR\. Used with actions \fB\-m\fR and \fB\-s\fR\.
+.
+.TP
+\fILENT\fR
+\fBalias\fR, \fBpx\fR or \fBpro\fR\. Used with actions \fB\-l\fR and \fB\-L\fR\.
+.
+.TP
+\fIREF\fR
+\fBwindow\fR, \fBregion\fR or \fBframe\fR\.
+.
+.TP
+\fIWINN\fR
+Window number specified by an integer or \fBmax\fR\.
+.
+.TP
+\fIGRAV\fR
+\fBnorthwest\fR, \fBnorth\fR, \fBnortheast\fR, \fBwest\fR, \fBcenter\fR, \fBeast\fR, \fBsouthwest\fR, \fBsouth\fR, \fBsoutheast\fR or \fBstatic\fR\. Additional: \fB[0\-10]\fR\.
+.
+.TP
+\fISPLIT\fR
+\fBmaximize\fR, \fBhorizontal\fR, \fBvertical\fR, \fBgrid\-horizontal\fR, \fBgrid\-vertical\fR, \fBgrid\-square\-horizontal\fR or \fBgrid\-square\-vertical\fR\.
+.
+.TP
+\fIGEO\fR
+.br
+\fIX\fR         Pixel x size specified by an integer\.
+.br
+\fIY\fR         Pixel y size specified by an integer\.
+.br
+\fIW\fR         Pixel width size specified by an integer\.
+.br
+\fIH\fR         Pixel height size specified by an integer\.
+.br
+\fIPRO\fR       Procent size specified by an integer\.
+.br
+\fIREGALIAS\fR  \fBnorthwest\fR, \fBnorth\fR, \fBnortheast\fR, \fBeast\fR, \fBsoutheast\fR, \fBsouth\fR, \fBsouthwest\fR or \fBwest\fR\. See also section CONFIGURATION in this manpage\.
+.br
+\fI\-\fR         Means, that old size is kept\.
+.br
+Samples:  \fB<REGALIAS>\fR, \fB<PRO>\fR, \fB<PRO>,<PRO>\fR,
+.br
+          \fB<PRO>,<PRO>,<PRO>,<PRO>\fR, \fB<X>,<Y>\fR,
+.br
+          \fB<W>,<H>\fR or \fB<X>,<Y>,<W>,<H>\fR\.
+.
+.SH "EXAMPLES"
+.
+.TP
+To do some layouting with five windows:
+xwinpp \-F \./list \-P 1 \-p | xwinreg \- \-L 1,max,horizontal,alias:0,all
+.br
+xwinpp \-F \./list \-P 1 \-p | xwinreg \- \-L 1,max,grid\-horizontal,alias:0,all
+.br
+xwinpp \-F \./list \-P 1 \-p | xwinreg \- \-L 1,max,grid\-square\-horizontal,alias:0,all
+.br
+xwinpp \-F \./list \-P 1 \-p | xwinreg \- \-L 1,max,maximize,alias:0,all
+.br
+xwinpp \-F \./list \-P 1 \-p | xwinreg \- \-L 1,1,maximize,alias:0,west \-L 2,max,horizontal,alias:0,east
+.br
+xwinpp \-F \./list \-P 1 \-p | xwinreg \- \-L 1,1,maximize,alias:0,west \-L 2,1,maximize,alias:0,northeast \-L 3,max,vertical,alias:0,southeast
+.
+.TP
+To do some cycling (still with five windows):
+xwinreg \-y \-w \-r all \-d reverse
+.br
+xwinreg \-y \-d anticlock
+.br
+xwinreg \-y \-d clock
+.br
+xwinreg \-y \-stack \-d clock
+.
+.TP
+To do some moving with two windows:
+xwinpp \-F \./list \-P 1 \-p | xwinreg \- \-L 1,1,maximize,alias:0,northeast \-L 2,1,maximize,alias:0,southeast
+.br
+xwinreg \-m \-w \-r all \-e pro \-R window \-geo 100 \-d west
+.br
+xwinreg \-m \-w \-r all \-e pro \-R window \-geo 100 \-d east
+.br
+xwinreg \-m \-r all \-e pro \-R region \-geo 100 \-d west
+.
+.TP
+To do some sizing with three windows:
+xwinpp \-F \./lis \-P1 \-p | xwinreg \- \-L 1,1,maximize,alias:0,north \-L 2,max,maximize,alias:0,south
+.br
+xwinreg \-s \-w \-r 2 \-e pro \-R window \-geo \-,50
+.br
+xwinreg \-s \-w \-r 2 \-e pro \-R window \-geo \-,200
+.br
+xwinreg \-s \-r active \-e pro \-R frame \-geo 50,50
+.
+.SH "RETURN VALUES"
+.
+.TP
+1
+USAGE: xwinreg (\-|\-F| ) [\-C|\-T|\-n|\-N|\-a|\-fx|\-fy|\-fw|\-fh|\-wx|\-wy|\-ww|\-wh] (\-c|\-f|\-H|\-h|[\-l \.\.\.|\-L\.\.\.]|\-M|\-m|\-O|\-o|\-s|\-U|\-v|\-y)
+.
+.TP
+2
+Insufficient windows to work with\.
+.
+.TP
+3
+No action spezified\.
+.
+.SH "NOTES"
+.
+.IP "\(bu" 4
+You may write all commands and options without masking \fB\-\fR\. So, instead of \fB\-help\fR you may use \fBhelp\fR\.
+.
+.IP "\(bu" 4
+If no workarea geometry is set, \fBxwinreg\fR uses \fB_NET_WORKAREA\fR\.
+.
+.IP "\(bu" 4
+.
+Currently, window decoration is not considered.
+.
+.IP "\(bu" 4
+If no frame geometry is set, \fB_NET_WORKAREA\fR is used as frame\. Every new frame needs its own Tmp File\. In other words: all layouting takes place in one frame\. You can specify another Tmp File with option \fB\-T\fR, or you may create several Conf Files\. See section CONFIGURATION in this manpage\.
+.
+.IP "\(bu" 4
+If you use actions \fB\-m\fR and \fB\-s\fR with option \fB\-w\fR, only new window\-geometries are updated in the Tmp File\. Without option \fB\-w\fR the hole Tmp File is rewritten\.
+.
+.IP "" 0
+.
+.SH "CONFIGURATIONS"
+By default, \fBxwinreg\fR needs no Conf File, because all important geometries will be calculated in the script\. You can also use the relating options on command line\. So, only use a Conf File, if you want to work with several frames (and several Tmp Files are needed) or if you need to set own aliases for frame and region geometries\. Along with this programm comes a Example Conf File\. Specify a Conf File with option \fB\-C\fR\. You can set following parameters:
+.
+.TP
+enviroment variables:
+\fBXWINREG_TMP_FILE=\fIFILE\fR\fR
+.
+.TP
+normal variables:
+\fBworkarea_x=\fIPX\fR\fR
+.br
+\fBworkarea_y=\fIPX\fR\fR
+.br
+\fBworkarea_width=\fIPX\fR\fR
+.br
+\fBworkarea_height=\fIPX\fR\fR
+.br
+\fBframe_x=\fIPX\fR\fR
+.br
+\fBframe_y=\fIPX\fR\fR
+.br
+\fBframe_width=\fIPX\fR\fR
+.br
+\fBframe_height=\fIPX\fR\fR
+.br
+\fBrow_number=\fIINT\fR\fR
+.br
+\fBcol_number=\fIINT\fR\fR
+.
+.TP
+indexed array variables (you can use above variables). You need to set them inside a function called \fB_calculating_frame_alias\fR resp. \fB_calculating_region_alias\fR:
+\fBframe_framealias=( \fIX\fR \fIY\fR \fIW\fR \fIH\fR )\fR
+.br
+\fBregion_regalias=( \fIX\fR \fIY\fR \fIW\fR \fIH\fR )\fR
+.
+.SH "ENVIROMENT"
+.
+.TP
+\fITMPDIR\fR
+By default, Tmp File will be written as \fB\fITMPDIR\fR/xwinreg_default\.tmp\fR, otherwise as \fB/tmp/xwinreg_default\.tmp\fR\.
+.
+.TP
+\fIXWINREG_TMP_FILE\fR
+Specify this instead default setting and instead \fBXWINREG_TMP_FILE\fR in a Conf File.
+.
+.SH "BUGS & REQUESTS"
+Report it on https://github\.com/D630/xwinreg
+.
+.IP "\(bu" 4
+Currently, it is not possible to cycle windows inside a specific region (action \fB\-y\fR with option \fB\-w\fR and \fB\-r\fR)\. So, option \fB\-r\fR must use with argument \fBall\fR\.
+.
+.IP "" 0
+.
+.SH "TODO"
+See file \fBTODO\fR, which comes along with this programm\.
+.
+.SH "LICENSE"
+\fBxwinreg\fR is licensed with \fBGNU GPLv3\fR\. You should have received a copy of the \fBGNU General Public License\fR along with this program\. If not, see for more details \fB<http://www\.gnu\.org/licenses/gpl\-3\.0\.html>\fR\.
+.
+.SH "CHRONOLOGY"
+First version (\fB0\.1\.0\.0\fR) was finished on 10\. February 2014\.
+.
+.SH "CONCEPTION"
+\fBxwinpp\fR reads a list with X window ids and does a preparing output with variables, which will be read by \fBxwinreg\fR\. By using action \fBlayout\fR or \fBlayout\-abbrev\fR a layout will be generated and all specified windows will be ordered\. In the course of layouting a Tmp File with some variables will be created\. Any other actions then need to access that Tmp File to work properly\. Only above layout actions must be used in combination with \fBxwinpp\fR; no windows to read are needed any more\.
+.
+.P
+The layout will be set on one desktop\. Therefore, \fBxwinreg\fR reads \fI_NET_WORKAREA\fR and determines a frame as scale base to have base geometry\. In this frame \fBxwinreg\fR arranges regions, which will be filled rule\-based with the windows\. Windows are taken in list\-order; the first window will be set as first window in the first region\. You can determine, how many windows a region should have (maximum is the number of imported windows)\. The windows will be split and positioned with following functions: \fBmaximize\fR, \fBvertical\fR, \fBhorizontal\fR, \fBgrid\-vertical\fR, \fBgrid\-horizontal\fR, \fBgrid\-square\-vertical\fR, \fBgrid\-square\-horizontal\fR\.
+.
+.P
+In other words: all layouting takes place in one frame\. That one frame may have geometry of the workspace or any other\. To work with more than one frame, you need to create more than one Tmp File\. See sections NOTES and CONFIGURATION in this manpage\.
+.
+.SH "SEE ALSO"
+\fBbc\fR(1), \fBbash\fR(1), \fBgrep\fR(1), \fBsed\fR(1), \fBwmctrl\fR(1), \fBx\fR(7), \fBxprop\fR(1), \fBxwinpp\fR(1)

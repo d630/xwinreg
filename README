@@ -1,0 +1,417 @@
+XWINREG(1)                 User Manual                        XWINREG(1)
+
+NAME
+       xwinreg - organize X windows into regions and do tiling layouts
+
+SYNOPSIS
+       xwinreg (-|-F| )
+               [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
+               (-c|-f|-H|-h|[-l ...|-L...]|-M|-m|-O|-o|-s|-U|-v|-y)
+
+REQUIREMENT
+       bc, GNU bash, GNU grep, GNU sed, wmctrl, xprop, xwinpp
+
+DESCRIPTION
+       xwinreg  is  a  bash shell script that acts like a stupid third
+       party tiling application on Xorg. It lets you to organize X windows
+       into frames and regions and then to build your own layouts in a
+       simple way. Therefore, xwinreg uses xwinpp to prepare a list of X
+       window ids, and wmctrl to interact with your EWMH/NetWM compatible
+       X Window manager. See section CONCEPTION in this manpage.
+
+OPTIONS
+       -
+            Get output from xwinpp by reading from standard input; -
+            must be the first argument.
+
+       -F, -file FILE
+              Obtain output of xwinpp from FILE, not from standard input.
+
+       -C, -conf-file FILE
+              Read variables from FILE. See section CONFIGURATION in
+              this manpage.
+
+       -T, -tmp-file FILE
+              Before layouting, xwinreg creates a Tmp File, whose
+              variables are needed by all other actions to work with.
+              With this option you can specify a nonregular file.
+
+       -n, -number-of-rows INT
+              Specify number of rows for grid layouting.
+
+       -N, -number-of-cols INT
+              Specify number of columns for grid layouting.
+
+       -a, -frame-alias FRAMEALIAS
+              Instead of options -fx, -fy, -fw and -fh specify an alias.
+              See section CONFIGURATION in this manpage.
+
+       -fx, -frame-x PX
+              Specify the left edge of the frame.
+
+       -fy, -frame-y PX
+              Specify the top edge of the frame.
+
+       -fw, -frame-width PX
+              Specify the WIDTH of the frame.
+
+       -fh, -frame-height PX
+              Specify the HEIGHT of the frame.
+
+       -wx, -workarea-x PX
+              Specify the left edge of the workarea.
+
+       -wy, -workarea-y PX
+              Specify the top edge of the workarea.
+
+       -ww, -workarea-width PX
+              Specify the WIDTH of the workarea.
+
+       -wh, -workarea-height PX
+              Specify the HEIGHT of the workarea.
+
+       -h, -help
+              Display a short help.
+
+       -v, -version
+              Print current version of xwinreg.
+
+SUBCOMMANDS
+   ACTIONS
+       -O, -reset
+              Restore last layout, which has been set in the Tmp File.
+
+       -c, -close
+              Close windows gracefully. Specify this action with
+              option -r.
+
+       -H, -hide
+              Add window property hidden. Specify this action with
+              option -r.
+
+       -U, -unhide
+              Remove window property hidden. Specify this action with
+              option -r.
+
+       -f, -focus
+              Switch to the desktop containing the windows, raise the
+              windows, and give them focus. At the end, focus the active
+              window again. Specify this action with option -r.
+
+       -o, -toggle-focus
+              Tell xwinreg to toggle focus on windows. Specify this
+              action with option -d.
+
+       -M, -move-to-desk
+              Move windows to another desktop. Specify this action with
+              options -r, -D and -W.
+
+       -y, -cycle
+              Cycle order of regions or windows. Specify this action
+              with options -r, -d, -w and -k.
+
+       -s, -size
+              Size regions or windows. The sizing is specified by
+              options -r, -e, -R, -g and -w.
+
+       -m, -move
+              Move regions or windows. The sizing is specified by
+              options -r, -e, -R, -g, -w and -d.
+
+       -l, -layout
+              Build layout and create Tmp File. Specify the layout with
+              options -r, -x, -A, -e, -G and -g
+
+       -L, -layout-abbrev REGN,WINN,SPLIT,LENT:GRAV,GEO
+              Write action -l in shorthand.
+
+   OPTIONS
+       -r, -region ( REG | REGN )
+              Select, which regions should be processed. All actions
+              must be called with this option, expect -O and -o.
+
+       -d, -direction ( ODIREC | YDIREC | MDIREC )
+              Used with action -o and -y. Moreover, specify action -m
+              with region or window as reference with it.
+
+       -D, -desk DESK
+              Move windows to desktop DESK.
+
+       -e, -entity ( ENT | LENT )
+              Specify the entity of actions -m, -s, -l and -L.
+
+       -R, -reference REF
+              Used with action -m and -s. If entity is pro, you need to
+              specify the reference.
+
+       -g, -geo GEO
+              Specify the geometry of actions -m, -s, -l and -L.
+
+       -x, -maximum WINN
+              Maximal number of windows a region should contain. Used
+              with actions -l and -L.
+
+       -G, -gravity GRAV
+              Used with actions -l and -L to specify the gravity. If
+              you are indecisive, use 0.
+
+       -A, -action SPLIT
+              Used with actions -l and -L to tell xwinreg, how a region
+              should be filled with windows.
+
+       -w, -window
+              Used with actions -y, -s and -m to indicate that windows
+              (not regions) should be processed.
+
+       -W, -switch
+              Used with action -M to switch to the desktop after moving.
+
+       -k, -stack
+              Used with action -y to keep region position, but cycle
+              windows and SPLIT. Without this option region positions
+              are cycled; together with windows and SPLIT.
+
+ARGUMENTS
+       FILE
+              Regular file or named pipe.
+
+       INT
+              Default is 2.
+
+       FRAMEALIAS
+              northwest, north, northeast, east, southeast, south,
+              southwest or west. See also section CONFIGURATION in
+              this manpage.
+
+       PX     Pixel size specified by an integer.
+
+       REG
+              Up to this sample: 1, 1,3, 1-3 or 1,2-3. Additional:
+              active or all. But see section BUGS & REQUESTS in this
+              manpage. See the contrast to REGN.
+
+       REGN
+              Region number specified by an integer. Used with actions
+              -l and -L.
+
+       ODIREC
+              next or preview. Used with action -o.
+
+       YDIREC
+              clock, anticlock or reverse. Used with action -y.
+
+       MDIREC
+              north, east, south or west. Used with action -m
+
+       DESK
+              Desktop number specified by an integer or curr.
+
+       ENT
+              px or pro. Used with actions -m and -s.
+
+       LENT
+              alias, px or pro. Used with actions -l and -L.
+
+       REF
+              window, region or frame.
+
+       WINN
+              Window number specified by an integer or max.
+
+       GRAV
+              northwest, north, northeast, west, center, east, southwest,
+              south, southeast or static. Additional: [0-10].
+
+       SPLIT
+              maximize, horizontal, vertical, grid-horizontal,
+              grid-vertical, grid-square-horizontal or
+              grid-square-vertical.
+
+       GEO
+              X         Pixel x size specified by an integer.
+              Y         Pixel y size specified by an integer.
+              W         Pixel width size specified by an integer.
+              H         Pixel height size specified by an integer.
+              PRO       Procent size specified by an integer.
+              REGALIAS  northwest, north, northeast, east, southeast,
+                        south, southwest or west. See also section
+                        CONFIGURATION in this manpage.
+              -         Means, that old size is kept.
+              Samples:  <REGALIAS>, <PRO>, <PRO>,<PRO>,
+                        <PRO>,<PRO>,<PRO>,<PRO>, <X>,<Y>,
+                        <W>,<H> or <X>,<Y>,<W>,<H>.
+
+EXAMPLES
+       To do some layouting with five windows:
+              xwinpp -F ./list -P 1 -p | xwinreg -
+                -L 1,max,horizontal,alias:0,all
+
+              xwinpp -F ./list -P 1 -p | xwinreg -
+                -L 1,max,grid-horizontal,alias:0,all
+
+              xwinpp -F ./list -P 1 -p | xwinreg -
+                -L 1,max,grid-square-horizontal,alias:0,all
+
+              xwinpp -F ./list -P 1 -p | xwinreg -
+                -L 1,max,maximize,alias:0,all
+
+              xwinpp -F ./list -P 1 -p | xwinreg -
+                -L 1,1,maximize,alias:0,west
+                -L 2,max,horizontal,alias:0,east
+
+              xwinpp -F ./list -P 1 -p | xwinreg -
+                -L 1,1,maximize,alias:0,west
+                -L 2,1,maximize,alias:0,northeast
+                -L 3,max,vertical,alias:0,southeast
+
+       To do some cycling (still with five windows):
+              xwinreg -y -w -r all -d reverse
+
+              xwinreg -y -d anticlock
+
+              xwinreg -y -d clock
+
+              xwinreg -y -stack -d clock
+
+       To do some moving with two windows:
+              xwinpp -F ./list -P 1 -p | xwinreg -
+                -L 1,1,maximize,alias:0,northeast
+                -L 2,1,maximize,alias:0,southeast
+
+              xwinreg -m -w -r all -e pro -R window -geo 100 -d west
+
+              xwinreg -m -w -r all -e pro -R window -geo 100 -d east
+
+              xwinreg -m -r all -e pro -R region -geo 100 -d west
+
+       To do some sizing with three windows:
+              xwinpp -F ./lis -P1 -p | xwinreg -
+                -L 1,1,maximize,alias:0,north
+                -L 2,max,maximize,alias:0,south
+
+              xwinreg -s -w -r 2 -e pro -R window -geo -,50
+
+              xwinreg -s -w -r 2 -e pro -R window -geo -,200
+
+              xwinreg -s -r active -e pro -R frame -geo 50,50
+
+RETURN VALUES
+       1
+              USAGE: xwinreg (-|-F| )
+                    [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
+                    (-c|-f|-H|-h|[-l ...|-L...]|-M|-m|-O|-o|-s|-U|-v|-y)
+
+       2
+              Insufficient windows to work with.
+
+       3
+              No action spezified.
+
+NOTES
+       ·   You may write all commands and options without masking -.
+           So, instead of -help you may use help.
+
+       ·   If no workarea geometry is set, xwinreg uses _NET_WORKAREA.
+
+       ·   Currently, window decoration is not considered.
+
+       ·   If no frame geometry is set, _NET_WORKAREA is used as frame.
+           Every new frame needs its own Tmp File. In other words: all
+           layouting takes place in one frame. You can specify another
+           Tmp File with option -T, or you may  create several Conf
+           Files. See section CONFIGURATION in this manpage.
+
+       ·   If you use actions -m and -s with option -w, only new
+           window-geometries are updated in the Tmp File. Without option
+           -w the hole Tmp File is rewritten.
+
+CONFIGURATIONS
+       By  default,  xwinreg  needs  no  Conf  File, because all important
+       geometries will be calculated in the script. You can also use
+       the relating options on command line. So, only use a Conf File,
+       if you want to work with several frames (and several Tmp Files
+       are needed) or if you need to set own aliases for frame and
+       region geometries. Along with this programm comes a Example Conf
+       File. Specify a Conf File with option -C.  You can set following
+       parameters:
+
+       enviroment variables:
+              XWINREG_TMP_FILE=FILE
+
+       normal variables:
+              workarea_x=PX
+              workarea_y=PX
+              workarea_width=PX
+              workarea_height=PX
+              frame_x=PX
+              frame_y=PX
+              frame_width=PX
+              frame_height=PX
+              row_number=INT
+              col_number=INT
+
+       indexed array variables (you can use above variables). You need
+       to set them inside a function called _calculating_frame_alias
+       resp. _calculating_region_alias:
+              frame_framealias=( X Y W H )
+              region_regalias=( X Y W H )
+
+ENVIROMENT
+       TMPDIR
+              By default, Tmp File will be written as
+              TMPDIR/xwinreg_default.tmp, otherwise as
+              /tmp/xwinreg_default.tmp.
+
+        XWINREG_TMP_FILE
+              Specify this instead default setting and instead
+              XWINREG_TMP_FILE in a Conf File.
+
+BUGS & REQUESTS
+       Report it on https://github.com/D630/xwinreg
+
+       ·   Currently, it is not possible to cycle windows inside a
+           specific region (action -y with option -w and -r). So, option
+           -r must use with argument all.
+
+TODO
+       See file TODO, which comes along with this programm.
+
+LICENSE
+       xwinreg is licensed with GNU GPLv3. You should have received a copy
+       of the GNU General Public License along with this program.  If not,
+       see for more details <http://www.gnu.org/licenses/gpl-3.0.html>.
+
+CHRONOLOGY
+       First version (0.1.0.0) was finished on 10. February 2014.
+
+CONCEPTION
+       xwinpp  reads a list with X window ids and does a preparing
+       output with variables, which will be read by xwinreg. By using
+       action layout or layout-abbrev a layout will be generated and all
+       specified windows will be ordered. In the course of layouting a
+       Tmp File with some variables will be created. Any other actions
+       then need to access that Tmp File to work properly. Only above
+       layout actions must be used in combination with  xwinpp; no
+       windows to read are needed any more.
+
+       The layout will be set on one desktop. Therefore, xwinreg reads
+       _NET_WORKAREA and determines a frame as scale base to have
+       base geometry. In this frame xwinreg arranges regions, which
+       will be f illed rule-based with the windows. Windows are taken
+       in list-order; the first window will be set as first window in
+       the first region. You can determine, how many windows a region
+       should have (maximum is the number of imported windows). The
+       windows will be split and positioned with following functions:
+       maximize, vertical, horizontal, grid-vertical, grid-horizontal,
+       grid-square-vertical, grid-square-horizontal.
+
+       In  other  words: all layouting takes place in one frame. That
+       one frame may have geometry of the workspace or any other. To
+       work with more than one frame, you need to create more than one
+       Tmp File. See sections NOTES and CONFIGURATION in this manpage.
+
+SEE ALSO
+       bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
+       xwinpp(1)
+
+0.1.0.5                     2014-03-01                        XWINREG(1)
