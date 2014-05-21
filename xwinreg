@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.11" ; }
+_version() { echo "0.1.0.12" ; }
 
 _usage()
 {
@@ -659,7 +659,7 @@ _check_move_to_desk()
         _move
     done
 
-    [[ $switch == true ]] && wmctrl -i -a "${win_xid_selection[0]}"
+    [[ $switch == switch ]] && wmctrl -i -a "${win_xid_selection[0]}"
 }
 
 _check_hiding()
@@ -1315,7 +1315,7 @@ _cycle_region()
                 ;;
     esac
 
-    if [[ $stack == true ]]
+    if [[ $stack == stack ]]
     then
         # We cut <LENT>:<GRAV>,<GEO>.
         for lyt in "${layout[@]}"
@@ -1631,8 +1631,8 @@ case ${1#-} in
                             shift 2
                             continue
                             ;;
-                    k|stack|stack)
-                            stack=true
+                    k|stack)
+                            stack=stack
                             shift 1
                             continue
                             ;;
@@ -1757,7 +1757,7 @@ do
                 continue
                 ;;
         W|switch)
-                switch=true
+                switch=switch
                 shift 1
                 continue
                 ;;
