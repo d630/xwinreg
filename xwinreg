@@ -14,21 +14,21 @@
 
 ## This program is distributed in the hope that it will be useful, but
 ## WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-## or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+## or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
 ## for more details.
 
 ## You should have received a copy of the GNU General
-## Public License along with this program.  If not, see
+## Public License along with this program. If not, see
 ## <http://www.gnu.org/licenses/gpl-3.0.html>.
 
 #* Functions
 
-_version() { echo "0.1.0.17" ; }
+_version() { echo "0.1.0.18" ; }
 
 _usage()
 {
     printf 'xwinreg
-       (-|-F| )
+       (-F| )
        [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
        (-c|-f|-H|-h|[-l ...|-L...]|-M|-m|-O|-o|-s|-U|-v|-y)'
 }
@@ -42,8 +42,7 @@ OPTIONS
 -------
     OPTION                  ARG
     ------                  ---
-    -
-    -F,  -file              <FILE>
+    -F,  -file              <FILE> or a hyphen (-)
     -C,  -conf-file         <FILE>
     -T,  -tmp-file          <FILE>
     -n,  -number-of-rows    <INT>
@@ -74,7 +73,7 @@ SUBCOMMANDS
     -y,  -cycle             <REG> <YDIREC> -w -k
     -s,  -size              <REG> <ENT> <REF> <GEO> -w
     -m,  -move              <REG> <ENT> <REF> <GEO> <MDIREC> -w
-    -l,  -layout            <REGN> <WINN> <LENT> <GRAV> <GEO> <SPLIT>
+    -l,  -layout            <REGN> <WINN> <SPLIT> <LENT> <GRAV> <GEO>
 
     ACTION                  ARG
     ------                  ---
