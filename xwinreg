@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.12" ; }
+_version() { echo "0.1.0.14" ; }
 
 _usage()
 {
@@ -369,6 +369,16 @@ _build_layout()
     {
         layout+=( ${region_selection},${win_number_maximum},${layout_action//-/_},${entity_size}:${gravity},${geo} )
         unset -v region_selection win_number_maximum layout_action entity_size gravity geo
+    }
+}
+
+_build_layout_abbrev()
+{
+    declare l_l= l_r=
+    [[ $1 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] &&
+    {
+        IFS=: read -r l_l l_r <<< "$1"
+        layout+=( ${l_l//-/_}:${l_r} )
     }
 }
 
@@ -1694,7 +1704,7 @@ do
     case ${1#-} in
         L|layout-abbrev)
                 action=layout
-                [[ $2 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] && { IFS=: read -r l_l l_r <<< "$2" ; layout+=( ${l_l//-/_}:${l_r} ) ; l_l= l_r= ; }
+                _build_layout_abbrev "$2"
                 shift 2
                 continue
                 ;;
