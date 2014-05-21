@@ -19,7 +19,7 @@
 
 # --- Functions
 
-_version() { echo "0.1.0.8" ; }
+_version() { echo "0.1.0.9" ; }
 
 _usage()
 {
@@ -180,10 +180,10 @@ _calculating()
 {
     # Check, if geo of workarea is manually set; if not, we use _NET_WORKAREA instead.
     read -a workarea < <(xprop -root -notype _NET_WORKAREA) && workarea=( ${workarea[@]//,} ) && workarea=( ${workarea[@]:2} )
-    workarea_x=${workarea_x-${workarea[0]}}
-    workarea_y=${workarea_y-${workarea[1]}}
-    workarea_w=${workarea_width-${workarea[2]}}
-    workarea_h=${workarea_height-${workarea[3]}}
+    workarea_x=${workarea_x:-${workarea[0]}}
+    workarea_y=${workarea_y:-${workarea[1]}}
+    workarea_w=${workarea_width:-${workarea[2]}}
+    workarea_h=${workarea_height:-${workarea[3]}}
 
     # Check, if frame aliases have been set in a Conf File.
     declare -f _calculating_frame_alias > /dev/null && _calculating_frame_alias
@@ -191,7 +191,7 @@ _calculating()
     # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
     frame_northwest=( ${frame_northwest[@]-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))} )
     frame_north=( ${frame_north[@]-$workarea_x $workarea_y $workarea_w $((workarea_h/2))} )
-    frame_northeast=( ${frame_northweast[@]-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))} )
+    frame_northeast=( ${frame_northwest[@]-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))} )
     frame_east=( ${frame_east[@]-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h} )
     frame_southeast=( ${frame_southeast[@]-$((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))} )
     frame_south=( ${frame_south[@]-$workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2))} )
@@ -202,15 +202,15 @@ _calculating()
     if [[ $frame ]]
     then
         eval frame_geo=( '${frame_'${frame}'[@]}' )
-        frame_x=${frame_x-${frame_geo[0]}}
-        frame_y=${frame_y-${frame_geo[1]}}
-        frame_w=${frame_width-${frame_geo[2]}}
-        frame_h=${frame_height-${frame_geo[3]}}
+        frame_x=${frame_x:-${frame_geo[0]}}
+        frame_y=${frame_y:-${frame_geo[1]}}
+        frame_w=${frame_width:-${frame_geo[2]}}
+        frame_h=${frame_height:-${frame_geo[3]}}
     else
-        frame_x=${frame_x-$workarea_x}
-        frame_y=${frame_y-$workarea_y}
-        frame_w=${frame_width-$workarea_w}
-        frame_h=${frame_height-$workarea_h}
+        frame_x=${frame_x:-$workarea_x}
+        frame_y=${frame_y:-$workarea_y}
+        frame_w=${frame_width:-$workarea_w}
+        frame_h=${frame_height:-$workarea_h}
     fi
 
     # To simplify matters, we alias frames geo to x,y,w and h.
@@ -234,8 +234,8 @@ _calculating()
     region_all=( ${region_all[@]-$x $y $w $h} )
 
     # Here we declare row and column number, which are needed to perform grid layouting.
-    row_number=${row_number-2}
-    col_number=${col_number-2}
+    row_number=${row_number:-2}
+    col_number=${col_number:-2}
 }
 
 _do_wmctrl()
@@ -1462,14 +1462,14 @@ declare -x desk_curr= \
            row_number= \
            col_number= \
            frame= \
-           frame_width= \
-           frame_height= \
-           frame_x= \
-           frame_y= \
            workarea_x= \
            workarea_y= \
            workarea_width= \
-           workarea_height
+           workarea_height= \
+           frame_width= \
+           frame_height= \
+           frame_x= \
+           frame_y=
 declare -ax desk_select=( ) \
             win_active_geo_x_y=( ) \
             win_active_geo_w_h=( ) \
