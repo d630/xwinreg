@@ -19,7 +19,7 @@
 
 # --- Functions
 
-_version() { echo "0.1.0.7" ; }
+_version() { echo "0.1.0.8" ; }
 
 _usage()
 {
@@ -130,6 +130,16 @@ ARGUMENTS
                                '<PRO>,<PRO>,<PRO>,<PRO>', '<X>,<Y>',
                                '<W>,<H>' or '<X>,<Y>,<W>,<H>'.
 "
+}
+
+_check_variables_input()
+{
+    if [[ $1 =~ ^(desk_curr|win_active|win_active_frame_extents|win_active_tags|win_number|desk_select|win_active_geo_x_y|win_active_geo_w_h|win_xid|win_geo_x_y|win_geo_w_h|win_frame_extents|win_tags)=.*$ ]]
+    then
+        eval "$1"
+    else
+        { echo "Irregular variable inside input." >&2 ; exit 1 ; }
+    fi
 }
 
 _mktmp()
@@ -1438,35 +1448,68 @@ _focus_toggle()
     wmctrl -i -a "$win"
 }
 
-# --- Main
+#* Main
+#** Read options
 
 [[ ! $1 ]] && { printf '%s\n' "USAGE: $(_usage)" >&2 ; exit 1 ; }
 
-[[ $1 == - ]] &&
-{
-    while read -r i
-    do
-        eval "$i"
-    done
-    shift 1
-}
+declare -x desk_curr= \
+           win_active= \
+           win_active_frame_extents= \
+           win_active_tags= \
+           win_number= \
+           file_tmp= \
+           row_number= \
+           col_number= \
+           frame= \
+           frame_width= \
+           frame_height= \
+           frame_x= \
+           frame_y= \
+           workarea_x= \
+           workarea_y= \
+           workarea_width= \
+           workarea_height
+declare -ax desk_select=( ) \
+            win_active_geo_x_y=( ) \
+            win_active_geo_w_h=( ) \
+            win_xid=( ) \
+            win_geo_x_y=( ) \
+            win_geo_w_h=( ) \
+            win_frame_extents=( ) \
+            win_tags=( )
 
-while true
+while :
 do
     case ${1#-} in
         F|file)
-                [[ -p $2 || -f $2 ]] &&
-                {
-                    while read -r i
-                    do
-                        eval "$i"
-                    done < "$2"
-                    shift 2
-                }
+                if [[ $2 == - ]]
+                then
+                    if [[ -p /dev/stdin ]]
+                    then
+                        while read -r
+                        do
+                            _check_variables_input "$REPLY"
+                        done
+                    else
+                        { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
+                    fi
+                else
+                    if [[ -p $2 || -f $2 ]]
+                    then
+                        while read -r
+                        do
+                            _check_variables_input "$REPLY"
+                        done < "$2"
+                    else
+                        { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
+                    fi
+                fi
+                shift 2
                 continue
                 ;;
         C|conf-file)
-                source "$2"
+                XWINREG_CONF_FILE=$2
                 shift 2
                 continue
                 ;;
@@ -1479,6 +1522,16 @@ do
                 break
     esac
 done
+
+[[ $XWINREG_CONF_FILE ]] &&
+{
+    if [[ -f $XWINREG_CONF_FILE ]]
+    then
+        source "$XWINREG_CONF_FILE"
+    else
+        { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
+    fi
+}
 
 if [[ $XWINREG_TMP_FILE ]]
 then
@@ -1549,6 +1602,8 @@ do
                 break
     esac
 done
+
+#** Get actions
 
 case ${1#-} in
     y|cycle)
