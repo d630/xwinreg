@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.14" ; }
+_version() { echo "0.1.0.15" ; }
 
 _usage()
 {
@@ -363,14 +363,7 @@ _restore_x_y_w_h()
 
 _store_region() { eval "win_xid_region_${region_number}+=( ${win_xid[i]} )" "win_geo_x_y_region_${region_number}+=( ${x},${y} )" "win_geo_w_h_region_${region_number}+=( ${w},${h} )" ; }
 
-_build_layout()
-{
-    [[ $region_selection && $win_number_maximum && $layout_action && $entity_size && $gravity && $geo ]] &&
-    {
-        layout+=( ${region_selection},${win_number_maximum},${layout_action//-/_},${entity_size}:${gravity},${geo} )
-        unset -v region_selection win_number_maximum layout_action entity_size gravity geo
-    }
-}
+_build_layout() { [[ ! $@ =~ not_available && $# -eq 6 ]] && layout+=( ${1},${2},${3//-/_},${4}:${5},${6} ) ; }
 
 _build_layout_abbrev()
 {
@@ -1520,17 +1513,14 @@ do
                     fi
                 fi
                 shift 2
-                continue
                 ;;
         C|conf-file)
                 XWINREG_CONF_FILE=$2
                 shift 2
-                continue
                 ;;
         T|tmp-file)
                 XWINREG_TMP_FILE=$2
                 shift 2
-                continue
                 ;;
         *)
                 break
@@ -1560,57 +1550,46 @@ do
         n|number-of-rows)
                 row_number=$2
                 shift 2
-                continue
                 ;;
         N|number-of-cols)
                 col_number=$2
                 shift 2
-                continue
                 ;;
         a|frame-alias)
                 frame=$2
                 shift 2
-                continue
                 ;;
         fw|frame-width)
                 frame_width=$2
                 shift 2
-                continue
                 ;;
         fh|frame-height)
                 frame_height=$2
                 shift 2
-                continue
                 ;;
         fx|frame-x)
                 frame_x=$2
                 shift 2
-                continue
                 ;;
         fy|frame-y)
                 frame_y=$2
                 shift 2
-                continue
                 ;;
         wx|workarea-x)
                 workarea_x=$2
                 shift 2
-                continue
                 ;;
         wy|workarea-y)
                 workarea_y=$2
                 shift 2
-                continue
                 ;;
         ww|workarea-width)
                 workarea_width=$2
                 shift 2
-                continue
                 ;;
         wh|workarea-height)
                 workarea_height=$2
                 shift 2
-                continue
                 ;;
         *)
                 break
@@ -1634,22 +1613,18 @@ case ${1#-} in
                     r|region)
                             region_selection=$2
                             shift 2
-                            continue
                             ;;
                     d|direction)
                             direction_cycle=$2
                             shift 2
-                            continue
                             ;;
                     k|stack)
                             stack=stack
                             shift 1
-                            continue
                             ;;
                     w|window)
                             entity_cycle=window
                             shift 1
-                            continue
                             ;;
                     *)
                             break
@@ -1684,8 +1659,6 @@ case ${1#-} in
 esac
 
 declare -x action= \
-           l_l= \
-           l_r= \
            hide_action= \
            desk_target= \
            switch= \
@@ -1703,119 +1676,102 @@ while :
 do
     case ${1#-} in
         L|layout-abbrev)
-                action=layout
+                action=layout_abbrev
                 _build_layout_abbrev "$2"
                 shift 2
-                continue
                 ;;
         l|layout)
                 action=layout
-                _build_layout
+                _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
+                unset -v region_selection win_number_maximum layout_action entity_size gravity geo
                 shift 1
-                continue
                 ;;
         H|hide)
                 action=_check_hiding
                 hide_action=add
                 shift 1
-                continue
                 ;;
         U|unhide)
                 action=_check_hiding
                 hide_action=remove
                 shift 1
-                continue
                 ;;
         c|close)
                 action=_check_closing
                 shift 1
-                continue
                 ;;
         M|move-to-desk)
                 action=_check_move_to_desk
                 shift 1
-                continue
                 ;;
         f|focus)
                 action=_check_focusing
                 shift 1
-                continue
                 ;;
         s|size)
                 action=_check_sizing
                 shift 1
-                continue
                 ;;
         m|move)
                 action=_check_moving
                 shift 1
-                continue
                 ;;
         O|reset)
                 action=_check_resetting
                 shift 1
-                continue
                 ;;
         r|region)
                 region_selection=$2
                 shift 2
-                continue
                 ;;
         D|desk)
                 desk_target=$2
                 shift 2
-                continue
                 ;;
         W|switch)
                 switch=switch
                 shift 1
-                continue
                 ;;
         w|window)
                 entity=window
                 shift 1
-                continue
                 ;;
         e|entity)
                 entity_size=$2
                 shift 2
-                continue
                 ;;
         R|reference)
                 reference=$2
                 shift 2
-                continue
                 ;;
         g|geo)
                 geo=$2
                 shift 2
-                continue
                 ;;
         d|direction)
                 direction_moving=$2
                 shift 2
-                continue
                 ;;
         x|maximum)
                 win_number_maximum=$2
                 shift 2
-                continue
                 ;;
         G|gravity)
                 gravity=$2
                 shift 2
-                continue
                 ;;
         A|action)
                 layout_action=$2
                 shift 2
-                continue
                 ;;
         *)
+                [[ $action == layout ]] && _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
                 break
                 ;;
     esac
 done
+
+#** Perform actions
 
 if [[ $action ]]
 then
@@ -1824,14 +1780,11 @@ then
         _check_moving|_check_sizing)
                 _check_file_tmp < "$file_tmp"
                 (( win_number <= 1 )) && { echo "2: Insufficient windows to work with." >&2 ; exit 2 ; }
-
                 ${action}
                 ;;
-        layout)
+        layout|layout_abbrev)
                 (( win_number <= 1 )) && { echo "2: Insufficient windows to work with." >&2 ; exit 2 ; }
-                _build_layout
                 mapfile -t layout < <(_order_num_asc_array "${layout[@]}")
-
                 _mktmp
                 _check_region
                 ;;
