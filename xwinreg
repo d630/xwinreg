@@ -1,25 +1,29 @@
 #!/usr/bin/env bash
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -x
 
-# Copyright 2014 D630
-# https://github.com/D630/xwinreg
+#* Head
 
-# This program is free software: you can redistribute it and/or modify it
-# under the terms of the GNU General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or (at your
-# option) any later version.
+## Copyright 2014 D630
+## https://github.com/D630/xwinreg
 
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-# for more details.
+## This program is free software: you can redistribute it and/or modify it
+## under the terms of the GNU General Public License as published by the
+## Free Software Foundation, either version 3 of the License, or (at your
+## option) any later version.
 
-# You should have received a copy of the GNU General
-# Public License along with this program.  If not, see
-# <http://www.gnu.org/licenses/gpl-3.0.html>.
+## This program is distributed in the hope that it will be useful, but
+## WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+## or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+## for more details.
 
-# --- Functions
+## You should have received a copy of the GNU General
+## Public License along with this program.  If not, see
+## <http://www.gnu.org/licenses/gpl-3.0.html>.
 
-_version() { echo "0.1.0.9" ; }
+#* Functions
+
+_version() { echo "0.1.0.10" ; }
 
 _usage()
 {
@@ -1540,7 +1544,7 @@ else
     file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
 fi
 
-while true
+while :
 do
     case ${1#-} in
         n|number-of-rows)
@@ -1603,13 +1607,17 @@ do
     esac
 done
 
-#** Get actions
+#** Read actions
+
+declare -x region_selection= \
+           direction= \
+           stack= \
+           entity_cycle=
 
 case ${1#-} in
     y|cycle)
             shift 1
-
-            while true
+            while :
             do
                 case ${1#-} in
                     r|region)
@@ -1637,41 +1645,49 @@ case ${1#-} in
                             ;;
                 esac
             done
-
             if [[ $entity_cycle == window ]]
             then
                 _cycle_window
             else
                 _cycle_region
             fi
-
             _check_region
             exit 0
             ;;
     o|toggle-focus)
             direction=$2
             shift 2
-
-            _focus_toggle
+            _focuuns_toggle
             exit 0
             ;;
     h|help)
             shift 1
-
             _help
             exit 0
             ;;
     v|version)
             shift 1
-
             _version
             exit 0
             ;;
 esac
 
-_calculating
+declare -x action= \
+           l_l= \
+           l_r= \
+           hide_action= \
+           desk_target= \
+           switch= \
+           entity= \
+           entity_size= \
+           reference= \
+           geo= \
+           win_number_maximum= \
+           gravity= \
+           layout_action=
+declare -ax layout=( )
 
-while [[ $1 ]]
+while :
 do
     case ${1#-} in
         L|layout-abbrev)
@@ -1743,7 +1759,7 @@ do
                 shift 1
                 continue
                 ;;
-        window|w)
+        w|window)
                 entity=window
                 shift 1
                 continue
@@ -1791,6 +1807,7 @@ done
 
 if [[ $action ]]
 then
+    _calculating
     case $action in
         _check_moving|_check_sizing)
                 _check_file_tmp < "$file_tmp"
