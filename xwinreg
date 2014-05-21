@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.18" ; }
+_version() { echo "0.1.0.19" ; }
 
 _usage()
 {
@@ -1456,35 +1456,33 @@ _focus_toggle()
 
 #* Main
 
-_main()
-{
     [[ ! $1 ]] && { printf '%s\n' "USAGE: $(_usage)" >&2 ; exit 1 ; }
 
-    declare desk_curr= \
-            win_active= \
-            win_active_frame_extents= \
-            win_active_tags= \
-            win_number= \
-            file_tmp= \
-            row_number= \
-            col_number= \
-            frame= \
-            workarea_x= \
-            workarea_y= \
-            workarea_width= \
-            workarea_height= \
-            frame_width= \
-            frame_height= \
-            frame_x= \
-            frame_y=
-    declare -a desk_select=( ) \
-               win_active_geo_x_y=( ) \
-               win_active_geo_w_h=( ) \
-               win_xid=( ) \
-               win_geo_x_y=( ) \
-               win_geo_w_h=( ) \
-               win_frame_extents=( ) \
-               win_tags=( )
+    declare -g desk_curr= \
+               win_active= \
+               win_active_frame_extents= \
+               win_active_tags= \
+               win_number= \
+               file_tmp= \
+               row_number= \
+               col_number= \
+               frame= \
+               workarea_x= \
+               workarea_y= \
+               workarea_width= \
+               workarea_height= \
+               frame_width= \
+               frame_height= \
+               frame_x= \
+              frame_y=
+    declare -ag desk_select=( ) \
+                win_active_geo_x_y=( ) \
+                win_active_geo_w_h=( ) \
+                win_xid=( ) \
+                win_geo_x_y=( ) \
+                win_geo_w_h=( ) \
+                win_frame_extents=( ) \
+                win_tags=( )
 
     while :
     do
@@ -1596,11 +1594,11 @@ _main()
         esac
     done
 
-    declare region_selection= \
-            direction_cycle= \
-            direction_focus= \
-            stack= \
-            entity_cycle=
+    declare -g region_selection= \
+               direction_cycle= \
+               direction_focus= \
+               stack= \
+               entity_cycle=
 
     case ${1#-} in
         y|cycle)
@@ -1656,19 +1654,19 @@ _main()
                 ;;
     esac
 
-    declare action= \
-            hide_action= \
-            desk_target= \
-            switch= \
-            entity= \
-            entity_size= \
-            reference= \
-            geo= \
-            direction_moving= \
-            win_number_maximum= \
-            gravity= \
-            layout_action=
-    declare -a layout=( )
+    declare -g action= \
+               hide_action= \
+               desk_target= \
+               switch= \
+               entity= \
+               entity_size= \
+               reference= \
+               geo= \
+               direction_moving= \
+               win_number_maximum= \
+               gravity= \
+               layout_action=
+    declare -ag layout=( )
 
     while :
     do
@@ -1791,6 +1789,3 @@ _main()
     else
         { echo "No action spezified." >&2 ; exit 1 ; }
     fi
-}
-
-_main "$@"
