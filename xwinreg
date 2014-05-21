@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.15" ; }
+_version() { echo "0.1.0.16" ; }
 
 _usage()
 {
@@ -1779,11 +1779,11 @@ then
     case $action in
         _check_moving|_check_sizing)
                 _check_file_tmp < "$file_tmp"
-                (( win_number <= 1 )) && { echo "2: Insufficient windows to work with." >&2 ; exit 2 ; }
+                (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
                 ${action}
                 ;;
         layout|layout_abbrev)
-                (( win_number <= 1 )) && { echo "2: Insufficient windows to work with." >&2 ; exit 2 ; }
+                (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
                 mapfile -t layout < <(_order_num_asc_array "${layout[@]}")
                 _mktmp
                 _check_region
@@ -1793,5 +1793,5 @@ then
                 ;;
     esac
 else
-    { echo "3: No action spezified." >&2 ; exit 3 ; }
+    { echo "No action spezified." >&2 ; exit 1 ; }
 fi
