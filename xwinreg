@@ -19,7 +19,7 @@
 
 # --- Functions
 
-_version() { echo "0.1.0.6" ; }
+_version() { echo "0.1.0.7" ; }
 
 _usage()
 {
