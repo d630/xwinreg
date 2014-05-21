@@ -368,7 +368,7 @@ _build_layout()
     [[ $region_selection && $win_number_maximum && $layout_action && $entity_size && $gravity && $geo ]] &&
     {
         layout+=( ${region_selection},${win_number_maximum},${layout_action//-/_},${entity_size}:${gravity},${geo} )
-        unset region_selection win_number_maximum layout_action entity_size gravity geo
+        unset -v region_selection win_number_maximum layout_action entity_size gravity geo
     }
 }
 
@@ -498,7 +498,7 @@ region_${region_number}_geo=( ${region_geo_tmp[*]} )" >> "$file_tmp"
 
     # Write reg_geo to file_tmp.
     printf '%s\n' "reg_geo=( ${reg_geo[*]} )" >> "$file_tmp"
-    unset reg_geo
+    unset -v reg_geo
 
     for (( region_number=1 ; region_number <= ${#layout[@]} ; region_number++ ))
     do
@@ -886,7 +886,7 @@ _check_sizing()
         mapfile -t layout < <(_order_num_asc_array "${layout_modification[@]}")
 
         _restore_x_y_w_h
-        unset reg_geo
+        unset -v reg_geo
 
         # Here we do not only update lines in file_tmp; we rewrite the hole Tmp File!
         _mktmp
@@ -1114,7 +1114,7 @@ _check_moving()
         mapfile -t layout < <(_order_num_asc_array "${layout_modification[@]}")
 
         _restore_x_y_w_h
-        unset reg_geo
+        unset -v reg_geo
 
         # Here we do not update lines in file_tmp; we rewrite the hole Tmp File!
         _mktmp
@@ -1346,7 +1346,7 @@ _cycle_region()
             fi
         done
 
-        unset layout
+        unset -v layout
 
         # We cut <X> and <Y> of <GEO>, reorder those and recompose layout.
         i=0
@@ -1358,7 +1358,7 @@ _cycle_region()
         done < <(_cycle "${reg_geo[@]%,*,*}" )
     fi
 
-    unset reg_geo
+    unset -v reg_geo
     # Now we rewrite the hole Tmp File.
     _mktmp
 }
@@ -1405,7 +1405,7 @@ _cycle_window()
     esac
 
     mapfile -t win_xid < <(_cycle "${win_xid_selection[@]}")
-    unset reg_geo
+    unset -v reg_geo
 
      # Now we rewrite the hole Tmp File.
     _mktmp
