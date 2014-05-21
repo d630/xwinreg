@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.20" ; }
+_version() { echo "0.1.0.21" ; }
 
 _usage()
 {
@@ -182,7 +182,7 @@ win_xid=( ${win_xid[*]} )" > "$file_tmp"
 _calculating()
 {
     # Check, if geo of workarea is manually set; if not, we use _NET_WORKAREA instead.
-    declare -ag workarea=()
+    declare -ga workarea=()
     read -a workarea < <(xprop -root -notype _NET_WORKAREA) &&
             workarea=( ${workarea[@]//,} ) &&
             workarea=( ${workarea[@]:2} )
@@ -195,7 +195,7 @@ _calculating()
     declare -f _calculating_frame_alias > /dev/null && _calculating_frame_alias
 
     # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
-    declare -ag frame_northwest=( ${frame_northwest[@]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))} ) \
+    declare -ga frame_northwest=( ${frame_northwest[@]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))} ) \
                 frame_north=( ${frame_north[@]:-$workarea_x $workarea_y $workarea_w $((workarea_h/2))} ) \
                 frame_northeast=( ${frame_northwest[@]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))} ) \
                 frame_east=( ${frame_east[@]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h} ) \
@@ -230,7 +230,7 @@ _calculating()
     declare -f _calculating_region_alias > /dev/null && _calculating_region_alias
 
     # We use these aliases for regions geo. We also check, if aliases with same names have been set manually.
-    declare -ag region_northwest=( ${region_northwest[@]:-$x $y $((w/2)) $((h/2))} ) \
+    declare -ga region_northwest=( ${region_northwest[@]:-$x $y $((w/2)) $((h/2))} ) \
                 region_north=( ${region_north[@]:-$x $y $w $((h/2))} ) \
                 region_northeast=( ${region_northeast[@]:-$((x+w/2)) $y $((w/2)) $((h/2))} ) \
                 region_east=( ${region_east[@]:-$((x+w/2)) $y $((w/2)) $h} ) \
@@ -1479,7 +1479,7 @@ _focus_toggle()
                frame_height= \
                frame_x= \
               frame_y=
-    declare -ag desk_select=( ) \
+    declare -ga desk_select=( ) \
                 win_active_geo_x_y=( ) \
                 win_active_geo_w_h=( ) \
                 win_xid=( ) \
@@ -1670,7 +1670,7 @@ _focus_toggle()
                win_number_maximum= \
                gravity= \
                layout_action=
-    declare -ag layout=( )
+    declare -ga layout=( )
 
     while :
     do
