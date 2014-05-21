@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.23" ; }
+_version() { echo "0.1.0.24" ; }
 
 _usage()
 {
@@ -311,7 +311,8 @@ _anticlock()
 
 _order_num_asc_array()
 {
-    array=( $@ )
+    declare -a array=( $@ )
+    declare i= j= element=
     for (( i=1 ; i < ${#array[@]} ; ++i ))
     do
         for (( j=i ; j > 0 ; --j ))
