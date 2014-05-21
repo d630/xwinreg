@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.21" ; }
+_version() { echo "0.1.0.22" ; }
 
 _usage()
 {
@@ -150,15 +150,15 @@ _mktmp()
     # Write variables to file_tmp. This function is called before layout is set.
     printf '%s\n' "file_tmp=$file_tmp
 workarea=( ${workarea[*]} )
-workarea_x=${workarea_x-${workarea[0]}}
-workarea_y=${workarea_y-${workarea[1]}}
-workarea_width=${workarea_width-${workarea[2]}}
-workarea_height=${workarea_height-${workarea[3]}}
+workarea_x=$workarea_x
+workarea_y=$workarea_y
+workarea_w=$workarea_w
+workarea_h=$workarea_h
 frame=$frame
-frame_x=${frame_x-$x}
-frame_y=${frame_y-$y}
-frame_w=${frame_width-$w}
-frame_h=${frame_height-$h}
+frame_x=$frame_x
+frame_y=$frame_y
+frame_w=$frame_w
+frame_h=$frame_h
 x=$x
 y=$y
 w=$w
