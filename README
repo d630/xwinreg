@@ -4,7 +4,7 @@ NAME
        xwinreg - organize X windows into regions and do tiling layouts
 
 SYNOPSIS
-       xwinreg (-|-F| )
+       xwinreg (-F| )
                [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
                (-c|-f|-H|-h|[-l ...|-L...]|-M|-m|-O|-o|-s|-U|-v|-y)
 
@@ -12,7 +12,7 @@ REQUIREMENT
        bc, GNU bash, GNU grep, GNU sed, wmctrl, xprop, xwinpp
 
 DESCRIPTION
-       xwinreg  is  a  bash shell script that acts like a stupid third
+       xwinreg is a bash shell script that acts like a stupid third
        party tiling application on Xorg. It lets you to organize X windows
        into frames and regions and then to build your own layouts in a
        simple way. Therefore, xwinreg uses xwinpp to prepare a list of X
@@ -20,12 +20,9 @@ DESCRIPTION
        X Window manager. See section CONCEPTION in this manpage.
 
 OPTIONS
-       -
-            Get output from xwinpp by reading from standard input; -
-            must be the first argument.
-
        -F, -file FILE
-              Obtain output of xwinpp from FILE, not from standard input.
+              Obtain output of xwinpp from FILE. If FILE is a hyphen, get
+              output from xwinpp by reading from standard input (pipe).
 
        -C, -conf-file FILE
               Read variables from FILE. See section CONFIGURATION in
@@ -243,23 +240,23 @@ ARGUMENTS
 
 EXAMPLES
        To do some layouting with five windows:
-              xwinpp -F ./list -P 1 -p | xwinreg -
+              xwinpp -F ./list -P 1 -p | xwinreg -F -
                 -L 1,max,horizontal,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -
+              xwinpp -F ./list -P 1 -p | xwinreg -F -
                 -L 1,max,grid-horizontal,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -
+              xwinpp -F ./list -P 1 -p | xwinreg -F -
                 -L 1,max,grid-square-horizontal,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -
+              xwinpp -F ./list -P 1 -p | xwinreg -F -
                 -L 1,max,maximize,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -
+              xwinpp -F ./list -P 1 -p | xwinreg -F -
                 -L 1,1,maximize,alias:0,west
                 -L 2,max,horizontal,alias:0,east
 
-              xwinpp -F ./list -P 1 -p | xwinreg -
+              xwinpp -F ./list -P 1 -p | xwinreg -F -
                 -L 1,1,maximize,alias:0,west
                 -L 2,1,maximize,alias:0,northeast
                 -L 3,max,vertical,alias:0,southeast
@@ -274,7 +271,7 @@ EXAMPLES
               xwinreg -y -stack -d clock
 
        To do some moving with two windows:
-              xwinpp -F ./list -P 1 -p | xwinreg -
+              xwinpp -F ./list -P 1 -p | xwinreg -F -
                 -L 1,1,maximize,alias:0,northeast
                 -L 2,1,maximize,alias:0,southeast
 
@@ -285,7 +282,7 @@ EXAMPLES
               xwinreg -m -r all -e pro -R region -geo 100 -d west
 
        To do some sizing with three windows:
-              xwinpp -F ./lis -P1 -p | xwinreg -
+              xwinpp -F ./lis -P1 -p | xwinreg -F -
                 -L 1,1,maximize,alias:0,north
                 -L 2,max,maximize,alias:0,south
 
@@ -294,18 +291,6 @@ EXAMPLES
               xwinreg -s -w -r 2 -e pro -R window -geo -,200
 
               xwinreg -s -r active -e pro -R frame -geo 50,50
-
-RETURN VALUES
-       1
-              USAGE: xwinreg (-|-F| )
-                    [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-                    (-c|-f|-H|-h|[-l ...|-L...]|-M|-m|-O|-o|-s|-U|-v|-y)
-
-       2
-              Insufficient windows to work with.
-
-       3
-              No action spezified.
 
 NOTES
        ·   You may write all commands and options without masking -.
@@ -326,14 +311,14 @@ NOTES
            -w the hole Tmp File is rewritten.
 
 CONFIGURATIONS
-       By  default,  xwinreg  needs  no  Conf  File, because all important
+       By default, xwinreg needs no Conf File, because all important
        geometries will be calculated in the script. You can also use
        the relating options on command line. So, only use a Conf File,
        if you want to work with several frames (and several Tmp Files
        are needed) or if you need to set own aliases for frame and
        region geometries. Along with this programm comes a Example Conf
-       File. Specify a Conf File with option -C.  You can set following
-       parameters:
+       File. Specify a Conf File with option -C or use XWINREG_CONF_FILE.
+       You can set following parameters:
 
        enviroment variables:
               XWINREG_TMP_FILE=FILE
@@ -352,7 +337,7 @@ CONFIGURATIONS
 
        indexed array variables (you can use above variables). You need
        to set them inside a function called _calculating_frame_alias
-       resp. _calculating_region_alias:
+       respectively _calculating_region_alias:
               frame_framealias=( X Y W H )
               region_regalias=( X Y W H )
 
@@ -364,7 +349,11 @@ ENVIROMENT
 
         XWINREG_TMP_FILE
               Specify this instead default setting and instead
-              XWINREG_TMP_FILE in a Conf File.
+              use of XWINREG_TMP_FILE in a Conf File.
+
+        XWINREG_CONF_FILE
+              Use this instead of option -C, if you want to use an Conf
+              File.
 
 BUGS & REQUESTS
        Report it on https://github.com/D630/xwinreg
@@ -378,14 +367,14 @@ TODO
 
 LICENSE
        xwinreg is licensed with GNU GPLv3. You should have received a copy
-       of the GNU General Public License along with this program.  If not,
+       of the GNU General Public License along with this program. If not,
        see for more details <http://www.gnu.org/licenses/gpl-3.0.html>.
 
-CHRONOLOGY
+CHRONICLE
        First version (0.1.0.0) was finished on 10. February 2014.
 
 CONCEPTION
-       xwinpp  reads a list with X window ids and does a preparing
+       xwinpp reads a list with X window ids and does a preparing
        output with variables, which will be read by xwinreg. By using
        action layout or layout-abbrev a layout will be generated and all
        specified windows will be ordered. In the course of layouting a
@@ -397,7 +386,7 @@ CONCEPTION
        The layout will be set on one desktop. Therefore, xwinreg reads
        _NET_WORKAREA and determines a frame as scale base to have
        base geometry. In this frame xwinreg arranges regions, which
-       will be f illed rule-based with the windows. Windows are taken
+       will be filled rule-based with the windows. Windows are taken
        in list-order; the first window will be set as first window in
        the first region. You can determine, how many windows a region
        should have (maximum is the number of imported windows). The
@@ -405,7 +394,7 @@ CONCEPTION
        maximize, vertical, horizontal, grid-vertical, grid-horizontal,
        grid-square-vertical, grid-square-horizontal.
 
-       In  other  words: all layouting takes place in one frame. That
+       In other words: all layouting takes place in one frame. That
        one frame may have geometry of the workspace or any other. To
        work with more than one frame, you need to create more than one
        Tmp File. See sections NOTES and CONFIGURATION in this manpage.
@@ -414,4 +403,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.0.5                     2014-03-01                        XWINREG(1)
+0.1.0.18                    2014-05-21                        XWINREG(1)

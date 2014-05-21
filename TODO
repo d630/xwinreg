@@ -3,7 +3,6 @@
 - layout-cycling
 - cycling of windows in a specific region
 - little dmenu-wrapper
-- color border of active frame, region and window (independent of gtk theme etc.)
 - implement xwinpp-tagging-action
 - give option to decide, on which desktop a region should be placed
 - provide a "professional" error handling
@@ -12,9 +11,12 @@
 - revise split-functions: determine empty space
 - store modified layout/current layout
 - revise sed and grep code and try to translate it into bash code
-- correct the English in the manpage
-- create and second readme with pictures to show what layouts make sense
+- correct the English
+- create a second readme with pictures to show what layouts make sense
+- create new manpage
 -meta-command: if region change its size, then this should have an effect on region b
 
 done:
 - revise frame-handling
+- color border of active frame, region and window (independent of gtk theme etc.)
+    - we are using a "visual bell" instead
