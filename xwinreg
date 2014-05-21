@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.10" ; }
+_version() { echo "0.1.0.11" ; }
 
 _usage()
 {
@@ -930,7 +930,7 @@ _check_moving()
                     pro)
                             case $reference in
                                 window)
-                                        case $direction in
+                                        case $direction_moving in
                                             north)
                                                     x=${win_geo_x_y_tmp[i]%,*}
                                                     y=$((${win_geo_x_y_tmp[i]#*,}-(${win_geo_w_h_tmp[i]#*,}*geo/100)))
@@ -950,7 +950,7 @@ _check_moving()
                                         esac
                                         ;;
                                 region)
-                                        case $direction in
+                                        case $direction_moving in
                                             north)
                                                     x=${win_geo_x_y_tmp[i]%,*}
                                                     y=$((${win_geo_x_y_tmp[i]#*,}-(${region_geo_tmp[3]}*geo/100)))
@@ -1043,7 +1043,7 @@ _check_moving()
                 pro)
                         case $reference in
                             reg|region)
-                                    case $direction in
+                                    case $direction_moving in
                                         north)
                                                 x=$region_x
                                                 y=$((region_y-(region_h*geo/100)))
@@ -1303,7 +1303,7 @@ _cycle_region()
 {
     _check_file_tmp < <(grep -v -e "win_xid_region_" -e "win_geo_x_y_region_" -e "win_geo_w_h_region_" "$file_tmp")
 
-    case $direction in
+    case $direction_cycle in
         clock)
                 _cycle() { _anticlock "$@" ; }
                 ;;
@@ -1392,7 +1392,7 @@ _cycle_window()
 
     win_num=${#win_xid_selection[@]}
 
-    case $direction in
+    case $direction_cycle in
         clock)
                 _cycle() { _clock "$@" ; }
                 ;;
@@ -1416,7 +1416,7 @@ _focus_toggle()
     _check_file_tmp < <(grep -e "win_xid=" "$file_tmp")
     _get_win_active
 
-    case $direction in
+    case $direction_focus in
         n|next)
                 if [[ ${win_xid[win_number-1]} =~ ${win_active:2} ]]
                 then
@@ -1610,7 +1610,8 @@ done
 #** Read actions
 
 declare -x region_selection= \
-           direction= \
+           direction_cycle= \
+           direction_focus= \
            stack= \
            entity_cycle=
 
@@ -1626,7 +1627,7 @@ case ${1#-} in
                             continue
                             ;;
                     d|direction)
-                            direction=$2
+                            direction_cycle=$2
                             shift 2
                             continue
                             ;;
@@ -1655,9 +1656,9 @@ case ${1#-} in
             exit 0
             ;;
     o|toggle-focus)
-            direction=$2
+            direction_focus=$2
             shift 2
-            _focuuns_toggle
+            _focus_toggle
             exit 0
             ;;
     h|help)
@@ -1682,6 +1683,7 @@ declare -x action= \
            entity_size= \
            reference= \
            geo= \
+           direction_moving= \
            win_number_maximum= \
            gravity= \
            layout_action=
@@ -1780,7 +1782,7 @@ do
                 continue
                 ;;
         d|direction)
-                direction=$2
+                direction_moving=$2
                 shift 2
                 continue
                 ;;
