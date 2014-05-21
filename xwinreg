@@ -313,7 +313,7 @@ _comm_array()
 
     for arg
     do
-        [[ $arg = -- ]] && ((counter++))
+        [[ $arg == -- ]] && ((counter++))
     done
 
     for (( i=1 ; i <= $counter ; i++ ))
@@ -323,14 +323,14 @@ _comm_array()
             eval "array_${i}+=( "$1" )"
             shift 1
         done
-        [[ $1 = -- ]] && shift 1
+        [[ $1 == -- ]] && shift 1
     done
 
     for element_array_1 in "${array_1[@]}"
     do
         for element_array_2 in "${array_2[@]}"
         do
-            [[ $element_array_1 = $element_array_2 ]] && { skip=1 ; break ; }
+            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; break ; }
         done
         (( skip )) || printf '%s\n' "$element_array_1"
         skip=
@@ -459,7 +459,7 @@ _check_region()
 
         _check_gravity
 
-        if [[ $win_number_maximum = max ]]
+        if [[ $win_number_maximum == max ]]
         then
             win_region_number=$win_number
         else
@@ -633,7 +633,7 @@ _check_move_to_desk()
 {
     _check_window_selection
 
-    if [[ $desk_target  = curr ]]
+    if [[ $desk_target == curr ]]
     then
         _move() { wmctrl -i -r "$xid" -t "$desk_curr" ; }
     else
@@ -645,7 +645,7 @@ _check_move_to_desk()
         _move
     done
 
-    [[ $switch = true ]] && wmctrl -i -a "${win_xid_selection[0]}"
+    [[ $switch == true ]] && wmctrl -i -a "${win_xid_selection[0]}"
 }
 
 _check_hiding()
@@ -662,7 +662,7 @@ _check_sizing()
 {
     _check_region_selection
 
-    if [[ $entity = window ]]
+    if [[ $entity == window ]]
     then
         for region_number in "${layout_numbers[@]}"
         do
@@ -675,14 +675,14 @@ _check_sizing()
             do
                 case $entity_size in
                     px)
-                            if [[ ${geo%,*} = - ]]
+                            if [[ ${geo%,*} == - ]]
                             then
                                 w=${win_geo_w_h_tmp[i]%,*}
                             else
                                 w=${geo%,*}
                             fi
 
-                            if [[ ${geo#*,} = - ]]
+                            if [[ ${geo#*,} == - ]]
                             then
                                 h=${win_geo_w_h_tmp[i]#*,}
                             else
@@ -692,57 +692,57 @@ _check_sizing()
                     pro)
                             case $reference in
                                 window)
-                                        if [[ ${geo%,*} = - && ${geo#*,} = - ]]
+                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
                                         then
                                             w=${win_geo_w_h_tmp[i]%,*}
                                             h=${win_geo_w_h_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} = - && ! ${geo#*,} = - ]]
+                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
                                         then
                                             w=$((${win_geo_w_h_tmp[i]%,*}*${geo%,*}/100))
                                             h=$((${win_geo_w_h_tmp[i]#*,}*${geo#*,}/100))
-                                        elif [[ ${geo%,*} = - ]]
+                                        elif [[ ${geo%,*} == - ]]
                                         then
                                             w=${win_geo_w_h_tmp[i]%,*}
                                             h=$((${win_geo_w_h_tmp[i]#*,}*${geo#*,}/100))
-                                        elif [[ ${geo#*,} = - ]]
+                                        elif [[ ${geo#*,} == - ]]
                                         then
                                             w=$((${win_geo_w_h_tmp[i]%,*}*${geo%,*}/100))
                                             h=${win_geo_w_h_tmp[i]#*,}
                                         fi
                                         ;;
                                 region)
-                                        if [[ ${geo%,*} = - && ${geo#*,} = - ]]
+                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
                                         then
                                             w=${win_geo_w_h_tmp[i]%,*}
                                             h=${win_geo_w_h_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} = - && ! ${geo#*,} = - ]]
+                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
                                         then
                                             w=$((${region_geo_tmp[2]}*${geo%,*}/100))
                                             h=$((${region_geo_tmp[3]}*${geo#*,}/100))
-                                        elif [[ ${geo%,*} = - ]]
+                                        elif [[ ${geo%,*} == - ]]
                                         then
                                             w=${win_geo_w_h_tmp[i]%,*}
                                             h=$((${region_geo_tmp[3]}*${geo#*,}/100))
-                                        elif [[ ${geo#*,} = - ]]
+                                        elif [[ ${geo#*,} == - ]]
                                         then
                                             w=$((${region_geo_tmp[2]}*${geo%,*}/100))
                                             h=${win_geo_w_h_tmp[i]#*,}
                                         fi
                                         ;;
                                 frame)
-                                        if [[ ${geo%,*} = - && ${geo#*,} = - ]]
+                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
                                         then
                                             w=${win_geo_w_h_tmp[i]%,*}
                                             h=${win_geo_w_h_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} = - && ! ${geo#*,} = - ]]
+                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
                                         then
                                             w=$((frame_w*${geo%,*}/100))
                                             h=$((frame_h*${geo#*,}/100))
-                                        elif [[ ${geo%,*} = - ]]
+                                        elif [[ ${geo%,*} == - ]]
                                         then
                                             w=${win_geo_w_h_tmp[i]%,*}
                                             h=$((frame_h*${geo#*,}/100))
-                                        elif [[ ${geo#*,} = - ]]
+                                        elif [[ ${geo#*,} == - ]]
                                         then
                                             w=$((frame_w*${geo%,*}/100))
                                             h=${win_geo_w_h_tmp[i]#*,}
@@ -786,14 +786,14 @@ _check_sizing()
 
             case $entity_size in
                 px)
-                        if [[ ${geo%,*} = - ]]
+                        if [[ ${geo%,*} == - ]]
                         then
                             w=$region_w
                         else
                             w=${geo%,*}
                         fi
 
-                        if [[ ${geo#*,} = - ]]
+                        if [[ ${geo#*,} == - ]]
                         then
                             h=$region_h
                         else
@@ -803,38 +803,38 @@ _check_sizing()
                 pro)
                         case $reference in
                             region)
-                                    if [[ ${geo%,*} = - && ${geo#*,} = - ]]
+                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
                                     then
                                         w=$region_w
                                         h=$region_h
-                                    elif [[ ! ${geo%,*} = - && ! ${geo#*,} = - ]]
+                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
                                     then
                                         w=$((region_w*${geo%,*}/100))
                                         h=$((region_h*${geo#*,}/100))
-                                    elif [[ ${geo%,*} = - ]]
+                                    elif [[ ${geo%,*} == - ]]
                                     then
                                         w=$region_w
                                         h=$((region_h*${geo#*,}/100))
-                                    elif [[ ${geo#*,} = - ]]
+                                    elif [[ ${geo#*,} == - ]]
                                     then
                                         w=$((region_w*${geo%,*}/100))
                                         h=$region_h
                                     fi
                                     ;;
                             frame)
-                                    if [[ ${geo%,*} = - && ${geo#*,} = - ]]
+                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
                                     then
                                         w=$region_w
                                         h=$region_h
-                                    elif [[ ! ${geo%,*} = - && ! ${geo#*,} = - ]]
+                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
                                     then
                                         w=$((frame_w*${geo%,*}/100))
                                         h=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo%,*} = - ]]
+                                    elif [[ ${geo%,*} == - ]]
                                     then
                                         w=$region_w
                                         h=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo#*,} = - ]]
+                                    elif [[ ${geo#*,} == - ]]
                                     then
                                         w=$((frame_w*${geo%,*}/100))
                                         h=$region_h
@@ -863,7 +863,7 @@ _check_sizing()
         do
             for num in "${layout_numbers[@]}"
             do
-                [[ $num = ${old%%,*} ]] && skip=1
+                [[ $num == ${old%%,*} ]] && skip=1
             done
             ((skip)) || layout_modification+=( "$old" )
             skip=
@@ -885,7 +885,7 @@ _check_moving()
 {
     _check_region_selection
 
-    if [[ $entity = window ]]
+    if [[ $entity == window ]]
     then
         for region_number in "${layout_numbers[@]}"
         do
@@ -899,14 +899,14 @@ _check_moving()
             do
                 case $entity_size in
                     px)
-                            if [[ ${geo%,*} = - ]]
+                            if [[ ${geo%,*} == - ]]
                             then
                                 x=${win_geo_x_y_tmp[i]%,*}
                             else
                                 x=${geo%,*}
                             fi
 
-                            if [[ ${geo#*,} = - ]]
+                            if [[ ${geo#*,} == - ]]
                             then
                                 y=${win_geo_x_y_tmp[i]#*,}
                             else
@@ -956,19 +956,19 @@ _check_moving()
                                         esac
                                         ;;
                                 frame)
-                                        if [[ ${geo%,*} = - && ${geo#*,} = - ]]
+                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
                                         then
                                             x=${win_geo_x_y_tmp[i]%,*}
                                             y=${win_geo_x_y_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} = - && ! ${geo#*,} = - ]]
+                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
                                         then
                                             x=$(((frame_x+frame_w)*${geo%,*}/100))
                                             y=$(((frame_y+frame_h)*${geo#*,}/100))
-                                        elif [[ ${geo%,*} = - ]]
+                                        elif [[ ${geo%,*} == - ]]
                                         then
                                             x=${win_geo_x_y_tmp[i]%,*}
                                             y=$(((frame_y+frame_h)*${geo#*,}/100))
-                                        elif [[ ${geo#*,} = - ]]
+                                        elif [[ ${geo#*,} == - ]]
                                         then
                                             x=$(((frame_x+frame_w)*${geo%,*}/100))
                                             y=${win_geo_x_y_tmp[i]#*,}
@@ -1012,14 +1012,14 @@ _check_moving()
 
             case $entity_size in
                 px)
-                        if [[ ${geo%,*} = - ]]
+                        if [[ ${geo%,*} == - ]]
                         then
                             x=$region_x
                         else
                             x=${geo%,*}
                         fi
 
-                        if [[ ${geo#*,} = - ]]
+                        if [[ ${geo#*,} == - ]]
                         then
                             y=$region_y
                         else
@@ -1049,19 +1049,19 @@ _check_moving()
                                     esac
                                     ;;
                             frame)
-                                    if [[ ${geo%,*} = - && ${geo#*,} = - ]]
+                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
                                     then
                                         x=$region_x
                                         y=$region_y
-                                    elif [[ ! ${geo%,*} = - && ! ${geo#*,} = - ]]
+                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
                                     then
                                         x=$((frame_w*${geo%,*}/100))
                                         y=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo%,*} = - ]]
+                                    elif [[ ${geo%,*} == - ]]
                                     then
                                         x=$region_x
                                         y=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo#*,} = - ]]
+                                    elif [[ ${geo#*,} == - ]]
                                     then
                                         x=$((frame_w*${geo%,*}/100))
                                         y=$region_y
@@ -1091,7 +1091,7 @@ _check_moving()
         do
             for num in "${layout_numbers[@]}"
             do
-                [[ $num = ${old%%,*} ]] && skip=1
+                [[ $num == ${old%%,*} ]] && skip=1
             done
             ((skip)) || layout_modification+=( "$old" )
             skip=
@@ -1301,7 +1301,7 @@ _cycle_region()
                 ;;
     esac
 
-    if [[ $stack = true ]]
+    if [[ $stack == true ]]
     then
         # We cut <LENT>:<GRAV>,<GEO>.
         for lyt in "${layout[@]}"
@@ -1442,7 +1442,7 @@ _focus_toggle()
 
 [[ ! $1 ]] && { printf '%s\n' "USAGE: $(_usage)" >&2 ; exit 1 ; }
 
-[[ $1 = - ]] &&
+[[ $1 == - ]] &&
 {
     while read -r i
     do
@@ -1583,7 +1583,7 @@ case ${1#-} in
                 esac
             done
 
-            if [[ $entity_cycle = window ]]
+            if [[ $entity_cycle == window ]]
             then
                 _cycle_window
             else
