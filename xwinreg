@@ -23,7 +23,7 @@
 
 #* Functions
 
-_version() { echo "0.1.0.24" ; }
+_version() { echo "0.1.0.25" ; }
 
 _usage()
 {
@@ -1461,339 +1461,339 @@ _focus_toggle()
 
 #* Main
 
-    [[ ! $1 ]] && { printf '%s\n' "USAGE: $(_usage)" >&2 ; exit 1 ; }
+[[ ! $1 ]] && { printf '%s\n' "USAGE: $(_usage)" >&2 ; exit 1 ; }
 
-    declare desk_curr= \
-            win_active= \
-            win_active_frame_extents= \
-            win_active_tags= \
-            win_number= \
-            file_tmp= \
-            row_number= \
-            col_number= \
-            frame= \
-            workarea_x= \
-            workarea_y= \
-            workarea_width= \
-            workarea_height= \
-            frame_width= \
-            frame_height= \
-            frame_x= \
-            frame_y=
-    declare -a desk_select=( ) \
-               win_active_geo_x_y=( ) \
-               win_active_geo_w_h=( ) \
-               win_xid=( ) \
-               win_geo_x_y=( ) \
-               win_geo_w_h=( ) \
-               win_frame_extents=( ) \
-               win_tags=( )
+declare desk_curr= \
+        win_active= \
+        win_active_frame_extents= \
+        win_active_tags= \
+        win_number= \
+        file_tmp= \
+        row_number= \
+        col_number= \
+        frame= \
+        workarea_x= \
+        workarea_y= \
+        workarea_width= \
+        workarea_height= \
+        frame_width= \
+        frame_height= \
+        frame_x= \
+        frame_y=
+declare -a desk_select=( ) \
+           win_active_geo_x_y=( ) \
+           win_active_geo_w_h=( ) \
+           win_xid=( ) \
+           win_geo_x_y=( ) \
+           win_geo_w_h=( ) \
+           win_frame_extents=( ) \
+           win_tags=( )
 
-    while :
-    do
-        case ${1#-} in
-            F|file)
-                    if [[ $2 == - ]]
-                    then
-                        if [[ -p /dev/stdin ]]
-                        then
-                            while read -r
-                            do
-                                _check_variables_input "$REPLY"
-                            done
-                        else
-                            { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
-                        fi
-                    else
-                        if [[ -p $2 || -f $2 ]]
-                        then
-                            while read -r
-                            do
-                                _check_variables_input "$REPLY"
-                            done < "$2"
-                        else
-                            { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
-                        fi
-                    fi
-                    shift 2
-                    ;;
-            C|conf-file)
-                    XWINREG_CONF_FILE=$2
-                    shift 2
-                    ;;
-            T|tmp-file)
-                    XWINREG_TMP_FILE=$2
-                    shift 2
-                    ;;
-            *)
-                    break
-        esac
-    done
-
-    [[ $XWINREG_CONF_FILE ]] &&
-    {
-        if [[ -f $XWINREG_CONF_FILE ]]
-        then
-            source "$XWINREG_CONF_FILE"
-        else
-            { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
-        fi
-    }
-
-    if [[ $XWINREG_TMP_FILE ]]
-    then
-        file_tmp=$XWINREG_TMP_FILE
-    else
-        file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
-    fi
-
-    while :
-    do
-        case ${1#-} in
-            n|number-of-rows)
-                    row_number=$2
-                    shift 2
-                    ;;
-            N|number-of-cols)
-                    col_number=$2
-                    shift 2
-                    ;;
-            a|frame-alias)
-                    frame=$2
-                    shift 2
-                    ;;
-            fw|frame-width)
-                    frame_width=$2
-                    shift 2
-                    ;;
-            fh|frame-height)
-                    frame_height=$2
-                    shift 2
-                    ;;
-            fx|frame-x)
-                    frame_x=$2
-                    shift 2
-                    ;;
-            fy|frame-y)
-                    frame_y=$2
-                    shift 2
-                    ;;
-            wx|workarea-x)
-                    workarea_x=$2
-                    shift 2
-                    ;;
-            wy|workarea-y)
-                    workarea_y=$2
-                    shift 2
-                    ;;
-            ww|workarea-width)
-                    workarea_width=$2
-                    shift 2
-                    ;;
-            wh|workarea-height)
-                    workarea_height=$2
-                    shift 2
-                    ;;
-            *)
-                    break
-        esac
-    done
-
-    declare region_selection= \
-            direction_cycle= \
-            direction_focus= \
-            stack= \
-            entity_cycle=
-
+while :
+do
     case ${1#-} in
-        y|cycle)
-                shift 1
-                while :
-                do
-                    case ${1#-} in
-                        r|region)
-                                region_selection=$2
-                                shift 2
-                                ;;
-                        d|direction)
-                                direction_cycle=$2
-                                shift 2
-                                ;;
-                        k|stack)
-                                stack=stack
-                                shift 1
-                                ;;
-                        w|window)
-                                entity_cycle=window
-                                shift 1
-                                ;;
-                        *)
-                                break
-                                ;;
-                    esac
-                done
-                if [[ $entity_cycle == window ]]
+        F|file)
+                if [[ $2 == - ]]
                 then
-                    _cycle_window
+                    if [[ -p /dev/stdin ]]
+                    then
+                        while read -r
+                        do
+                            _check_variables_input "$REPLY"
+                        done
+                    else
+                        { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
+                    fi
                 else
-                    _cycle_region
+                    if [[ -p $2 || -f $2 ]]
+                    then
+                        while read -r
+                        do
+                            _check_variables_input "$REPLY"
+                        done < "$2"
+                    else
+                        { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
+                    fi
                 fi
-                _check_region
-                exit 0
-                ;;
-        o|toggle-focus)
-                direction_focus=$2
                 shift 2
-                _focus_toggle
-                exit 0
                 ;;
-        h|help)
-                shift 1
-                _help
-                exit 0
+        C|conf-file)
+                XWINREG_CONF_FILE=$2
+                shift 2
                 ;;
-        v|version)
+        T|tmp-file)
+                XWINREG_TMP_FILE=$2
+                shift 2
+                ;;
+        *)
+                break
+    esac
+done
+
+[[ $XWINREG_CONF_FILE ]] &&
+{
+    if [[ -f $XWINREG_CONF_FILE ]]
+    then
+        source "$XWINREG_CONF_FILE"
+    else
+        { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
+    fi
+}
+
+if [[ $XWINREG_TMP_FILE ]]
+then
+    file_tmp=$XWINREG_TMP_FILE
+else
+    file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
+fi
+
+while :
+do
+    case ${1#-} in
+        n|number-of-rows)
+                row_number=$2
+                shift 2
+                ;;
+        N|number-of-cols)
+                col_number=$2
+                shift 2
+                ;;
+        a|frame-alias)
+                frame=$2
+                shift 2
+                ;;
+        fw|frame-width)
+                frame_width=$2
+                shift 2
+                ;;
+        fh|frame-height)
+                frame_height=$2
+                shift 2
+                ;;
+        fx|frame-x)
+                frame_x=$2
+                shift 2
+                ;;
+        fy|frame-y)
+                frame_y=$2
+                shift 2
+                ;;
+        wx|workarea-x)
+                workarea_x=$2
+                shift 2
+                ;;
+        wy|workarea-y)
+                workarea_y=$2
+                shift 2
+                ;;
+        ww|workarea-width)
+                workarea_width=$2
+                shift 2
+                ;;
+        wh|workarea-height)
+                workarea_height=$2
+                shift 2
+                ;;
+        *)
+                break
+    esac
+done
+
+declare region_selection= \
+        direction_cycle= \
+        direction_focus= \
+        stack= \
+        entity_cycle=
+
+case ${1#-} in
+    y|cycle)
+            shift 1
+            while :
+            do
+                case ${1#-} in
+                    r|region)
+                            region_selection=$2
+                            shift 2
+                            ;;
+                    d|direction)
+                            direction_cycle=$2
+                            shift 2
+                            ;;
+                    k|stack)
+                            stack=stack
+                            shift 1
+                            ;;
+                    w|window)
+                            entity_cycle=window
+                            shift 1
+                            ;;
+                    *)
+                            break
+                            ;;
+                esac
+            done
+            if [[ $entity_cycle == window ]]
+            then
+                _cycle_window
+            else
+                _cycle_region
+            fi
+            _check_region
+            exit 0
+            ;;
+    o|toggle-focus)
+            direction_focus=$2
+            shift 2
+            _focus_toggle
+            exit 0
+            ;;
+    h|help)
+            shift 1
+            _help
+            exit 0
+            ;;
+    v|version)
+            shift 1
+            _version
+            exit 0
+            ;;
+esac
+
+declare action= \
+        hide_action= \
+        desk_target= \
+        switch= \
+        entity= \
+        entity_size= \
+        reference= \
+        geo= \
+        direction_moving= \
+        win_number_maximum= \
+        gravity= \
+        layout_action=
+declare -a layout=( )
+
+while :
+do
+    case ${1#-} in
+        L|layout-abbrev)
+                action=layout_abbrev
+                _build_layout_abbrev "$2"
+                shift 2
+                ;;
+        l|layout)
+                action=layout
+                _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
+                unset -v region_selection win_number_maximum layout_action entity_size gravity geo
                 shift 1
-                _version
-                exit 0
+                ;;
+        H|hide)
+                action=_check_hiding
+                hide_action=add
+                shift 1
+                ;;
+        U|unhide)
+                action=_check_hiding
+                hide_action=remove
+                shift 1
+                ;;
+        c|close)
+                action=_check_closing
+                shift 1
+                ;;
+        M|move-to-desk)
+                action=_check_move_to_desk
+                shift 1
+                ;;
+        f|focus)
+                action=_check_focusing
+                shift 1
+                ;;
+        s|size)
+                action=_check_sizing
+                shift 1
+                ;;
+        m|move)
+                action=_check_moving
+                shift 1
+                ;;
+        O|reset)
+                action=_check_resetting
+                shift 1
+                ;;
+        r|region)
+                region_selection=$2
+                shift 2
+                ;;
+        D|desk)
+                desk_target=$2
+                shift 2
+                ;;
+        W|switch)
+                switch=switch
+                shift 1
+                ;;
+        w|window)
+                entity=window
+                shift 1
+                ;;
+        e|entity)
+                entity_size=$2
+                shift 2
+                ;;
+        R|reference)
+                reference=$2
+                shift 2
+                ;;
+        g|geo)
+                geo=$2
+                shift 2
+                ;;
+        d|direction)
+                direction_moving=$2
+                shift 2
+                ;;
+        x|maximum)
+                win_number_maximum=$2
+                shift 2
+                ;;
+        G|gravity)
+                gravity=$2
+                shift 2
+                ;;
+        A|action)
+                layout_action=$2
+                shift 2
+                ;;
+        *)
+                [[ $action == layout ]] && _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
+                break
                 ;;
     esac
+done
 
-    declare action= \
-            hide_action= \
-            desk_target= \
-            switch= \
-            entity= \
-            entity_size= \
-            reference= \
-            geo= \
-            direction_moving= \
-            win_number_maximum= \
-            gravity= \
-            layout_action=
-    declare -a layout=( )
-
-    while :
-    do
-        case ${1#-} in
-            L|layout-abbrev)
-                    action=layout_abbrev
-                    _build_layout_abbrev "$2"
-                    shift 2
-                    ;;
-            l|layout)
-                    action=layout
-                    _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
-                    unset -v region_selection win_number_maximum layout_action entity_size gravity geo
-                    shift 1
-                    ;;
-            H|hide)
-                    action=_check_hiding
-                    hide_action=add
-                    shift 1
-                    ;;
-            U|unhide)
-                    action=_check_hiding
-                    hide_action=remove
-                    shift 1
-                    ;;
-            c|close)
-                    action=_check_closing
-                    shift 1
-                    ;;
-            M|move-to-desk)
-                    action=_check_move_to_desk
-                    shift 1
-                    ;;
-            f|focus)
-                    action=_check_focusing
-                    shift 1
-                    ;;
-            s|size)
-                    action=_check_sizing
-                    shift 1
-                    ;;
-            m|move)
-                    action=_check_moving
-                    shift 1
-                    ;;
-            O|reset)
-                    action=_check_resetting
-                    shift 1
-                    ;;
-            r|region)
-                    region_selection=$2
-                    shift 2
-                    ;;
-            D|desk)
-                    desk_target=$2
-                    shift 2
-                    ;;
-            W|switch)
-                    switch=switch
-                    shift 1
-                    ;;
-            w|window)
-                    entity=window
-                    shift 1
-                    ;;
-            e|entity)
-                    entity_size=$2
-                    shift 2
-                    ;;
-            R|reference)
-                    reference=$2
-                    shift 2
-                    ;;
-            g|geo)
-                    geo=$2
-                    shift 2
-                    ;;
-            d|direction)
-                    direction_moving=$2
-                    shift 2
-                    ;;
-            x|maximum)
-                    win_number_maximum=$2
-                    shift 2
-                    ;;
-            G|gravity)
-                    gravity=$2
-                    shift 2
-                    ;;
-            A|action)
-                    layout_action=$2
-                    shift 2
-                    ;;
-            *)
-                    [[ $action == layout ]] && _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
-                    break
-                    ;;
-        esac
-    done
-
-    if [[ $action ]]
-    then
-        _calculating
-        case $action in
-            _check_moving|_check_sizing)
-                    _check_file_tmp < "$file_tmp"
-                    (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                    ${action}
-                    ;;
-            layout|layout_abbrev)
-                    (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                    mapfile -t layout < <(_order_num_asc_array "${layout[@]}")
-                    _mktmp
-                    _check_region
-                    ;;
-            *)
-                    ${action}
-                    ;;
-        esac
-    else
-        { echo "No action spezified." >&2 ; exit 1 ; }
-    fi
+if [[ $action ]]
+then
+    _calculating
+    case $action in
+        _check_moving|_check_sizing)
+                _check_file_tmp < "$file_tmp"
+                (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
+                ${action}
+                ;;
+        layout|layout_abbrev)
+                (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
+                mapfile -t layout < <(_order_num_asc_array "${layout[@]}")
+                _mktmp
+                _check_region
+                ;;
+        *)
+                ${action}
+                ;;
+    esac
+else
+    { echo "No action spezified." >&2 ; exit 1 ; }
+fi
 
 #~ TODO:
 #~ - cycle
