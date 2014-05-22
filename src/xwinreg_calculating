@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+__calculating()
+{
+    # Check, if geo of workarea is manually set; if not, we use __NET_WORKAREA instead.
+    declare -ga workarea=()
+    read -a workarea < <(xprop -root -notype _NET_WORKAREA) &&
+            workarea=(${workarea[@]//,}) &&
+            workarea=(${workarea[@]:2})
+    declare -g workarea_x=${workarea_x:-${workarea[0]}} \
+               workarea_y=${workarea_y:-${workarea[1]}} \
+               workarea_w=${workarea_width:-${workarea[2]}} \
+               workarea_h=${workarea_height:-${workarea[3]}}
+
+    # Check, if frame aliases have been set in a Conf File.
+    declare -f __calculating_frame_alias > /dev/null && __calculating_frame_alias
+
+    # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
+    declare -ga frame_northwest=(${frame_northwest[@]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))}) \
+                frame_north=(${frame_north[@]:-$workarea_x $workarea_y $workarea_w $((workarea_h/2))}) \
+                frame_northeast=(${frame_northwest[@]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))}) \
+                frame_east=(${frame_east[@]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h}) \
+                frame_southeast=(${frame_southeast[@]:-$((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}) \
+                frame_south=(${frame_south[@]:-$workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2))}) \
+                frame_southwest=(${frame_southwest[@]:-$workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}) \
+                frame_west=(${frame_west[@]:-$workarea_x $workarea_y $((workarea_w/2)) $workarea_h}) \
+                frame_all=(${frame_all[@]:-$workarea_x $workarea_y $workarea_w $workarea_h})
+
+    if [[ $frame ]]
+    then
+        declare -a frame_geo=()
+        eval frame_geo=('${frame_'${frame}'[@]}')
+        declare -g frame_x=${frame_x:-${frame_geo[0]}} \
+                   frame_y=${frame_y:-${frame_geo[1]}} \
+                   frame_w=${frame_width:-${frame_geo[2]}} \
+                   frame_h=${frame_height:-${frame_geo[3]}}
+    else
+        declare -g frame_x=${frame_x:-$workarea_x} \
+                   frame_y=${frame_y:-$workarea_y} \
+                   frame_w=${frame_width:-$workarea_w} \
+                   frame_h=${frame_height:-$workarea_h}
+    fi
+
+    # To simplify matters, we alias frames geo to x,y,w and h.
+    declare -g x=$frame_x \
+               y=$frame_y \
+               w=$frame_w \
+               h=$frame_h
+
+    # Check, if region aliases have been set in a Conf File.
+    declare -f __calculating_region_alias > /dev/null && __calculating_region_alias
+
+    # We use these aliases for regions geo. We also check, if aliases with same names have been set manually.
+    declare -ga region_northwest=(${region_northwest[@]:-$x $y $((w/2)) $((h/2))}) \
+                region_north=(${region_north[@]:-$x $y $w $((h/2))}) \
+                region_northeast=(${region_northeast[@]:-$((x+w/2)) $y $((w/2)) $((h/2))}) \
+                region_east=(${region_east[@]:-$((x+w/2)) $y $((w/2)) $h}) \
+                region_southeast=(${region_southeast[@]:-$((x+w/2)) $((y+h/2)) $((w/2)) $((h/2))}) \
+                region_south=(${region_south[@]:-$x $((y+h/2)) $w $((h/2))}) \
+                region_southwest=(${region_southwest[@]:-$x $((y+h/2)) $((w/2)) $((h/2))}) \
+                region_west=(${region_west[@]:-$x $y $((w/2)) $h}) \
+                region_all=(${region_all[@]:-$x $y $w $h})
+
+    # Here we declare row and column number, which are needed to perform grid layouting.
+    declare -g row_number=${row_number:-2} \
+               col_number=${col_number:-2}
+}

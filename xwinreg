@@ -1,1467 +1,30 @@
 #!/usr/bin/env bash
+
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
-#set -x
+#set -o xtrace ; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 
-#* Head
+declare src_dir=~/code/source/xwinreg/src
 
-## Copyright 2014 D630
-## https://github.com/D630/xwinreg
-
-## This program is free software: you can redistribute it and/or modify it
-## under the terms of the GNU General Public License as published by the
-## Free Software Foundation, either version 3 of the License, or (at your
-## option) any later version.
-
-## This program is distributed in the hope that it will be useful, but
-## WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-## or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-## for more details.
-
-## You should have received a copy of the GNU General
-## Public License along with this program. If not, see
-## <http://www.gnu.org/licenses/gpl-3.0.html>.
-
-#* Functions
-
-_version() { echo "0.1.0.25" ; }
-
-_usage()
+__src_script()
 {
-    printf 'xwinreg
-       (-F| )
-       [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-       (-c|-f|-H|-h|[-l ...|-L...]|-M|-m|-O|-o|-s|-U|-v|-y)'
-}
-
-_help()
-{
-    printf "
-$(_usage)
-
-OPTIONS
--------
-    OPTION                  ARG
-    ------                  ---
-    -F,  -file              <FILE> or a hyphen (-)
-    -C,  -conf-file         <FILE>
-    -T,  -tmp-file          <FILE>
-    -n,  -number-of-rows    <INT>
-    -N,  -number-of-cols    <INT>
-    -a,  -frame-alias       <FRAMEALIAS>
-    -fx, -frame-x           <PX>
-    -fy, -frame-y           <PX>
-    -fw, -frame-width       <PX>
-    -fh, -frame-height      <PX>
-    -wx, -workarea-x        <PX>
-    -wy, -workarea-y        <PX>
-    -ww, -workarea-width    <PX>
-    -wh, -workarea-height   <PX>
-    -h,  -help
-    -v,  -version
-
-SUBCOMMANDS
------------
-    ACTION                  REQUIRED
-    ------                  --------
-    -O,  -reset
-    -c,  -close             <REG>
-    -H,  -hide              <REG>
-    -U,  -unhide            <REG>
-    -f,  -focus             <REG>
-    -o,  -toggle-focus      <ODIREC>
-    -M,  -move-to-desk      <REG> <DESK> -W
-    -y,  -cycle             <REG> <YDIREC> -w -k
-    -s,  -size              <REG> <ENT> <REF> <GEO> -w
-    -m,  -move              <REG> <ENT> <REF> <GEO> <MDIREC> -w
-    -l,  -layout            <REGN> <WINN> <SPLIT> <LENT> <GRAV> <GEO>
-
-    ACTION                  ARG
-    ------                  ---
-    -L,  -layout-abbrev     <REGN>,<WINN>,<SPLIT>,<LENT>:<GRAV>,<GEO>
-
-    OPTION                  ARG
-    ------                  ---
-    -r,  -region            ( <REG> | <REGN> )
-    -d,  -direction         ( <ODIREC> | <YDIREC> | <MDIREC> )
-    -D,  -desk              <DESK>
-    -e,  -entity            ( <ENT> | <LENT> )
-    -R,  -reference         <REF>
-    -g,  -geo               <GEO>
-    -x,  -maximum           <WINN>
-    -G,  -gravity           <GRAV>
-    -A,  -action            <SPLIT>
-    -w,  -window
-    -W,  -switch
-    -k,  -stack
-
-ARGUMENTS
----------
-    <FILE>          Regular file or named pipe.
-    <INT>           Default is '2'.
-    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
-                    'southeast', 'south', 'southwest' or 'west'.
-    <PX>            Pixel size specified by an integer.
-    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
-                    Additional: 'active' or 'all'.
-    <REGN>          Region number specified by an integer.
-    <ODIREC>        'next' or 'preview'.
-    <YDIREC>        'clock', 'anticlock' or 'reverse'.
-    <MDIREC>        'north', 'east', 'south' or 'west'.
-    <DESK>          Desktop number specified by an integer or 'curr'.
-    <ENT>           'px' or 'pro'.
-    <LENT>          'alias', 'px' or 'pro'.
-    <REF>           'window', 'region' or 'frame'.
-    <WINN>          Window number specified by an integer or 'max'.
-    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
-                    'east', 'southwest', 'south', 'southeast' or
-                    'static'. Additional: '[0-10]'.
-    <SPLIT>         'maximize', 'horizontal', 'vertical',
-                    'grid-horizontal', 'grid-vertical',
-                    'grid-square-horizontal' or 'grid-square-vertical'.
-    <GEO>
-                    <X>        Pixel x size specified by an integer.
-                    <Y>        Pixel y size specified by an integer.
-                    <W>        Pixel width size specified by an integer.
-                    <H>        Pixel height size specified by an integer.
-                    <PRO>      Procent size specified by an integer.
-                    <REGALIAS> 'northwest', 'north', 'northeast','east',
-                               'southeast', 'south', 'southwest' or
-                               'west'.
-                    -          Means, that old size is kept.
-                    Samples:
-                               '<REGALIAS>', '<PRO>', '<PRO>,<PRO>',
-                               '<PRO>,<PRO>,<PRO>,<PRO>', '<X>,<Y>',
-                               '<W>,<H>' or '<X>,<Y>,<W>,<H>'.
-"
-}
-
-_check_variables_input()
-{
-    if [[ $1 =~ ^(desk_curr|win_active|win_active_frame_extents|win_active_tags|win_number|desk_select|win_active_geo_x_y|win_active_geo_w_h|win_xid|win_geo_x_y|win_geo_w_h|win_frame_extents|win_tags)=.*$ ]]
-    then
-        eval "$1"
-    else
-        { echo "Irregular variable inside input." >&2 ; exit 1 ; }
-    fi
-}
-
-_mktmp()
-{
-    # Write variables to file_tmp. This function is called before layout is set.
-    printf '%s\n' "file_tmp=$file_tmp
-workarea=( ${workarea[*]} )
-workarea_x=$workarea_x
-workarea_y=$workarea_y
-workarea_w=$workarea_w
-workarea_h=$workarea_h
-frame=$frame
-frame_x=$frame_x
-frame_y=$frame_y
-frame_w=$frame_w
-frame_h=$frame_h
-x=$x
-y=$y
-w=$w
-h=$h
-row_number=$row_number
-col_number=$col_number
-region_northwest=( ${region_northwest[*]} )
-region_north=( ${region_north[*]} )
-region_northeast=( ${region_northeast[*]} )
-region_east=( ${region_east[*]} )
-region_southeast=( ${region_southeast[*]} )
-region_south=( ${region_south[*]} )
-region_southwest=( ${region_southwest[*]} )
-region_west=( ${region_west[*]} )
-region_all=( ${region_all[*]} )
-layout=( ${layout[*]} )
-win_number=$win_number
-win_xid=( ${win_xid[*]} )" > "$file_tmp"
-}
-
-_calculating()
-{
-    # Check, if geo of workarea is manually set; if not, we use _NET_WORKAREA instead.
-    declare -ga workarea=()
-    read -a workarea < <(xprop -root -notype _NET_WORKAREA) &&
-            workarea=( ${workarea[@]//,} ) &&
-            workarea=( ${workarea[@]:2} )
-    declare -g workarea_x=${workarea_x:-${workarea[0]}} \
-               workarea_y=${workarea_y:-${workarea[1]}} \
-               workarea_w=${workarea_width:-${workarea[2]}} \
-               workarea_h=${workarea_height:-${workarea[3]}}
-
-    # Check, if frame aliases have been set in a Conf File.
-    declare -f _calculating_frame_alias > /dev/null && _calculating_frame_alias
-
-    # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
-    declare -ga frame_northwest=( ${frame_northwest[@]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))} ) \
-                frame_north=( ${frame_north[@]:-$workarea_x $workarea_y $workarea_w $((workarea_h/2))} ) \
-                frame_northeast=( ${frame_northwest[@]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))} ) \
-                frame_east=( ${frame_east[@]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h} ) \
-                frame_southeast=( ${frame_southeast[@]:-$((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))} ) \
-                frame_south=( ${frame_south[@]:-$workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2))} ) \
-                frame_southwest=( ${frame_southwest[@]:-$workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))} ) \
-                frame_west=( ${frame_west[@]:-$workarea_x $workarea_y $((workarea_w/2)) $workarea_h} ) \
-                frame_all=( ${frame_all[@]:-$workarea_x $workarea_y $workarea_w $workarea_h} )
-
-    if [[ $frame ]]
-    then
-        declare -a frame_geo=()
-        eval frame_geo=( '${frame_'${frame}'[@]}' )
-        declare -g frame_x=${frame_x:-${frame_geo[0]}} \
-                   frame_y=${frame_y:-${frame_geo[1]}} \
-                   frame_w=${frame_width:-${frame_geo[2]}} \
-                   frame_h=${frame_height:-${frame_geo[3]}}
-    else
-        declare -g frame_x=${frame_x:-$workarea_x} \
-                   frame_y=${frame_y:-$workarea_y} \
-                   frame_w=${frame_width:-$workarea_w} \
-                   frame_h=${frame_height:-$workarea_h}
-    fi
-
-    # To simplify matters, we alias frames geo to x,y,w and h.
-    declare -g x=$frame_x \
-               y=$frame_y \
-               w=$frame_w \
-               h=$frame_h
-
-    # Check, if region aliases have been set in a Conf File.
-    declare -f _calculating_region_alias > /dev/null && _calculating_region_alias
-
-    # We use these aliases for regions geo. We also check, if aliases with same names have been set manually.
-    declare -ga region_northwest=( ${region_northwest[@]:-$x $y $((w/2)) $((h/2))} ) \
-                region_north=( ${region_north[@]:-$x $y $w $((h/2))} ) \
-                region_northeast=( ${region_northeast[@]:-$((x+w/2)) $y $((w/2)) $((h/2))} ) \
-                region_east=( ${region_east[@]:-$((x+w/2)) $y $((w/2)) $h} ) \
-                region_southeast=( ${region_southeast[@]:-$((x+w/2)) $((y+h/2)) $((w/2)) $((h/2))} ) \
-                region_south=( ${region_south[@]:-$x $((y+h/2)) $w $((h/2))} ) \
-                region_southwest=( ${region_southwest[@]:-$x $((y+h/2)) $((w/2)) $((h/2))} ) \
-                region_west=( ${region_west[@]:-$x $y $((w/2)) $h} ) \
-                region_all=( ${region_all[@]:-$x $y $w $h} )
-
-    # Here we declare row and column number, which are needed to perform grid layouting.
-    declare -g row_number=${row_number:-2} \
-               col_number=${col_number:-2}
-}
-
-_do_wmctrl()
-{
-    wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
-    wmctrl -i -r "$win" -e "${gravity},${x},${y},${w},${h}"
-}
-
-_get_win_active() { read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW) ; }
-
-_get_win_active_geo()
-{
-    mapfile -t xwininfo_win_active < <(xwininfo -id "$win")
-    win_active_geo_x_y_tmpp=( $((${xwininfo_win_active[3]##* }+${xwininfo_win_active[5]##* })),$((${xwininfo_win_active[4]##* }+${xwininfo_win_active[6]##* })) )
-    win_active_geo_w_h_tmpp=( ${xwininfo_win_active[7]##* },${xwininfo_win_active[8]##* } )
-}
-
-_get_region_active() { read -r -a region_active < <(sed -n "/win_xid_region_/ s/win_xid_region_\(.*\)=.*${win_active:2}.*/\1/ p" "$file_tmp") ; }
-
-_decrease_win_xid()
-{
-    win_xid=( ${win_xid[@]:$win_region_number} )
-    ((win_number-=win_region_number))
-}
-
-_parse_region()
-{
-    args=()
-
-    for i in ${1//,/ }
+    declare f
+    for f
     do
-        { [[ $i =~ - ]] && args+=( \{${i/-/..}\} ) ; } || args+=( $i )
-    done
-
-    eval "printf '%s\n' "${args[@]}""
-}
-
-_order_reverse_array()
-{
-    array=( $@ )
-    for (( i=${#array[@]}-1 ; i >= 0 ; --i ))
-    do
-        printf '%s\n' "${array[i]}"
+        source "${src_dir}/xwinreg_${f}"
     done
 }
 
-_clock()
+(($# == 0)) &&
 {
-    array=( $@ )
-    printf '%s\n' "${array[-1]}"
-    for (( i=0 ; i <= ${#array[@]}-2 ; i++ ))
-    do
-        printf '%s\n' "${array[i]}"
-    done
+    __src_script usage
+    printf '%s\n' "USAGE: $(__usage)" >&2 ; exit 1
 }
-
-_anticlock()
-{
-    array=( $@ )
-    for (( i=1 ; i <= ${#array[@]}-1 ; i++ ))
-    do
-        printf '%s\n' "${array[i]}"
-    done
-    printf '%s\n' "${array[0]}"
-}
-
-_order_num_asc_array()
-{
-    declare -a array=( $@ )
-    declare i= j= element=
-    for (( i=1 ; i < ${#array[@]} ; ++i ))
-    do
-        for (( j=i ; j > 0 ; --j ))
-        do
-            element=${array[j]}
-            (( ${element%%,*} < ${array[j-1]%%,*} )) && { array[j]=${array[j-1]} ; array[j-1]=$element ; }
-        done
-    done
-    printf '%s\n' "${array[@]}"
-}
-
-_comm_array()
-{
-    { (( $# )) && counter=1 ; } || return 1
-    arg= array_1=() array_2=()
-
-    for arg
-    do
-        [[ $arg == -- ]] && ((counter++))
-    done
-
-    for (( i=1 ; i <= $counter ; i++ ))
-    do
-        while [[ $# -gt 0 && $1 != -- ]]
-        do
-            eval "array_${i}+=( "$1" )"
-            shift 1
-        done
-        [[ $1 == -- ]] && shift 1
-    done
-
-    for element_array_1 in "${array_1[@]}"
-    do
-        for element_array_2 in "${array_2[@]}"
-        do
-            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; break ; }
-        done
-        (( skip )) || printf '%s\n' "$element_array_1"
-        skip=
-    done
-}
-
-_store_x_y_w_h() { org=( $x $y $w $h ) ; }
-
-_restore_x_y_w_h()
-{
-    x=${org[0]}
-    y=${org[1]}
-    w=${org[2]}
-    h=${org[3]}
-}
-
-_store_region() { eval "win_xid_region_${region_number}+=( ${win_xid[i]} )" "win_geo_x_y_region_${region_number}+=( ${x},${y} )" "win_geo_w_h_region_${region_number}+=( ${w},${h} )" ; }
-
-_build_layout() { [[ ! $@ =~ not_available && $# -eq 6 ]] && layout+=( ${1},${2},${3//-/_},${4}:${5},${6} ) ; }
-
-_build_layout_abbrev()
-{
-    declare l_l= l_r=
-    [[ $1 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] &&
-    {
-        IFS=: read -r l_l l_r <<< "$1"
-        layout+=( ${l_l//-/_}:${l_r} )
-    }
-}
-
-_check_file_tmp()
-{
-    while read -r
-    do
-        eval "$REPLY"
-    done
-}
-
-_check_resetting()
-{
-    _check_file_tmp < <(grep -v -e "reg_number" -e "region_" -e "reg_geo" -e "win_xid_region_" -e "win_geo_x_y_region_" -e "win_geo_w_h_region_" "$file_tmp")
-    _mktmp
-    _check_region
-}
-
-_check_gravity()
-{
-    case $gravity in
-        0)
-                gravity=0
-                ;;
-        1|northwest*)
-                gravity=1
-                ;;
-        2|north|northgravity)
-                gravity=2
-                ;;
-        3|northeast*)
-                gravity=3
-                ;;
-        4|west|westgravity)
-                gravity=4
-                ;;
-        5|center|centergravity)
-                gravity=5
-                ;;
-        6|east|eastgravity)
-                gravity=6
-                ;;
-        7|southwest*)
-                gravity=7
-                ;;
-        8|south|southgravity)
-                gravity=8
-                ;;
-        9|southeast*)
-                gravity=9
-                ;;
-        10|static|staticgravity)
-                gravity=10
-                ;;
-        *)
-                gravity=0
-                ;;
-    esac
-}
-
-_check_region()
-{
-    _store_x_y_w_h
-    # Write reg_number to file_temp.
-    printf '%s\n' "reg_number=${#layout[@]}" >> "$file_tmp"
-
-    for l in "${layout[@]}"
-    do
-        IFS=':' read l_l l_r <<< "$l"
-        set -- ${l_l//,/ }
-        region_number=$1
-        win_number_maximum=$2
-        layout_action=_${3}
-        entity_region=$4
-        gravity=${l_r%%,*}
-
-        case $entity_region in
-            alias)
-                    eval region_geo=( '${region_'${l_r##*,}'[@]}' )
-                    x=${region_geo[0]}
-                    y=${region_geo[1]}
-                    w=${region_geo[2]}
-                    h=${region_geo[3]}
-                    ;;
-            px)
-                    l_r=${l_r#*,}
-                    region_geo=( ${l_r//,/ } )
-                    x=${region_geo[0]}
-                    y=${region_geo[1]}
-                    w=${region_geo[2]}
-                    h=${region_geo[3]}
-                    ;;
-            pro)
-                    l_r=${l_r#*,}
-                    region_geo=( ${l_r//,/ } )
-                    x=$((w*${region_geo[0]}/100))
-                    y=$((h*${region_geo[1]}/100))
-                    w=$((w*${region_geo[2]}/100))
-                    h=$((h*${region_geo[3]}/100))
-                    ;;
-        esac
-
-        _check_gravity
-
-        if [[ $win_number_maximum == max ]]
-        then
-            win_region_number=$win_number
-        else
-            win_region_number=$win_number_maximum
-        fi
-
-        # Now process layout by calling specified function.
-        ${layout_action}
-        # After layouting we redeclare win_xid.
-        _decrease_win_xid
-
-        _restore_x_y_w_h
-        reg_geo+=( ${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]} )
-        eval "region_${region_number}_geo=( ${region_geo[*]} )"
-        eval region_geo_tmp=( '${region_'${region_number}'_geo[@]}' )
-
-        # For every region write new variables to file_tmp.
-        printf '%s\n' "region_${region_number}_entity=$entity_region
-region_${region_number}_action=$layout_action
-region_${region_number}_geo=( ${region_geo_tmp[*]} )" >> "$file_tmp"
-    done
-
-    # Write reg_geo to file_tmp.
-    printf '%s\n' "reg_geo=( ${reg_geo[*]} )" >> "$file_tmp"
-    unset -v reg_geo
-
-    for (( region_number=1 ; region_number <= ${#layout[@]} ; region_number++ ))
-    do
-        eval win_xid_region_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-        eval win_geo_x_y_region_tmp=( '${win_geo_x_y_region_'${region_number}'[@]}' )
-        eval win_geo_w_h_region_tmp=( '${win_geo_w_h_region_'${region_number}'[@]}' )
-
-        # In the end we write some arrays to file_tmp.
-        printf '%s\n' "win_xid_region_${region_number}=( ${win_xid_region_tmp[*]} )
-win_geo_x_y_region_${region_number}=( ${win_geo_x_y_region_tmp[*]} )
-win_geo_w_h_region_${region_number}=( ${win_geo_w_h_region_tmp[*]} )" >> "$file_tmp"
-    done
-}
-
-_check_region_selection()
-{
-    case $region_selection in
-        all)
-                mapfile -t layout_numbers < <(printf '%s\n' "${layout[@]%%,*}")
-                layout_selection=( ${layout[@]} )
-                ;;
-        active)
-                _get_win_active
-                _get_region_active
-                layout_numbers=( ${region_active[@]} )
-                layout_selection=( ${layout[layout_numbers[0]-1]} )
-                ;;
-        *)
-                [[ $region_selection =~ (-|,|[[:digit:]]) ]] &&
-                {
-                    for region_number in $(_parse_region "$region_selection")
-                    do
-                        layout_numbers+=( $region_number )
-                        layout_selection+=( ${layout[region_number-1]} )
-                    done
-                }
-                ;;
-    esac
-
-    mapfile -t layout_numbers < <(_order_num_asc_array "${layout_numbers[@]}")
-    mapfile -t layout_selection < <(_order_num_asc_array "${layout_selection[@]}")
-}
-
-_check_window_selection()
-{
-    _check_file_tmp < "$file_tmp"
-
-    case $region_selection in
-        all)
-                for (( region_number=1 ; region_number <= ${#layout[@]} ; region_number++ ))
-                do
-                    eval win_xid_region_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-                    win_xid_selection+=( ${win_xid_region_tmp[@]} )
-                done
-                ;;
-        active)
-                _get_win_active
-                _get_region_active
-                eval win_xid_selection=( '${win_xid_region_'${region_active}'[@]}' )
-                ;;
-        *)
-                [[ $region_selection =~ (-|,|[[:digit:]]) ]] &&
-                {
-                    for region_number in $(_parse_region "$region_selection")
-                    do
-                        eval win_xid_region_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-                        win_xid_selection+=( ${win_xid_region_tmp[@]} )
-                    done
-                }
-                ;;
-    esac
-}
-
-_check_closing()
-{
-    _check_file_tmp < "$file_tmp"
-
-    case $region_selection in
-        all)
-                for (( region_number=1 ; region_number <= ${#layout[@]} ; region_number++ ))
-                do
-                    eval win_xid_region_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-                    win_xid_selection+=( ${win_xid_region_tmp[@]} )
-                    layout_selection+=( ${layout[region_number-1]} )
-                done
-                ;;
-        active)
-                _get_win_active
-                _get_region_active
-                eval win_xid_selection=( '${win_xid_region_'${region_active}'[@]}' )
-                layout_selection=( ${layout[region_active-1]} )
-                ;;
-        *)
-                [[ $region_selection =~ (-|,|[[:digit:]]) ]] &&
-                {
-                    for region_number in $(_parse_region "$region_selection")
-                    do
-                        eval win_xid_region_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-                        win_xid_selection+=( ${win_xid_region_tmp[@]} )
-                        layout_selection+=( ${layout[region_number-1]} )
-                    done
-                }
-                ;;
-    esac
-
-    # Check, if some regions have not been selected, and then renumber regions.
-    mapfile -t layout < <(_comm_array $(_order_num_asc_array "${layout[@]}") -- $(_order_num_asc_array "${layout_selection[@]}"))
-    if (( ${#layout[@]} > 0 ))
-    then
-        for (( i=0 , region_number=1 ; region_number <= ${#layout[@]} ; i++ , region_number++ ))
-        do
-            layout[i]=${region_number},${layout[i]#*,}
-        done
-    else
-        layout=()
-    fi
-
-    # Check, if there are still some windows, and redeclare win_xid and win_number.
-    mapfile -t win_xid < <(_comm_array $(_order_num_asc_array "${win_xid[@]}") -- $(_order_num_asc_array "${win_xid_selection[@]}"))
-    win_number=${#win_xid[@]}
-
-    # Generate a new Temp File.
-    _mktmp
-
-    # At the end we close windows of selected regions.
-    for xid in "${win_xid_selection[@]}"
-    do
-        wmctrl -i -c "$xid"
-    done
-}
-
-_check_focusing()
-{
-    _check_window_selection
-
-    for xid in "${win_xid_selection[@]}"
-    do
-        wmctrl -i -a "$xid"
-    done
-
-    _get_win_active
-    wmctrl -i -a "$win_active"
-}
-
-_check_move_to_desk()
-{
-    _check_window_selection
-
-    if [[ $desk_target == curr ]]
-    then
-        _move() { wmctrl -i -r "$xid" -t "$desk_curr" ; }
-    else
-        _move() { wmctrl -i -r "$xid" -t "$desk_target" ; }
-    fi
-
-    for xid in "${win_xid_selection[@]}"
-    do
-        _move
-    done
-
-    [[ $switch == switch ]] && wmctrl -i -a "${win_xid_selection[0]}"
-}
-
-_check_hiding()
-{
-    _check_window_selection
-
-    for xid in "${win_xid_selection[@]}"
-    do
-        wmctrl -i -r "$xid" -b "${hide_action},hidden"
-    done
-}
-
-_check_sizing()
-{
-    _check_region_selection
-
-    if [[ $entity == window ]]
-    then
-        for region_number in "${layout_numbers[@]}"
-        do
-            eval win_xid_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-            eval win_geo_x_y_tmp=( '${win_geo_x_y_region_'${region_number}'[@]}' )
-            eval win_geo_w_h_tmp=( '${win_geo_w_h_region_'${region_number}'[@]}' )
-            eval region_geo_tmp=( '${region_'${region_number}'_geo[@]}' )
-
-            for i in "${!win_xid_tmp[@]}"
-            do
-                case $entity_size in
-                    px)
-                            if [[ ${geo%,*} == - ]]
-                            then
-                                w=${win_geo_w_h_tmp[i]%,*}
-                            else
-                                w=${geo%,*}
-                            fi
-
-                            if [[ ${geo#*,} == - ]]
-                            then
-                                h=${win_geo_w_h_tmp[i]#*,}
-                            else
-                                h=${geo#*,}
-                            fi
-                            ;;
-                    pro)
-                            case $reference in
-                                window)
-                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
-                                        then
-                                            w=${win_geo_w_h_tmp[i]%,*}
-                                            h=${win_geo_w_h_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
-                                        then
-                                            w=$((${win_geo_w_h_tmp[i]%,*}*${geo%,*}/100))
-                                            h=$((${win_geo_w_h_tmp[i]#*,}*${geo#*,}/100))
-                                        elif [[ ${geo%,*} == - ]]
-                                        then
-                                            w=${win_geo_w_h_tmp[i]%,*}
-                                            h=$((${win_geo_w_h_tmp[i]#*,}*${geo#*,}/100))
-                                        elif [[ ${geo#*,} == - ]]
-                                        then
-                                            w=$((${win_geo_w_h_tmp[i]%,*}*${geo%,*}/100))
-                                            h=${win_geo_w_h_tmp[i]#*,}
-                                        fi
-                                        ;;
-                                region)
-                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
-                                        then
-                                            w=${win_geo_w_h_tmp[i]%,*}
-                                            h=${win_geo_w_h_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
-                                        then
-                                            w=$((${region_geo_tmp[2]}*${geo%,*}/100))
-                                            h=$((${region_geo_tmp[3]}*${geo#*,}/100))
-                                        elif [[ ${geo%,*} == - ]]
-                                        then
-                                            w=${win_geo_w_h_tmp[i]%,*}
-                                            h=$((${region_geo_tmp[3]}*${geo#*,}/100))
-                                        elif [[ ${geo#*,} == - ]]
-                                        then
-                                            w=$((${region_geo_tmp[2]}*${geo%,*}/100))
-                                            h=${win_geo_w_h_tmp[i]#*,}
-                                        fi
-                                        ;;
-                                frame)
-                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
-                                        then
-                                            w=${win_geo_w_h_tmp[i]%,*}
-                                            h=${win_geo_w_h_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
-                                        then
-                                            w=$((frame_w*${geo%,*}/100))
-                                            h=$((frame_h*${geo#*,}/100))
-                                        elif [[ ${geo%,*} == - ]]
-                                        then
-                                            w=${win_geo_w_h_tmp[i]%,*}
-                                            h=$((frame_h*${geo#*,}/100))
-                                        elif [[ ${geo#*,} == - ]]
-                                        then
-                                            w=$((frame_w*${geo%,*}/100))
-                                            h=${win_geo_w_h_tmp[i]#*,}
-                                        fi
-                                        ;;
-                            esac
-                            ;;
-                esac
-
-                gravity=0
-                x=${win_geo_x_y_tmp[i]%%,*}
-                y=${win_geo_x_y_tmp[i]##*,}
-                win=${win_xid_tmp[i]}
-                _do_wmctrl
-
-                eval "win_geo_w_h_region_${region_number}_tmp+=( ${w},${h} )"
-            done
-        done
-
-        # At the end we update new geo of windows and write those to file_tmp. So, we update just relating lines!
-        for region_number in "${layout_numbers[@]}"
-        do
-            eval win_geo_w_h_region_tmp=( '${win_geo_w_h_region_'${region_number}'_tmp[@]}' )
-            sed -i -e "/win_geo_w_h_region_${region_number}/c \win_geo_w_h_region_${region_number}=( ${win_geo_w_h_region_tmp[*]} )" "$file_tmp"
-        done
-    else
-        _store_x_y_w_h
-
-        i=0
-        for region_number in "${layout_numbers[@]}"
-        do
-            layout_selection_tmp=${layout_selection[i]}
-            eval entity_region_tmp='${region_'${region_number}'_entity}'
-            [[ $entity_region_tmp =~ alias ]] && { IFS=',' read -r _ _ alias _ <<< "${layout_selection_tmp%%:*}" ; }
-
-            eval region_geo=( '${region_'${region_number}'_geo[@]}' )
-            region_x=${region_geo[0]}
-            region_y=${region_geo[1]}
-            region_w=${region_geo[2]}
-            region_h=${region_geo[3]}
-
-            case $entity_size in
-                px)
-                        if [[ ${geo%,*} == - ]]
-                        then
-                            w=$region_w
-                        else
-                            w=${geo%,*}
-                        fi
-
-                        if [[ ${geo#*,} == - ]]
-                        then
-                            h=$region_h
-                        else
-                            h=${geo#*,}
-                        fi
-                        ;;
-                pro)
-                        case $reference in
-                            region)
-                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
-                                    then
-                                        w=$region_w
-                                        h=$region_h
-                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
-                                    then
-                                        w=$((region_w*${geo%,*}/100))
-                                        h=$((region_h*${geo#*,}/100))
-                                    elif [[ ${geo%,*} == - ]]
-                                    then
-                                        w=$region_w
-                                        h=$((region_h*${geo#*,}/100))
-                                    elif [[ ${geo#*,} == - ]]
-                                    then
-                                        w=$((region_w*${geo%,*}/100))
-                                        h=$region_h
-                                    fi
-                                    ;;
-                            frame)
-                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
-                                    then
-                                        w=$region_w
-                                        h=$region_h
-                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
-                                    then
-                                        w=$((frame_w*${geo%,*}/100))
-                                        h=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo%,*} == - ]]
-                                    then
-                                        w=$region_w
-                                        h=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo#*,} == - ]]
-                                    then
-                                        w=$((frame_w*${geo%,*}/100))
-                                        h=$region_h
-                                    fi
-                                    ;;
-                        esac
-                        ;;
-            esac
-            x=$region_x
-            y=$region_y
-
-            IFS=':' read l_l l_r <<< "$layout_selection_tmp"
-            set -- ${l_l//,/ }
-            layout_modification+=( ${1},${2},${3},px:${l_r%%,*},${x},${y},${w},${h} )
-
-            ((i++))
-        done
-
-        for (( region_number=1 ; region_number <= ${#layout[@]} ; region_number++ ))
-        do
-            declare -a "win_xid_region_${region_number}=()" "win_geo_x_y_region_${region_number}=()" "win_geo_w_h_region_${region_number}=()"
-        done
-
-        # Check, if some regions have not been selected and write those "old" to layout_modification, too.
-        for old in "${layout[@]}"
-        do
-            for num in "${layout_numbers[@]}"
-            do
-                [[ $num == ${old%%,*} ]] && skip=1
-            done
-            ((skip)) || layout_modification+=( "$old" )
-            skip=
-        done
-
-        mapfile -t layout < <(_order_num_asc_array "${layout_modification[@]}")
-
-        _restore_x_y_w_h
-        unset -v reg_geo
-
-        # Here we do not only update lines in file_tmp; we rewrite the hole Tmp File!
-        _mktmp
-        # After that, we build the new layout.
-        _check_region
-    fi
-}
-
-_check_moving()
-{
-    _check_region_selection
-
-    if [[ $entity == window ]]
-    then
-        for region_number in "${layout_numbers[@]}"
-        do
-            eval win_xid_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-            eval win_geo_x_y_tmp=( '${win_geo_x_y_region_'${region_number}'[@]}' )
-            eval win_geo_w_h_tmp=( '${win_geo_w_h_region_'${region_number}'[@]}' )
-            eval region_geo_tmp=( '${region_'${region_number}'_geo[@]}' )
-            eval region_action_tmp='${region_'${region_number}'_action}'
-
-            for i in "${!win_xid_tmp[@]}"
-            do
-                case $entity_size in
-                    px)
-                            if [[ ${geo%,*} == - ]]
-                            then
-                                x=${win_geo_x_y_tmp[i]%,*}
-                            else
-                                x=${geo%,*}
-                            fi
-
-                            if [[ ${geo#*,} == - ]]
-                            then
-                                y=${win_geo_x_y_tmp[i]#*,}
-                            else
-                                y=${geo#*,}
-                            fi
-                            ;;
-                    pro)
-                            case $reference in
-                                window)
-                                        case $direction_moving in
-                                            north)
-                                                    x=${win_geo_x_y_tmp[i]%,*}
-                                                    y=$((${win_geo_x_y_tmp[i]#*,}-(${win_geo_w_h_tmp[i]#*,}*geo/100)))
-                                                    ;;
-                                            east)
-                                                    x=$((${win_geo_x_y_tmp[i]%,*}+(${win_geo_w_h_tmp[i]%,*}*geo/100)))
-                                                    y=${win_geo_x_y_tmp[i]#*,}
-                                                    ;;
-                                            south)
-                                                    x=${win_geo_x_y_tmp[i]%,*}
-                                                    y=$((${win_geo_x_y_tmp[i]#*,}+(${win_geo_w_h_tmp[i]#*,}*geo/100)))
-                                                    ;;
-                                            west)
-                                                    x=$((${win_geo_x_y_tmp[i]%,*}-(${win_geo_w_h_tmp[i]%,*}*geo/100)))
-                                                    y=${win_geo_x_y_tmp[i]#*,}
-                                                    ;;
-                                        esac
-                                        ;;
-                                region)
-                                        case $direction_moving in
-                                            north)
-                                                    x=${win_geo_x_y_tmp[i]%,*}
-                                                    y=$((${win_geo_x_y_tmp[i]#*,}-(${region_geo_tmp[3]}*geo/100)))
-                                                    ;;
-                                            east)
-                                                    x=$((${win_geo_x_y_tmp[i]%,*}+(${region_geo_tmp[2]}*geo/100)))
-                                                    y=${win_geo_x_y_tmp[i]#*,}
-                                                    ;;
-                                            south)
-                                                    x=${win_geo_x_y_tmp[i]%,*}
-                                                    y=$((${win_geo_x_y_tmp[i]#*,}+(${region_geo_tmp[3]}*geo/100)))
-                                                    ;;
-                                            west)
-                                                    x=$((${win_geo_x_y_tmp[i]%,*}-(${region_geo_tmp[2]}*geo/100)))
-                                                    y=${win_geo_x_y_tmp[i]#*,}
-                                                    ;;
-                                        esac
-                                        ;;
-                                frame)
-                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
-                                        then
-                                            x=${win_geo_x_y_tmp[i]%,*}
-                                            y=${win_geo_x_y_tmp[i]#*,}
-                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
-                                        then
-                                            x=$(((frame_x+frame_w)*${geo%,*}/100))
-                                            y=$(((frame_y+frame_h)*${geo#*,}/100))
-                                        elif [[ ${geo%,*} == - ]]
-                                        then
-                                            x=${win_geo_x_y_tmp[i]%,*}
-                                            y=$(((frame_y+frame_h)*${geo#*,}/100))
-                                        elif [[ ${geo#*,} == - ]]
-                                        then
-                                            x=$(((frame_x+frame_w)*${geo%,*}/100))
-                                            y=${win_geo_x_y_tmp[i]#*,}
-                                        fi
-                                        ;;
-                            esac
-                            ;;
-                esac
-
-                w=${win_geo_w_h_tmp[i]%%,*}
-                h=${win_geo_w_h_tmp[i]##*,}
-                gravity=0
-                win=${win_xid_tmp[i]}
-                _do_wmctrl
-
-                eval "win_geo_x_y_region_${region_number}_tmp+=( ${x},${y} )"
-            done
-        done
-
-        # At the end we update new geo of windows and write those to file_tmp. So, we update just relating lines!
-        for region_number in "${layout_numbers[@]}"
-        do
-            eval win_geo_x_y_region_tmp=( '${win_geo_x_y_region_'${region_number}'_tmp[@]}' )
-            sed -i -e "/win_geo_x_y_region_${region_number}/c \win_geo_x_y_region_${region_number}=( ${win_geo_x_y_region_tmp[*]} )" "$file_tmp"
-        done
-    else
-        _store_x_y_w_h
-
-        i=0
-        for region_number in "${layout_numbers[@]}"
-        do
-            layout_selection_tmp=${layout_selection[i]}
-            eval entity_region_tmp='${region_'${region_number}'_entity}'
-            [[ $entity_region_tmp =~ alias ]] && { IFS=',' read -r _ _ alias _ <<< "${layout_selection_tmp%%:*}" ; }
-
-            eval region_geo=( '${region_'${region_number}'_geo[@]}' )
-            region_x=${region_geo[0]}
-            region_y=${region_geo[1]}
-            region_w=${region_geo[2]}
-            region_h=${region_geo[3]}
-
-            case $entity_size in
-                px)
-                        if [[ ${geo%,*} == - ]]
-                        then
-                            x=$region_x
-                        else
-                            x=${geo%,*}
-                        fi
-
-                        if [[ ${geo#*,} == - ]]
-                        then
-                            y=$region_y
-                        else
-                            y=${geo#*,}
-                        fi
-                        ;;
-                pro)
-                        case $reference in
-                            reg|region)
-                                    case $direction_moving in
-                                        north)
-                                                x=$region_x
-                                                y=$((region_y-(region_h*geo/100)))
-                                                ;;
-                                        east)
-                                                x=$((region_x+(region_w*geo/100)))
-                                                y=$region_y
-                                                ;;
-                                        south)
-                                                x=$region_x
-                                                y=$((region_y+(region_h*geo/100)))
-                                                ;;
-                                        west)
-                                                x=$((region_x-(region_w*geo/100)))
-                                                y=$region_y
-                                                ;;
-                                    esac
-                                    ;;
-                            frame)
-                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
-                                    then
-                                        x=$region_x
-                                        y=$region_y
-                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
-                                    then
-                                        x=$((frame_w*${geo%,*}/100))
-                                        y=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo%,*} == - ]]
-                                    then
-                                        x=$region_x
-                                        y=$((frame_h*${geo#*,}/100))
-                                    elif [[ ${geo#*,} == - ]]
-                                    then
-                                        x=$((frame_w*${geo%,*}/100))
-                                        y=$region_y
-                                    fi
-                                    ;;
-                        esac
-                        ;;
-            esac
-
-            w=$region_w
-            h=$region_h
-
-            IFS=':' read l_l l_r <<< "$layout_selection_tmp"
-            set -- ${l_l//,/ }
-            layout_modification+=( ${1},${2},${3},px:${l_r%%,*},${x},${y},${w},${h} )
-
-            ((i++))
-        done
-
-        for (( region_number=1 ; region_number <= ${#layout[@]} ; region_number++ ))
-        do
-            declare -a "win_xid_region_${region_number}=()" "win_geo_x_y_region_${region_number}=()" "win_geo_w_h_region_${region_number}=()"
-        done
-
-        # Check, if some regions have not been selected and write those "old" to layout_modification, too.
-        for old in "${layout[@]}"
-        do
-            for num in "${layout_numbers[@]}"
-            do
-                [[ $num == ${old%%,*} ]] && skip=1
-            done
-            ((skip)) || layout_modification+=( "$old" )
-            skip=
-        done
-
-        mapfile -t layout < <(_order_num_asc_array "${layout_modification[@]}")
-
-        _restore_x_y_w_h
-        unset -v reg_geo
-
-        # Here we do not update lines in file_tmp; we rewrite the hole Tmp File!
-        _mktmp
-        # After that, we build the new layout.
-        _check_region
-    fi
-}
-
-_grid_horizontal()
-{
-    # Adapted. See for more details http://forum.ubuntuusers.de/topic/wmtiler-fuer-floating-wm-s/
-
-    normal_row_windows=$((win_region_number/row_number))
-    bottom_row_windows=$((normal_row_windows+win_region_number%row_number))
-    windows_not_in_bottom_row=$((win_region_number-bottom_row_windows))
-    x_org=$x
-    h=$((h/row_number))
-    normal_row_width=$(((w/normal_row_windows)-normal_row_windows))
-    bottom_row_width=$(((w/bottom_row_windows)-normal_row_windows))
-
-    current_row=1
-    for (( i=0 , current_row_windows=0 ; i <= win_region_number-1 ; i++ , current_row_windows++ ))
-    do
-        (( current_row < row_number )) &&
-        {
-            (( current_row_windows == normal_row_windows )) &&
-            {
-                ((current_row++))
-                if (( current_row == row_number ))
-                then
-                    x=$x_org
-                    y=$((y+h))
-                    w=$bottom_row_width
-                else
-                    current_row_windows=0
-                fi
-            }
-            (( current_row_windows == 0 )) && x=$x_org && w=$normal_row_width && { (( current_row != 1 )) && y=$((y+h)) ; }
-        }
-
-        win=${win_xid[i]}
-        _do_wmctrl
-
-        _store_region
-        x=$((x+w))
-    done
-}
-
-_grid_square_horizontal()
-{
-    # Adapted. See for more details http://bashscripts.org/forum/viewtopic.php?f=7&t=1568
-
-    col_number=${col_number-$(bc <<< "sqrt(${win_region_number})")}
-    row_number=$col_number
-    tiles=$((row_number*col_number))
-
-    (( tiles < win_region_number )) &&
-    {
-        ((col_number++))
-        tiles=$((row_number*col_number))
-        (( tiles < win_region_number )) && ((row_number++)) && tiles=$((row_number*col_number))
-    }
-
-    w=$((w/col_number))
-    h=$((h/row_number))
-
-    nx=0
-    ny=0
-    for (( i=0 ; i <= win_region_number-1 ; i++ ))
-    do
-        wmctrl -i -r "${win_xid[i]}" -b "remove,maximized_vert,maximized_horz"
-        wmctrl -i -r "${win_xid[i]}" -e "${gravity},$((x+nx*w)),$((y+ny*h)),${w},${h}"
-
-        ((nx++))
-        (( nx > col_number-1 )) && nx=0 && ((ny++))
-        _store_region
-    done
-}
-
-_grid_vertical()
-{
-    # Adapted. See for more details http://forum.ubuntuusers.de/topic/wmtiler-fuer-floating-wm-s/
-
-    normal_column_windows=$((win_region_number/col_number))
-    right_column_windows=$((normal_column_windows+win_region_number%col_number))
-    windows_not_in_bottom_column=$((win_region_number-right_column_windows))
-    y_org=$y
-    w=$((w/col_number))
-    normal_column_height=$((h/normal_column_windows))
-    right_column_height=$((h/right_column_windows))
-
-    current_column=1
-    for (( i=0 , current_column_windows=0 ; i <= win_region_number-1 ; i++ , current_column_windows++ ))
-    do
-        (( current_column < col_number )) &&
-        {
-            (( current_column_windows == normal_column_windows )) &&
-            {
-                ((current_column++))
-                if (( current_column == col_number ))
-                then
-                    x=$((x+w))
-                    y=$y_org
-                    h=$right_column_height
-                else
-                    current_column_windows=0
-                fi
-            }
-            (( current_column_windows == 0 )) && y=$y_org && h=$normal_column_height && { (( current_column != 1 )) && x=$((x+w)) ; }
-        }
-
-        win=${win_xid[i]}
-        _do_wmctrl
-
-        _store_region
-        y=$((y+h))
-    done
-}
-
-_grid_square_vertical()
-{
-    # Adapted. See for more details http://bashscripts.org/forum/viewtopic.php?f=7&t=1568
-
-    row_number=${row_number-$(bc <<< "sqrt(${win_region_number})")}
-    col_number=$row_number
-    tiles=$((row_number*col_number))
-
-    (( tiles < win_region_number )) &&
-    {
-        ((row_number++))
-        tiles=$((row_number*col_number))
-        (( tiles < win_region_number )) && ((col_number++)) && tiles=$((row_number*col_number))
-    }
-
-    w=$((w/col_number))
-    h=$((h/row_number))
-
-    nx=0
-    ny=0
-    for (( i=0 ; i <= win_region_number-1 ; i++ ))
-    do
-        wmctrl -i -r "${win_xid[i]}" -b "remove,maximized_vert,maximized_horz"
-        wmctrl -i -r "${win_xid[i]}" -e "${gravity},$((x+nx*w)),$((y+ny*h)),${w},${h}"
-
-        ((ny++))
-        (( ny > row_number-1 )) && ny=0 && ((nx++))
-        _store_region
-    done
-}
-
-_maximize()
-{
-    for (( i=0 ; i <= win_region_number-1 ; i++ ))
-    do
-        win=${win_xid[i]}
-        _do_wmctrl
-        _store_region
-    done
-}
-
-_vertical()
-{
-    w=$((w/win_region_number))
-    for (( i=0 ; i <= win_region_number-1 ; i++ ))
-    do
-        win=${win_xid[i]}
-        _do_wmctrl
-        _store_region
-        x=$((x+w))
-    done
-}
-
-_horizontal()
-{
-    h=$((h/win_region_number))
-    for (( i=0 ; i <= win_region_number-1 ; i++ ))
-    do
-        win=${win_xid[i]}
-        _do_wmctrl
-        _store_region
-        y=$((y+h))
-    done
-}
-
-_cycle_region()
-{
-    _check_file_tmp < <(grep -v -e "win_xid_region_" -e "win_geo_x_y_region_" -e "win_geo_w_h_region_" "$file_tmp")
-
-    case $direction_cycle in
-        clock)
-                _cycle() { _anticlock "$@" ; }
-                ;;
-        anticlock)
-                _cycle() { _clock "$@" ; }
-                ;;
-        reverse)
-                _cycle() { _order_reverse_array "$@" ; }
-                ;;
-    esac
-
-    if [[ $stack == stack ]]
-    then
-        # We cut <LENT>:<GRAV>,<GEO>.
-        for lyt in "${layout[@]}"
-        do
-            set -- ${lyt/:/ }
-            cuts+=( ${1##*,}:${2} )
-        done
-
-        # No we reorder cuts and recompose layout.
-        i=0
-        while read -r cut
-        do
-            layout_modification+=( ${layout[i]%,*:*},${cut} )
-            ((i++))
-        done < <(_cycle "${cuts[@]}")
-
-        layout=( ${layout_modification[@]} )
-    else
-        for (( region_number=1 , i=0 ; region_number <= reg_number ; region_number++ , i++ ))
-        do
-            eval entity_region_tmp='${region_'${region_number}'_entity}'
-            if [[ $entity_region_tmp =~ alias ]]
-            then
-                IFS=':' read -r l_l l_r <<< "${layout[i]}"
-                layout_modification+=( ${l_l%,*},px:${l_r%%,*},${reg_geo[i]} )
-            else
-                layout_modification+=( ${layout[i]} )
-            fi
-        done
-
-        unset -v layout
-
-        # We cut <X> and <Y> of <GEO>, reorder those and recompose layout.
-        i=0
-        while read -r x_y
-        do
-            set -- ${layout_modification[i]/:/ }
-            layout+=( ${1}:${2%%,*},${x_y},${reg_geo[i]#*,*,} )
-            ((i++))
-        done < <(_cycle "${reg_geo[@]%,*,*}" )
-    fi
-
-    unset -v reg_geo
-    # Now we rewrite the hole Tmp File.
-    _mktmp
-}
-
-_cycle_window()
-{
-    _check_file_tmp < <(grep -v -e "win_xid_region_" -e "win_geo_x_y_region_" -e "win_geo_w_h_region_" "$file_tmp")
-
-    case $region_selection in
-        all)
-                win_xid_selection=( ${win_xid[@]} )
-                ;;
-        active)
-                exit 1
-                #win_active="$(xprop -root -notype _NET_ACTIVE_WINDOW | awk '{print $NF}')"
-                #region_active="$(sed -n "/win_xid_region_/ s/win_xid_region_\(.*\)=(.*"${win_active:2}".*)/\1/ p" "$file_tmp")"
-                #eval win_xid_selection=( '${win_xid_region_'${region_active}'[@]}' )
-                ;;
-        *)
-                exit 1
-                #if [[ "$region_selection" =~ (-|,|[[:digit:]]) ]]
-                #then
-                #    for region_number in $(_parse_region "$region_selection" | tr ' ' '\n' | sort -n | tr '\n' ' ')
-                #    do
-                #        eval win_xid_region_tmp=( '${win_xid_region_'${region_number}'[@]}' )
-                #        win_xid_selection+=( "${win_xid_region_tmp[@]}" )
-                #    done
-                #fi
-                ;;
-    esac
-
-    win_num=${#win_xid_selection[@]}
-
-    case $direction_cycle in
-        clock)
-                _cycle() { _clock "$@" ; }
-                ;;
-        anticlock)
-                _cycle() { _anticlock "$@" ; }
-                ;;
-        reverse)
-                _cycle() { _order_reverse_array "$@" ; }
-                ;;
-    esac
-
-    mapfile -t win_xid < <(_cycle "${win_xid_selection[@]}")
-    unset -v reg_geo
-
-     # Now we rewrite the hole Tmp File.
-    _mktmp
-}
-
-_focus_toggle()
-{
-    _check_file_tmp < <(grep -e "win_xid=" "$file_tmp")
-    _get_win_active
-
-    case $direction_focus in
-        n|next)
-                if [[ ${win_xid[win_number-1]} =~ ${win_active:2} ]]
-                then
-                    win=${win_xid[0]}
-                else
-                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(printf '%s\n' "${win_xid[@]}") | sed -n '$p')
-                fi
-                ;;
-        p|preview)
-                if [[ ${win_xid[0]} =~ ${win_active:2} ]]
-                then
-                    win=${win_xid[win_number-1]}
-                else
-                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(_order_reverse_array "${win_xid[@]}") | sed -n '$p')
-                fi
-                ;;
-    esac
-
-    # visual bell instead colorize frame border of active window
-    _get_win_active_geo
-    x=${win_active_geo_x_y_tmpp[0]%,*}
-    y=${win_active_geo_x_y_tmpp[0]#*,}
-    w=${win_active_geo_w_h_tmpp[0]%,*}
-    h=${win_active_geo_w_h_tmpp[0]#*,}
-    gravity=0
-    (
-        w=$((${win_active_geo_w_h_tmpp[0]%,*}*25/100))
-        h=$((${win_active_geo_w_h_tmpp[0]#*,}*25/100))
-        _do_wmctrl
-    )
-    _do_wmctrl
-
-    wmctrl -i -a "$win"
-}
-
-#* Main
-
-[[ ! $1 ]] && { printf '%s\n' "USAGE: $(_usage)" >&2 ; exit 1 ; }
 
 declare desk_curr= \
         win_active= \
@@ -1480,26 +43,27 @@ declare desk_curr= \
         frame_height= \
         frame_x= \
         frame_y=
-declare -a desk_select=( ) \
-           win_active_geo_x_y=( ) \
-           win_active_geo_w_h=( ) \
-           win_xid=( ) \
-           win_geo_x_y=( ) \
-           win_geo_w_h=( ) \
-           win_frame_extents=( ) \
-           win_tags=( )
+declare -a desk_select=() \
+           win_active_geo_x_y=() \
+           win_active_geo_w_h=() \
+           win_xid=() \
+           win_geo_x_y=() \
+           win_geo_w_h=() \
+           win_frame_extents=() \
+           win_tags=()
 
 while :
 do
     case ${1#-} in
         F|file)
+                __src_script check_variables_input
                 if [[ $2 == - ]]
                 then
                     if [[ -p /dev/stdin ]]
                     then
                         while read -r
                         do
-                            _check_variables_input "$REPLY"
+                            __check_variables_input "$REPLY"
                         done
                     else
                         { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
@@ -1509,7 +73,7 @@ do
                     then
                         while read -r
                         do
-                            _check_variables_input "$REPLY"
+                            __check_variables_input "$REPLY"
                         done < "$2"
                     else
                         { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
@@ -1634,27 +198,32 @@ case ${1#-} in
             done
             if [[ $entity_cycle == window ]]
             then
-                _cycle_window
+                __src_script cycle_window check_region
+                __cycle_window
             else
-                _cycle_region
+                __src_script cycle_region check_region
+                __cycle_region
             fi
-            _check_region
+            __check_region
             exit 0
             ;;
     o|toggle-focus)
             direction_focus=$2
             shift 2
-            _focus_toggle
+            __src_script focus_toggle
+            __focus_toggle
             exit 0
             ;;
     h|help)
             shift 1
-            _help
+            __src_script help
+            __help
             exit 0
             ;;
     v|version)
             shift 1
-            _version
+            __src_script version
+            __version
             exit 0
             ;;
 esac
@@ -1671,54 +240,63 @@ declare action= \
         win_number_maximum= \
         gravity= \
         layout_action=
-declare -a layout=( )
+declare -a layout=()
+
+case ${1#-} in
+    L|layout-abbrev)
+            __src_script build_layout_abbrev
+            ;;
+    l|layout)
+            __src_script build_layout
+            ;;
+esac
 
 while :
 do
     case ${1#-} in
         L|layout-abbrev)
                 action=layout_abbrev
-                _build_layout_abbrev "$2"
+                __build_layout_abbrev "$2"
                 shift 2
                 ;;
         l|layout)
                 action=layout
-                _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
+                __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
                 unset -v region_selection win_number_maximum layout_action entity_size gravity geo
                 shift 1
                 ;;
         H|hide)
-                action=_check_hiding
+                action=__check_hiding
                 hide_action=add
                 shift 1
                 ;;
         U|unhide)
-                action=_check_hiding
+                action=__check_hiding
                 hide_action=remove
                 shift 1
                 ;;
         c|close)
-                action=_check_closing
+                action=__check_closing
                 shift 1
                 ;;
         M|move-to-desk)
-                action=_check_move_to_desk
+                action=__check_move_to_desk
                 shift 1
                 ;;
         f|focus)
-                action=_check_focusing
+                action=__check_focusing
                 shift 1
                 ;;
         s|size)
-                action=_check_sizing
+                action=__check_sizing
                 shift 1
                 ;;
         m|move)
-                action=_check_moving
+                action=__check_moving
                 shift 1
                 ;;
         O|reset)
-                action=_check_resetting
+                action=__check_resetting
                 shift 1
                 ;;
         r|region)
@@ -1766,7 +344,7 @@ do
                 shift 2
                 ;;
         *)
-                [[ $action == layout ]] && _build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
+                [[ $action == layout ]] && __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
                 break
                 ;;
     esac
@@ -1774,28 +352,27 @@ done
 
 if [[ $action ]]
 then
-    _calculating
+    __src_script calculating
+    __calculating
     case $action in
-        _check_moving|_check_sizing)
-                _check_file_tmp < "$file_tmp"
-                (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
+        __check_moving|__check_sizing)
+                __src_script check_moving check_sizing check_file_tmp
+                __check_file_tmp < "$file_tmp"
+                ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
                 ${action}
                 ;;
         layout|layout_abbrev)
-                (( win_number <= 1 )) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                mapfile -t layout < <(_order_num_asc_array "${layout[@]}")
-                _mktmp
-                _check_region
+                __src_script order_num_asc_array mktmp check_region
+                ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
+                mapfile -t layout < <(__order_num_asc_array "${layout[@]}")
+                __mktmp
+                __check_region
                 ;;
         *)
+                __src_script "${action#__*}"
                 ${action}
                 ;;
     esac
 else
     { echo "No action spezified." >&2 ; exit 1 ; }
 fi
-
-#~ TODO:
-#~ - cycle
-#~ - toggle
-#~ - check_region

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+__get_win_active_geo()
+{
+    mapfile -t xwininfo_win_active < <(xwininfo -id "$win")
+    win_active_geo_x_y_tmpp=($((${xwininfo_win_active[3]##* }+${xwininfo_win_active[5]##* })),$((${xwininfo_win_active[4]##* }+${xwininfo_win_active[6]##* })))
+    win_active_geo_w_h_tmpp=(${xwininfo_win_active[7]##* },${xwininfo_win_active[8]##* })
+}

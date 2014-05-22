@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+__anticlock()
+{
+    array=($@)
+    for ((i=1 ; i <= ${#array[@]}-1 ; i++))
+    do
+        printf '%s\n' "${array[i]}"
+    done
+    printf '%s\n' "${array[0]}"
+}

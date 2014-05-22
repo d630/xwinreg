@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+__cycle_region()
+{
+    __src_script check_file_tmp mktmp anticlock clock order_reverse_array
+
+    __check_file_tmp < <(grep -v -e "win_xid_region_" -e "win_geo_x_y_region_" -e "win_geo_w_h_region_" "$file_tmp")
+
+    case $direction_cycle in
+        clock)
+                __cycle() { __anticlock "$@" ; }
+                ;;
+        anticlock)
+                __cycle() { __clock "$@" ; }
+                ;;
+        reverse)
+                __cycle() { __order_reverse_array "$@" ; }
+                ;;
+    esac
+
+    if [[ $stack == stack ]]
+    then
+        # We cut <LENT>:<GRAV>,<GEO>.
+        for lyt in "${layout[@]}"
+        do
+            set -- ${lyt/:/ }
+            cuts+=( ${1##*,}:${2} )
+        done
+
+        # No we reorder cuts and recompose layout.
+        i=0
+        while read -r cut
+        do
+            layout_modification+=(${layout[i]%,*:*},${cut})
+            ((i++))
+        done < <(__cycle "${cuts[@]}")
+
+        layout=(${layout_modification[@]})
+    else
+        for ((region_number=1 , i=0 ; region_number <= reg_number ; region_number++ , i++))
+        do
+            eval entity_region_tmp='${region_'${region_number}'_entity}'
+            if [[ $entity_region_tmp =~ alias ]]
+            then
+                IFS=':' read -r l_l l_r <<< "${layout[i]}"
+                layout_modification+=(${l_l%,*},px:${l_r%%,*},${reg_geo[i]})
+            else
+                layout_modification+=(${layout[i]})
+            fi
+        done
+
+        unset -v layout
+
+        # We cut <X> and <Y> of <GEO>, reorder those and recompose layout.
+        i=0
+        while read -r x_y
+        do
+            set -- ${layout_modification[i]/:/ }
+            layout+=(${1}:${2%%,*},${x_y},${reg_geo[i]#*,*,})
+            ((i++))
+        done < <(__cycle "${reg_geo[@]%,*,*}")
+    fi
+
+    unset -v reg_geo
+    # Now we rewrite the hole Tmp File.
+    __mktmp
+}

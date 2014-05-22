@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+__mktmp()
+{
+    # Write variables to file_tmp. This function is called before layout is set.
+    printf '%s\n' "file_tmp=$file_tmp
+workarea=(${workarea[*]})
+workarea_x=$workarea_x
+workarea_y=$workarea_y
+workarea_w=$workarea_w
+workarea_h=$workarea_h
+frame=$frame
+frame_x=$frame_x
+frame_y=$frame_y
+frame_w=$frame_w
+frame_h=$frame_h
+x=$x
+y=$y
+w=$w
+h=$h
+row_number=$row_number
+col_number=$col_number
+region_northwest=(${region_northwest[*]})
+region_north=(${region_north[*]})
+region_northeast=(${region_northeast[*]})
+region_east=(${region_east[*]})
+region_southeast=(${region_southeast[*]})
+region_south=(${region_south[*]})
+region_southwest=(${region_southwest[*]})
+region_west=(${region_west[*]})
+region_all=(${region_all[*]})
+layout=(${layout[*]})
+win_number=$win_number
+win_xid=(${win_xid[*]})" > "$file_tmp"
+}

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+__restore_x_y_w_h()
+{
+    x=${org[0]}
+    y=${org[1]}
+    w=${org[2]}
+    h=${org[3]}
+}

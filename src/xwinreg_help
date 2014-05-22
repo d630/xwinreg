@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+__help()
+{
+    printf "
+$(__usage)
+
+OPTIONS
+-------
+    OPTION                  ARG
+    ------                  ---
+    -F,  -file              <FILE> or a hyphen (-)
+    -C,  -conf-file         <FILE>
+    -T,  -tmp-file          <FILE>
+    -n,  -number-of-rows    <INT>
+    -N,  -number-of-cols    <INT>
+    -a,  -frame-alias       <FRAMEALIAS>
+    -fx, -frame-x           <PX>
+    -fy, -frame-y           <PX>
+    -fw, -frame-width       <PX>
+    -fh, -frame-height      <PX>
+    -wx, -workarea-x        <PX>
+    -wy, -workarea-y        <PX>
+    -ww, -workarea-width    <PX>
+    -wh, -workarea-height   <PX>
+    -h,  -help
+    -v,  -version
+
+SUBCOMMANDS
+-----------
+    ACTION                  REQUIRED
+    ------                  --------
+    -O,  -reset
+    -c,  -close             <REG>
+    -H,  -hide              <REG>
+    -U,  -unhide            <REG>
+    -f,  -focus             <REG>
+    -o,  -toggle-focus      <ODIREC>
+    -M,  -move-to-desk      <REG> <DESK> -W
+    -y,  -cycle             <REG> <YDIREC> -w -k
+    -s,  -size              <REG> <ENT> <REF> <GEO> -w
+    -m,  -move              <REG> <ENT> <REF> <GEO> <MDIREC> -w
+    -l,  -layout            <REGN> <WINN> <SPLIT> <LENT> <GRAV> <GEO>
+
+    ACTION                  ARG
+    ------                  ---
+    -L,  -layout-abbrev     <REGN>,<WINN>,<SPLIT>,<LENT>:<GRAV>,<GEO>
+
+    OPTION                  ARG
+    ------                  ---
+    -r,  -region            ( <REG> | <REGN> )
+    -d,  -direction         ( <ODIREC> | <YDIREC> | <MDIREC> )
+    -D,  -desk              <DESK>
+    -e,  -entity            ( <ENT> | <LENT> )
+    -R,  -reference         <REF>
+    -g,  -geo               <GEO>
+    -x,  -maximum           <WINN>
+    -G,  -gravity           <GRAV>
+    -A,  -action            <SPLIT>
+    -w,  -window
+    -W,  -switch
+    -k,  -stack
+
+ARGUMENTS
+---------
+    <FILE>          Regular file or named pipe.
+    <INT>           Default is '2'.
+    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
+                    'southeast', 'south', 'southwest' or 'west'.
+    <PX>            Pixel size specified by an integer.
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'all'.
+    <REGN>          Region number specified by an integer.
+    <ODIREC>        'next' or 'preview'.
+    <YDIREC>        'clock', 'anticlock' or 'reverse'.
+    <MDIREC>        'north', 'east', 'south' or 'west'.
+    <DESK>          Desktop number specified by an integer or 'curr'.
+    <ENT>           'px' or 'pro'.
+    <LENT>          'alias', 'px' or 'pro'.
+    <REF>           'window', 'region' or 'frame'.
+    <WINN>          Window number specified by an integer or 'max'.
+    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
+                    'east', 'southwest', 'south', 'southeast' or
+                    'static'. Additional: '[0-10]'.
+    <SPLIT>         'maximize', 'horizontal', 'vertical',
+                    'grid-horizontal', 'grid-vertical',
+                    'grid-square-horizontal' or 'grid-square-vertical'.
+    <GEO>
+                    <X>        Pixel x size specified by an integer.
+                    <Y>        Pixel y size specified by an integer.
+                    <W>        Pixel width size specified by an integer.
+                    <H>        Pixel height size specified by an integer.
+                    <PRO>      Procent size specified by an integer.
+                    <REGALIAS> 'northwest', 'north', 'northeast','east',
+                               'southeast', 'south', 'southwest' or
+                               'west'.
+                    -          Means, that old size is kept.
+                    Samples:
+                               '<REGALIAS>', '<PRO>', '<PRO>,<PRO>',
+                               '<PRO>,<PRO>,<PRO>,<PRO>', '<X>,<Y>',
+                               '<W>,<H>' or '<X>,<Y>,<W>,<H>'.
+"
+}

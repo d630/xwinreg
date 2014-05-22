@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+__do_wmctrl()
+{
+    wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
+    wmctrl -i -r "$win" -e "${gravity},${x},${y},${w},${h}"
+}

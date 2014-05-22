@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+__get_win_active() { read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW) ; }

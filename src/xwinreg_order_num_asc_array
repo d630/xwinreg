@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+__order_num_asc_array()
+{
+    declare -a array=($@)
+    declare i= j= element=
+    for ((i=1 ; i < ${#array[@]} ; ++i))
+    do
+        for ((j=i ; j > 0 ; --j))
+        do
+            element=${array[j]}
+            ((${element%%,*} < ${array[j-1]%%,*})) && { array[j]=${array[j-1]} ; array[j-1]=$element ; }
+        done
+    done
+    printf '%s\n' "${array[@]}"
+}

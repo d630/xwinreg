@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+__order_reverse_array()
+{
+    array=($@)
+    for ((i=${#array[@]}-1 ; i >= 0 ; --i))
+    do
+        printf '%s\n' "${array[i]}"
+    done
+}

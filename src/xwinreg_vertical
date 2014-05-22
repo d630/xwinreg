@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+__vertical()
+{
+    w=$((w/win_region_number))
+    for ((i=0 ; i <= win_region_number-1 ; i++))
+    do
+        win=${win_xid[i]}
+        __do_wmctrl
+        __store_region
+        x=$((x+w))
+    done
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+__check_focusing()
+{
+    __check_window_selection
+
+    for xid in "${win_xid_selection[@]}"
+    do
+        wmctrl -i -a "$xid"
+    done
+
+    __get_win_active
+    wmctrl -i -a "$win_active"
+}

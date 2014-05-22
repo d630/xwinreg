@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+__focus_toggle()
+{
+    declare -a win_xid=()
+
+    __src_script check_file_tmp get_win_active do_wmctrl order_reverse_array get_win_active_geo
+
+    __check_file_tmp < <(egrep -e "^win_xid=\(.*\)$" "$file_tmp")
+    __get_win_active
+
+    case $direction_focus in
+        n|next)
+                if [[ ${win_xid[win_number-1]} =~ ${win_active:2} ]]
+                then
+                    win=${win_xid[0]}
+                else
+                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(printf '%s\n' "${win_xid[@]}") | sed -n '$p')
+                fi
+                ;;
+        p|preview)
+                if [[ ${win_xid[0]} =~ ${win_active:2} ]]
+                then
+                    win=${win_xid[win_number-1]}
+                else
+                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(__order_reverse_array "${win_xid[@]}") | sed -n '$p')
+                fi
+                ;;
+    esac
+
+    # visual bell instead colorize frame border of active window
+    __get_win_active_geo
+    x=${win_active_geo_x_y_tmpp[0]%,*}
+    y=${win_active_geo_x_y_tmpp[0]#*,}
+    w=${win_active_geo_w_h_tmpp[0]%,*}
+    h=${win_active_geo_w_h_tmpp[0]#*,}
+    gravity=0
+    (
+        w=$((${win_active_geo_w_h_tmpp[0]%,*}*25/100))
+        h=$((${win_active_geo_w_h_tmpp[0]#*,}*25/100))
+        __do_wmctrl
+    )
+    __do_wmctrl
+
+    wmctrl -i -a "$win"
+}

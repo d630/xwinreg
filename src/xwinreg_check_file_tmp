@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+__check_file_tmp()
+{
+    while read -r
+    do
+        eval "$REPLY"
+    done
+}

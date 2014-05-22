@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+__parse_region()
+{
+    args=()
+
+    for i in ${1//,/ }
+    do
+        { [[ $i =~ - ]] && args+=(\{${i/-/..}\}) ; } || args+=($i)
+    done
+
+    eval "printf '%s\n' "${args[@]}""
+}

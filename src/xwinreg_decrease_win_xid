@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+__decrease_win_xid()
+{
+    win_xid=(${win_xid[@]:$win_region_number})
+    ((win_number-=win_region_number))
+}

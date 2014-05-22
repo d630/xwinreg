@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+__build_layout_abbrev()
+{
+    declare l_l= l_r=
+    [[ $1 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] &&
+    {
+        IFS=: read -r l_l l_r <<< "$1"
+        layout+=(${l_l//-/_}:${l_r})
+    }
+}

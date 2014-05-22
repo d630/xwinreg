@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+__store_x_y_w_h() { org=($x $y $w $h) ; }

@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+__check_region()
+{
+    __src_script store_x_y_w_h check_gravity decrease_win_xid restore_x_y_w_h
+
+    __store_x_y_w_h
+    # Write reg_number to file_temp.
+    printf '%s\n' "reg_number=${#layout[@]}" >> "$file_tmp"
+
+    for l in "${layout[@]}"
+    do
+        IFS=':' read l_l l_r <<< "$l"
+        set -- ${l_l//,/ }
+        region_number=$1
+        win_number_maximum=$2
+        layout_action=__${3}
+        entity_region=$4
+        gravity=${l_r%%,*}
+
+        case $entity_region in
+            alias)
+                    eval region_geo=('${region_'${l_r##*,}'[@]}')
+                    x=${region_geo[0]}
+                    y=${region_geo[1]}
+                    w=${region_geo[2]}
+                    h=${region_geo[3]}
+                    ;;
+            px)
+                    l_r=${l_r#*,}
+                    region_geo=(${l_r//,/ })
+                    x=${region_geo[0]}
+                    y=${region_geo[1]}
+                    w=${region_geo[2]}
+                    h=${region_geo[3]}
+                    ;;
+            pro)
+                    l_r=${l_r#*,}
+                    region_geo=(${l_r//,/ })
+                    x=$((w*${region_geo[0]}/100))
+                    y=$((h*${region_geo[1]}/100))
+                    w=$((w*${region_geo[2]}/100))
+                    h=$((h*${region_geo[3]}/100))
+                    ;;
+        esac
+
+        __check_gravity
+
+        if [[ $win_number_maximum == max ]]
+        then
+            win_region_number=$win_number
+        else
+            win_region_number=$win_number_maximum
+        fi
+
+        # Now process layout by calling specified function.
+        __src_script "${layout_action#__*}" do_wmctrl store_region
+        ${layout_action}
+        # After layouting we redeclare win_xid.
+        __decrease_win_xid
+
+        __restore_x_y_w_h
+        reg_geo+=(${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]})
+        eval "region_${region_number}_geo=(${region_geo[*]})"
+        eval region_geo_tmp=('${region_'${region_number}'_geo[@]}')
+
+        # For every region write new variables to file_tmp.
+        printf '%s\n' "region_${region_number}_entity=$entity_region
+region_${region_number}_action=$layout_action
+region_${region_number}_geo=(${region_geo_tmp[*]})" >> "$file_tmp"
+    done
+
+    # Write reg_geo to file_tmp.
+    printf '%s\n' "reg_geo=(${reg_geo[*]})" >> "$file_tmp"
+    unset -v reg_geo
+
+    for ((region_number=1 ; region_number <= ${#layout[@]} ; region_number++))
+    do
+        eval win_xid_region_tmp=('${win_xid_region_'${region_number}'[@]}')
+        eval win_geo_x_y_region_tmp=('${win_geo_x_y_region_'${region_number}'[@]}')
+        eval win_geo_w_h_region_tmp=('${win_geo_w_h_region_'${region_number}'[@]}')
+
+        # In the end we write some arrays to file_tmp.
+        printf '%s\n' "win_xid_region_${region_number}=(${win_xid_region_tmp[*]})
+win_geo_x_y_region_${region_number}=(${win_geo_x_y_region_tmp[*]})
+win_geo_w_h_region_${region_number}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
+    done
+}

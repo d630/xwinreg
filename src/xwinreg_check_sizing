@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+
+__check_sizing()
+{
+    __check_region_selection
+
+    if [[ $entity == window ]]
+    then
+        for region_number in "${layout_numbers[@]}"
+        do
+            eval win_xid_tmp=('${win_xid_region_'${region_number}'[@]}')
+            eval win_geo_x_y_tmp=('${win_geo_x_y_region_'${region_number}'[@]}')
+            eval win_geo_w_h_tmp=('${win_geo_w_h_region_'${region_number}'[@]}')
+            eval region_geo_tmp=('${region_'${region_number}'__geo[@]}')
+
+            for i in "${!win_xid_tmp[@]}"
+            do
+                case $entity_size in
+                    px)
+                            if [[ ${geo%,*} == - ]]
+                            then
+                                w=${win_geo_w_h_tmp[i]%,*}
+                            else
+                                w=${geo%,*}
+                            fi
+
+                            if [[ ${geo#*,} == - ]]
+                            then
+                                h=${win_geo_w_h_tmp[i]#*,}
+                            else
+                                h=${geo#*,}
+                            fi
+                            ;;
+                    pro)
+                            case $reference in
+                                window)
+                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
+                                        then
+                                            w=${win_geo_w_h_tmp[i]%,*}
+                                            h=${win_geo_w_h_tmp[i]#*,}
+                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
+                                        then
+                                            w=$((${win_geo_w_h_tmp[i]%,*}*${geo%,*}/100))
+                                            h=$((${win_geo_w_h_tmp[i]#*,}*${geo#*,}/100))
+                                        elif [[ ${geo%,*} == - ]]
+                                        then
+                                            w=${win_geo_w_h_tmp[i]%,*}
+                                            h=$((${win_geo_w_h_tmp[i]#*,}*${geo#*,}/100))
+                                        elif [[ ${geo#*,} == - ]]
+                                        then
+                                            w=$((${win_geo_w_h_tmp[i]%,*}*${geo%,*}/100))
+                                            h=${win_geo_w_h_tmp[i]#*,}
+                                        fi
+                                        ;;
+                                region)
+                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
+                                        then
+                                            w=${win_geo_w_h_tmp[i]%,*}
+                                            h=${win_geo_w_h_tmp[i]#*,}
+                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
+                                        then
+                                            w=$((${region_geo_tmp[2]}*${geo%,*}/100))
+                                            h=$((${region_geo_tmp[3]}*${geo#*,}/100))
+                                        elif [[ ${geo%,*} == - ]]
+                                        then
+                                            w=${win_geo_w_h_tmp[i]%,*}
+                                            h=$((${region_geo_tmp[3]}*${geo#*,}/100))
+                                        elif [[ ${geo#*,} == - ]]
+                                        then
+                                            w=$((${region_geo_tmp[2]}*${geo%,*}/100))
+                                            h=${win_geo_w_h_tmp[i]#*,}
+                                        fi
+                                        ;;
+                                frame)
+                                        if [[ ${geo%,*} == - && ${geo#*,} == - ]]
+                                        then
+                                            w=${win_geo_w_h_tmp[i]%,*}
+                                            h=${win_geo_w_h_tmp[i]#*,}
+                                        elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
+                                        then
+                                            w=$((frame_w*${geo%,*}/100))
+                                            h=$((frame_h*${geo#*,}/100))
+                                        elif [[ ${geo%,*} == - ]]
+                                        then
+                                            w=${win_geo_w_h_tmp[i]%,*}
+                                            h=$((frame_h*${geo#*,}/100))
+                                        elif [[ ${geo#*,} == - ]]
+                                        then
+                                            w=$((frame_w*${geo%,*}/100))
+                                            h=${win_geo_w_h_tmp[i]#*,}
+                                        fi
+                                        ;;
+                            esac
+                            ;;
+                esac
+
+                gravity=0
+                x=${win_geo_x_y_tmp[i]%%,*}
+                y=${win_geo_x_y_tmp[i]##*,}
+                win=${win_xid_tmp[i]}
+                __do_wmctrl
+
+                eval "win_geo_w_h_region_${region_number}__tmp+=(${w},${h})"
+            done
+        done
+
+        # At the end we update new geo of windows and write those to file_tmp. So, we update just relating lines!
+        for region_number in "${layout_numbers[@]}"
+        do
+            eval win_geo_w_h_region_tmp=('${win_geo_w_h_region_'${region_number}'__tmp[@]}')
+            sed -i -e "/win_geo_w_h_region_${region_number}/c \win_geo_w_h_region_${region_number}=(${win_geo_w_h_region_tmp[*]})" "$file_tmp"
+        done
+    else
+        __store_x_y_w_h
+
+        i=0
+        for region_number in "${layout_numbers[@]}"
+        do
+            layout_selection_tmp=${layout_selection[i]}
+            eval entity_region_tmp='${region_'${region_number}'__entity}'
+            [[ $entity_region_tmp =~ alias ]] && { IFS=',' read -r _ _ alias _ <<< "${layout_selection_tmp%%:*}" ; }
+
+            eval region_geo=('${region_'${region_number}'__geo[@]}')
+            region_x=${region_geo[0]}
+            region_y=${region_geo[1]}
+            region_w=${region_geo[2]}
+            region_h=${region_geo[3]}
+
+            case $entity_size in
+                px)
+                        if [[ ${geo%,*} == - ]]
+                        then
+                            w=$region_w
+                        else
+                            w=${geo%,*}
+                        fi
+
+                        if [[ ${geo#*,} == - ]]
+                        then
+                            h=$region_h
+                        else
+                            h=${geo#*,}
+                        fi
+                        ;;
+                pro)
+                        case $reference in
+                            region)
+                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
+                                    then
+                                        w=$region_w
+                                        h=$region_h
+                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
+                                    then
+                                        w=$((region_w*${geo%,*}/100))
+                                        h=$((region_h*${geo#*,}/100))
+                                    elif [[ ${geo%,*} == - ]]
+                                    then
+                                        w=$region_w
+                                        h=$((region_h*${geo#*,}/100))
+                                    elif [[ ${geo#*,} == - ]]
+                                    then
+                                        w=$((region_w*${geo%,*}/100))
+                                        h=$region_h
+                                    fi
+                                    ;;
+                            frame)
+                                    if [[ ${geo%,*} == - && ${geo#*,} == - ]]
+                                    then
+                                        w=$region_w
+                                        h=$region_h
+                                    elif [[ ! ${geo%,*} == - && ! ${geo#*,} == - ]]
+                                    then
+                                        w=$((frame_w*${geo%,*}/100))
+                                        h=$((frame_h*${geo#*,}/100))
+                                    elif [[ ${geo%,*} == - ]]
+                                    then
+                                        w=$region_w
+                                        h=$((frame_h*${geo#*,}/100))
+                                    elif [[ ${geo#*,} == - ]]
+                                    then
+                                        w=$((frame_w*${geo%,*}/100))
+                                        h=$region_h
+                                    fi
+                                    ;;
+                        esac
+                        ;;
+            esac
+            x=$region_x
+            y=$region_y
+
+            IFS=':' read l_l l_r <<< "$layout_selection_tmp"
+            set -- ${l_l//,/ }
+            layout_modification+=(${1},${2},${3},px:${l_r%%,*},${x},${y},${w},${h})
+
+            ((i++))
+        done
+
+        for ((region_number=1 ; region_number <= ${#layout[@]} ; region_number++))
+        do
+            declare -a "win_xid_region_${region_number}=()" "win_geo_x_y_region_${region_number}=()" "win_geo_w_h_region_${region_number}=()"
+        done
+
+        # Check, if some regions have not been selected and write those "old" to layout_modification, too.
+        for old in "${layout[@]}"
+        do
+            for num in "${layout_numbers[@]}"
+            do
+                [[ $num == ${old%%,*} ]] && skip=1
+            done
+            ((skip)) || layout_modification+=("$old")
+            skip=
+        done
+
+        mapfile -t layout < <(__order_num_asc_array "${layout_modification[@]}")
+
+        __restore_x_y_w_h
+        unset -v reg_geo
+
+        # Here we do not only update lines in file_tmp; we rewrite the hole Tmp File!
+        __mktmp
+        # After that, we build the new layout.
+        __check_region
+    fi
+}

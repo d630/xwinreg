@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+__check_move_to_desk()
+{
+    __check_window_selection
+
+    if [[ $desk_target == curr ]]
+    then
+        __move() { wmctrl -i -r "$xid" -t "$desk_curr" ; }
+    else
+        __move() { wmctrl -i -r "$xid" -t "$desk_target" ; }
+    fi
+
+    for xid in "${win_xid_selection[@]}"
+    do
+        __move
+    done
+
+    [[ $switch == switch ]] && wmctrl -i -a "${win_xid_selection[0]}"
+}

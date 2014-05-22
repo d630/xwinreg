@@ -20,30 +20,30 @@ row_number=2
 col_number=2
 
 # default frame-aliases.
-_calculating_frame_alias()
+__calculating_frame_alias()
 {
-    frame_northwest=( $workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2)) )
-    frame_north=( $workarea_x $workarea_y $workarea_w $((workarea_h/2)) )
-    frame_northeast=( $((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2)) )
-    frame_east=( $((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h )
-    frame_southeast=( $((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2)) )
-    frame_south=( $workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2)) )
-    frame_southwest=( $workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2)) )
-    frame_west=( $workarea_x $workarea_y $((workarea_w/2)) $workarea_h )
-    frame_all=( $workarea_x $workarea_y $workarea_w $workarea_h )
+    frame_northwest=($workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2)))
+    frame_north=($workarea_x $workarea_y $workarea_w $((workarea_h/2)))
+    frame_northeast=($((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2)))
+    frame_east=($((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h)
+    frame_southeast=($((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2)))
+    frame_south=($workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2)))
+    frame_southwest=($workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2)))
+    frame_west=($workarea_x $workarea_y $((workarea_w/2)) $workarea_h)
+    frame_all=($workarea_x $workarea_y $workarea_w $workarea_h)
 }
 
 # To simplify matters, frames geo are aliased to x,y,w and h.
 # default region-aliases.
-_calculating_region_alias()
+__calculating_region_alias()
 {
-    region_northwest=( $x $y $((w/2)) $((h/2)) )
-    region_north=( $x $y $w $((h/2)) )
-    region_northeast=( $((x+w/2)) $y $((w/2)) $((h/2)) )
-    region_east=( $((x+w/2)) $y $((w/2)) $h )
-    region_southeast=( $((x+w/2)) $((y+h/2)) $((w/2)) $((h/2)) )
-    region_south=( $x $((y+h/2)) $w $((h/2)) )
-    region_southwest=( $x $((y+h/2)) $((w/2)) $((h/2)) )
-    region_west=( $x $y $((w/2)) $h )
-    region_all=( $x $y $w $h )
+    region_northwest=($x $y $((w/2)) $((h/2)))
+    region_north=($x $y $w $((h/2)))
+    region_northeast=($((x+w/2)) $y $((w/2)) $((h/2)))
+    region_east=($((x+w/2)) $y $((w/2)) $h)
+    region_southeast=($((x+w/2)) $((y+h/2)) $((w/2)) $((h/2)))
+    region_south=($x $((y+h/2)) $w $((h/2)))
+    region_southwest=($x $((y+h/2)) $((w/2)) $((h/2)))
+    region_west=($x $y $((w/2)) $h)
+    region_all=($x $y $w $h)
 }

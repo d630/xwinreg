@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+__store_region() { eval "win_xid_region_${region_number}+=(${win_xid[i]})" "win_geo_x_y_region_${region_number}+=(${x},${y})" "win_geo_w_h_region_${region_number}+=(${w},${h})" ; }

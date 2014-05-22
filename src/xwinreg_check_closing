@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+__check_closing()
+{
+    __check_file_tmp < "$file_tmp"
+
+    case $region_selection in
+        all)
+                for ((region_number=1 ; region_number <= ${#layout[@]} ; region_number++))
+                do
+                    eval win_xid_region_tmp=('${win_xid_region_'${region_number}'[@]}')
+                    win_xid_selection+=(${win_xid_region_tmp[@]})
+                    layout_selection+=(${layout[region_number-1]})
+                done
+                ;;
+        active)
+                __get_win_active
+                __get_region_active
+                eval win_xid_selection=('${win_xid_region_'${region_active}'[@]}')
+                layout_selection=(${layout[region_active-1]})
+                ;;
+        *)
+                [[ $region_selection =~ (-|,|[[:digit:]]) ]] &&
+                {
+                    for region_number in $(__parse_region "$region_selection")
+                    do
+                        eval win_xid_region_tmp=('${win_xid_region_'${region_number}'[@]}')
+                        win_xid_selection+=(${win_xid_region_tmp[@]})
+                        layout_selection+=(${layout[region_number-1]})
+                    done
+                }
+                ;;
+    esac
+
+    # Check, if some regions have not been selected, and then renumber regions.
+    mapfile -t layout < <(__comm_array $(_order_num_asc_array "${layout[@]}") -- $(_order_num_asc_array "${layout_selection[@]}"))
+    if ((${#layout[@]} > 0))
+    then
+        for ((i=0 , region_number=1 ; region_number <= ${#layout[@]} ; i++ , region_number++))
+        do
+            layout[i]=${region_number},${layout[i]#*,}
+        done
+    else
+        layout=()
+    fi
+
+    # Check, if there are still some windows, and redeclare win_xid and win_number.
+    mapfile -t win_xid < <(__comm_array $(_order_num_asc_array "${win_xid[@]}") -- $(_order_num_asc_array "${win_xid_selection[@]}"))
+    win_number=${#win_xid[@]}
+
+    # Generate a new Temp File.
+    __mktmp
+
+    # At the end we close windows of selected regions.
+    for xid in "${win_xid_selection[@]}"
+    do
+        wmctrl -i -c "$xid"
+    done
+}

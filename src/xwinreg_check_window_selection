@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+__check_window_selection()
+{
+    __check_file_tmp < "$file_tmp"
+
+    case $region_selection in
+        all)
+                for ((region_number=1 ; region_number <= ${#layout[@]} ; region_number++))
+                do
+                    eval win_xid_region_tmp=('${win_xid_region_'${region_number}'[@]}')
+                    win_xid_selection+=(${win_xid_region_tmp[@]})
+                done
+                ;;
+        active)
+                __get_win_active
+                __get_region_active
+                eval win_xid_selection=('${win_xid_region_'${region_active}'[@]}')
+                ;;
+        *)
+                [[ $region_selection =~ (-|,|[[:digit:]]) ]] &&
+                {
+                    for region_number in $(__parse_region "$region_selection")
+                    do
+                        eval win_xid_region_tmp=('${win_xid_region_'${region_number}'[@]}')
+                        win_xid_selection+=(${win_xid_region_tmp[@]})
+                    done
+                }
+                ;;
+    esac
+}
