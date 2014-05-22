@@ -1794,3 +1794,8 @@ _focus_toggle()
     else
         { echo "No action spezified." >&2 ; exit 1 ; }
     fi
+
+#~ TODO:
+#~ - cycle
+#~ - toggle
+#~ - check_region
