@@ -14,7 +14,8 @@
 - correct the English
 - create a second readme with pictures to show what layouts make sense
 - create new manpage
--meta-command: if region change its size, then this should have an effect on region b
+- meta-command: if region change its size, then this should have an effect on region b
+- variables in the temp file, which are not imported from xwinpp, should be stored in an associative array instead using several sorted indexed arrays to avoid eval
 
 done:
 - revise frame-handling
