@@ -388,6 +388,16 @@ do
     esac
 done
 
+[[ $XWINREG_CONF_FILE ]] &&
+{
+    if [[ -f $XWINREG_CONF_FILE ]]
+    then
+        source "$XWINREG_CONF_FILE"
+    else
+        { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
+    fi
+}
+
 [[ $XWINREG_INPUT_FILE ]] &&
 {
     __src_script check_variables_input
@@ -412,16 +422,6 @@ done
         else
             { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
         fi
-    fi
-}
-
-[[ $XWINREG_CONF_FILE ]] &&
-{
-    if [[ -f $XWINREG_CONF_FILE ]]
-    then
-        source "$XWINREG_CONF_FILE"
-    else
-        { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
     fi
 }
 
