@@ -4,6 +4,8 @@ __mktmp()
 {
     # Write variables to file_tmp. This function is called before layout is set.
     printf '%s\n' "file_tmp=$file_tmp
+file_input=$file_input
+file_conf=$file_conf
 workarea=(${workarea[*]})
 workarea_x=$workarea_x
 workarea_y=$workarea_y
