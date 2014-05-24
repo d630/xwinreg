@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
-#set -o xtrace ; exec 2>> ~/xwinreg.log
+#set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o verbose
 #set -o noexec
 #set -o errexit
@@ -26,7 +26,172 @@ __src_script()
     printf '%s\n' "USAGE: $(__usage)" >&2 ; exit 1
 }
 
-declare desk_curr= \
+declare \
+        arg= \
+        args= \
+        delim=
+
+for arg
+do
+    arg=${arg#--}
+    case $arg in
+        file=*)
+                args="${args}-F ${arg#*=} "
+                ;;
+        conf-file=*)
+                args="${args}-C ${arg#*=} "
+                ;;
+        tmp-file=*)
+                args="${args}-T ${arg#*=} "
+                ;;
+        number-of-rows=*)
+                args="${args}-n ${arg#*=} "
+                ;;
+        number-of-cols=*)
+                args="${args}-N ${arg#*=} "
+                ;;
+        frame-alias=*)
+                args="${args}-a ${arg#*=} "
+                ;;
+        frame-width=*)
+                args="${args}-1 ${arg#*=} "
+                ;;
+        -fw)
+                args="${args}-1 "
+                ;;
+        frame-height=*)
+                args="${args}-2 ${arg#*=} "
+                ;;
+        -fh)
+                args="${args}-2 "
+                ;;
+        frame-x=*)
+                args="${args}-3 ${arg#*=} "
+                ;;
+        -fx)
+                args="${args}-3 "
+                ;;
+        frame-y=*)
+                args="${args}-4 ${arg#*=} "
+                ;;
+        -fy)
+                args="${args}-4 "
+                ;;
+        workarea-x=*)
+                args="${args}-5 ${arg#*=} "
+                ;;
+        -wx)
+                args="${args}-5 "
+                ;;
+        workarea-y=*)
+                args="${args}-6 ${arg#*=} "
+                ;;
+        -wy)
+                args="${args}-6 "
+                ;;
+        workarea-width=*)
+                args="${args}-7 ${arg#*=} "
+                ;;
+        -ww)
+                args="${args}-7 "
+                ;;
+        workarea-height=*)
+                args="${args}-8 ${arg#*=} "
+                ;;
+        -wh)
+                args="${args}-8 "
+                ;;
+        cycle)
+                args="${args}-y "
+                ;;
+        region=*)
+                args="${args}-r ${arg#*=} "
+                ;;
+        direction=*)
+                args="${args}-d ${arg#*=} "
+                ;;
+        stack)
+                args="${args}-k "
+                ;;
+        window)
+                args="${args}-w "
+                ;;
+        toggle-focus=*)
+                args="${args}-o ${arg#*=} "
+                ;;
+        help)
+                args="${args}-h "
+                ;;
+        version)
+                args="${args}-v "
+                ;;
+        layout-abbrev=*)
+                args="${args}-L ${arg#*=} "
+                ;;
+        layout)
+                args="${args}-l "
+                ;;
+        hide)
+                args="${args}-H "
+                ;;
+        unhide)
+                args="${args}-U "
+                ;;
+        close)
+                args="${args}-c "
+                ;;
+        move-to-desk)
+                args="${args}-M "
+                ;;
+        focus)
+                args="${args}-f "
+                ;;
+        size)
+                args="${args}-s "
+                ;;
+        move)
+                args="${args}-m "
+                ;;
+        reset)
+                args="${args}-O "
+                ;;
+        desk)
+                args="${args}-D ${arg#*=} "
+                ;;
+        switch)
+                args="${args}-W "
+                ;;
+        entity)
+                args="${args}-e ${arg#*=} "
+                ;;
+        reference)
+                args="${args}-R ${arg#*=} "
+                ;;
+        geo)
+                args="${args}-g ${arg#*=} "
+                ;;
+        maximum)
+                args="${args}-x ${arg#*=} "
+                ;;
+        gravity)
+                args="${args}-G ${arg#*=} "
+                ;;
+        action)
+                args="${args}-A ${arg#*=} "
+                ;;
+        "")
+                args="${args}-- "
+                ;;
+       *)
+                [[ ${arg:0:1} != - ]] && delim='"'
+                args="${args}${delim}${arg}${delim} "
+                delim=
+                ;;
+    esac
+done
+
+declare \
+        desk_curr= \
         win_active= \
         win_active_frame_extents= \
         win_active_tags= \
@@ -42,57 +207,213 @@ declare desk_curr= \
         frame_width= \
         frame_height= \
         frame_x= \
-        frame_y=
-declare -a desk_select=() \
-           win_active_geo_x_y=() \
-           win_active_geo_w_h=() \
-           win_xid=() \
-           win_geo_x_y=() \
-           win_geo_w_h=() \
-           win_frame_extents=() \
-           win_tags=()
+        frame_y= \
+        region_selection= \
+        direction_cycle= \
+        direction_focus= \
+        stack= \
+        entity_cycle=
+        action= \
+        hide_action= \
+        desk_target= \
+        switch= \
+        entity= \
+        entity_size= \
+        reference= \
+        geo= \
+        direction_moving= \
+        win_number_maximum= \
+        gravity= \
+        layout_action=
 
-while :
+declare -a \
+        desk_select=() \
+        win_active_geo_x_y=() \
+        win_active_geo_w_h=() \
+        win_xid=() \
+        win_geo_x_y=() \
+        win_geo_w_h=() \
+        win_frame_extents=() \
+        win_tags=() \
+        layout=()
+
+__src_script \
+        check_args \
+        build_layout_abbrev \
+        build_layout
+
+eval set -- $args
+declare opt=
+
+while getopts :F:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kwo:hvL:lHUcMfsmOD:We:R:g:x:G:A: opt
 do
-    case ${1#-} in
-        F|file)
-                __src_script check_variables_input
-                if [[ $2 == - ]]
+    case $opt in
+        F)
+                if [[ ! $OPTARG =~ -.+ ]]
                 then
-                    if [[ -p /dev/stdin ]]
-                    then
-                        while read -r
-                        do
-                            __check_variables_input "$REPLY"
-                        done
-                    else
-                        { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
-                    fi
+                    XWINREG_INPUT_FILE=$OPTARG
                 else
-                    if [[ -p $2 || -f $2 ]]
-                    then
-                        while read -r
-                        do
-                            __check_variables_input "$REPLY"
-                        done < "$2"
-                    else
-                        { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
-                    fi
+                    { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
                 fi
-                shift 2
                 ;;
-        C|conf-file)
-                XWINREG_CONF_FILE=$2
-                shift 2
+        C)
+                __check_args "XWINREG_CONF_FILE=$OPTARG"
                 ;;
-        T|tmp-file)
-                XWINREG_TMP_FILE=$2
-                shift 2
+        T)
+                __check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
-        *)
-                break
+        n)
+                __check_args "row_number=$OPTARG"
+                ;;
+        N)
+                __check_args "col_number=$OPTARG"
+                ;;
+        a)
+                __check_args "frame=$OPTARG"
+                ;;
+        1)
+                __check_args "frame_width=$OPTARG"
+                ;;
+        2)
+                __check_args "frame_height=$OPTARG"
+                ;;
+        3)
+                __check_args "frame_x=$OPTARG"
+                ;;
+        4)
+                __check_args "frame_y=$OPTARG"
+                ;;
+        5)
+                __check_args "workarea_x=$OPTARG"
+                ;;
+        6)
+                __check_args "workarea_y=$OPTARG"
+                ;;
+        7)
+                __check_args "workarea_width=$OPTARG"
+                ;;
+        8)
+                __check_args "workarea_height=$OPTARG"
+                ;;
+        y)
+                action=cycle
+                ;;
+        r)
+                __check_args "region_selection=$OPTARG"
+                ;;
+        d)
+                [[ $action == cycle ]] && __check_args "direction_cycle=$OPTARG"
+                [[ $action == __check_moving ]] && __check_args "direction_moving=$OPTARG"
+                ;;
+        k)
+                stack=stack
+                ;;
+        w)
+                [[ $action == cycle ]] && __check_args "entity_cycle=window"
+                [[ $action == __check_moving || $action == __check_sizing ]] && __check_args "entity=window"
+                ;;
+        o)
+                __check_args "action=__focus_toggle" "direction_focus=$OPTARG"
+                ;;
+        h)
+                action=__help
+                ;;
+        v)
+                action=__version
+                ;;
+        L)
+                __check_args "action=layout_abbrev" && __build_layout_abbrev "$OPTARG"
+                ;;
+        l)
+                action=layout
+                __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
+                unset -v region_selection win_number_maximum layout_action entity_size gravity geo
+                ;;
+        H)
+                action=__check_hiding
+                hide_action=add
+                ;;
+        U)
+                action=__check_hiding
+                hide_action=remove
+                ;;
+        c)
+                action=__check_closing
+                ;;
+        M)
+                action=__check_move_to_desk
+                ;;
+        f)
+                action=__check_focusing
+                ;;
+        s)
+                action=__check_sizing
+                ;;
+        m)
+                action=__check_moving
+                ;;
+        O)
+                action=__check_resetting
+                ;;
+        D)
+                __check_args "desk_target=$OPTARG"
+                ;;
+        W)
+                switch=switch
+                ;;
+        e)
+                __check_args "entity_size=$OPTARG"
+                ;;
+        R)
+                __check_args "reference=$OPTARG"
+                ;;
+        g)
+                __check_args "geo=$OPTARG"
+                ;;
+        x)
+                __check_args "win_number_maximum=$OPTARG"
+                ;;
+        G)
+                __check_args "gravity=$OPTARG"
+                ;;
+        A)
+                __check_args "layout_action=$OPTARG"
+                ;;
+        \?)
+                { echo "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                ;;
+        :)
+                { echo "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                ;;
     esac
 done
+
+[[ $XWINREG_INPUT_FILE ]] &&
+{
+    __src_script check_variables_input
+    if [[ $XWINREG_INPUT_FILE == - ]]
+    then
+        if [[ -p /dev/stdin ]]
+        then
+            while read -r
+            do
+                __check_variables_input "$REPLY"
+            done
+        else
+            { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
+        fi
+    else
+        if [[ -p $XWINREG_INPUT_FILE || -f $XWINREG_INPUT_FILE ]]
+        then
+            while read -r
+            do
+                __check_variables_input "$REPLY"
+            done < "$XWINREG_INPUT_FILE"
+        else
+            { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
+        fi
+    fi
+}
 
 [[ $XWINREG_CONF_FILE ]] &&
 {
@@ -111,266 +432,53 @@ else
     file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
 fi
 
-while :
-do
-    case ${1#-} in
-        n|number-of-rows)
-                row_number=$2
-                shift 2
-                ;;
-        N|number-of-cols)
-                col_number=$2
-                shift 2
-                ;;
-        a|frame-alias)
-                frame=$2
-                shift 2
-                ;;
-        fw|frame-width)
-                frame_width=$2
-                shift 2
-                ;;
-        fh|frame-height)
-                frame_height=$2
-                shift 2
-                ;;
-        fx|frame-x)
-                frame_x=$2
-                shift 2
-                ;;
-        fy|frame-y)
-                frame_y=$2
-                shift 2
-                ;;
-        wx|workarea-x)
-                workarea_x=$2
-                shift 2
-                ;;
-        wy|workarea-y)
-                workarea_y=$2
-                shift 2
-                ;;
-        ww|workarea-width)
-                workarea_width=$2
-                shift 2
-                ;;
-        wh|workarea-height)
-                workarea_height=$2
-                shift 2
-                ;;
-        *)
-                break
-    esac
-done
-
-declare region_selection= \
-        direction_cycle= \
-        direction_focus= \
-        stack= \
-        entity_cycle=
-
-case ${1#-} in
-    y|cycle)
-            shift 1
-            while :
-            do
-                case ${1#-} in
-                    r|region)
-                            region_selection=$2
-                            shift 2
-                            ;;
-                    d|direction)
-                            direction_cycle=$2
-                            shift 2
-                            ;;
-                    k|stack)
-                            stack=stack
-                            shift 1
-                            ;;
-                    w|window)
-                            entity_cycle=window
-                            shift 1
-                            ;;
-                    *)
-                            break
-                            ;;
-                esac
-            done
-            if [[ $entity_cycle == window ]]
-            then
-                __src_script cycle_window check_region
-                __cycle_window
-            else
-                __src_script cycle_region check_region
-                __cycle_region
-            fi
-            __check_region
-            exit 0
-            ;;
-    o|toggle-focus)
-            direction_focus=$2
-            shift 2
-            __src_script focus_toggle
-            __focus_toggle
-            exit 0
-            ;;
-    h|help)
-            shift 1
-            __src_script help
-            __help
-            exit 0
-            ;;
-    v|version)
-            shift 1
-            __src_script version
-            __version
-            exit 0
-            ;;
-esac
-
-declare action= \
-        hide_action= \
-        desk_target= \
-        switch= \
-        entity= \
-        entity_size= \
-        reference= \
-        geo= \
-        direction_moving= \
-        win_number_maximum= \
-        gravity= \
-        layout_action=
-declare -a layout=()
-
-case ${1#-} in
-    L|layout-abbrev)
-            __src_script build_layout_abbrev
-            ;;
-    l|layout)
-            __src_script build_layout
-            ;;
-esac
-
-while :
-do
-    case ${1#-} in
-        L|layout-abbrev)
-                action=layout_abbrev
-                __build_layout_abbrev "$2"
-                shift 2
-                ;;
-        l|layout)
-                action=layout
-                __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
-                unset -v region_selection win_number_maximum layout_action entity_size gravity geo
-                shift 1
-                ;;
-        H|hide)
-                action=__check_hiding
-                hide_action=add
-                shift 1
-                ;;
-        U|unhide)
-                action=__check_hiding
-                hide_action=remove
-                shift 1
-                ;;
-        c|close)
-                action=__check_closing
-                shift 1
-                ;;
-        M|move-to-desk)
-                action=__check_move_to_desk
-                shift 1
-                ;;
-        f|focus)
-                action=__check_focusing
-                shift 1
-                ;;
-        s|size)
-                action=__check_sizing
-                shift 1
-                ;;
-        m|move)
-                action=__check_moving
-                shift 1
-                ;;
-        O|reset)
-                action=__check_resetting
-                shift 1
-                ;;
-        r|region)
-                region_selection=$2
-                shift 2
-                ;;
-        D|desk)
-                desk_target=$2
-                shift 2
-                ;;
-        W|switch)
-                switch=switch
-                shift 1
-                ;;
-        w|window)
-                entity=window
-                shift 1
-                ;;
-        e|entity)
-                entity_size=$2
-                shift 2
-                ;;
-        R|reference)
-                reference=$2
-                shift 2
-                ;;
-        g|geo)
-                geo=$2
-                shift 2
-                ;;
-        d|direction)
-                direction_moving=$2
-                shift 2
-                ;;
-        x|maximum)
-                win_number_maximum=$2
-                shift 2
-                ;;
-        G|gravity)
-                gravity=$2
-                shift 2
-                ;;
-        A|action)
-                layout_action=$2
-                shift 2
-                ;;
-        *)
-                [[ $action == layout ]] && __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
-                break
-                ;;
-    esac
-done
+[[ $action == layout ]] && __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
 
 if [[ $action ]]
 then
-    __src_script calculating
-    __calculating
     case $action in
         __check_moving|__check_sizing)
-                __src_script check_moving check_sizing check_file_tmp
+                __src_script check_moving check_sizing check_file_tmp calculating
+                __calculating
                 __check_file_tmp < "$file_tmp"
                 ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                ${action}
+                ${action} && exit 0
                 ;;
         layout|layout_abbrev)
-                __src_script order_num_asc_array mktmp check_region
+                __src_script order_num_asc_array mktmp check_region calculating
+                __calculating
                 ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
                 mapfile -t layout < <(__order_num_asc_array "${layout[@]}")
                 __mktmp
-                __check_region
+                __check_region && exit 0
+                ;;
+        __focus_toggle)
+                __src_script focus_toggle
+                __focus_toggle && exit 0
+                ;;
+        cycle)
+                if [[ $entity_cycle == window ]]
+                then
+                    __src_script cycle_window check_region
+                    __cycle_window
+                else
+                    __src_script cycle_region check_region
+                    __cycle_region
+                fi
+                __check_region && exit 0
+                ;;
+        __help)
+                __src_script help
+                __help && exit 0
+                ;;
+        __version)
+                __src_script version
+                __version && exit 0
                 ;;
         *)
-                __src_script "${action#__*}"
-                ${action}
+                __src_script calculating "${action#__*}"
+                __calculating
+                ${action} && exit 0
                 ;;
     esac
 else
