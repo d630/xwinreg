@@ -197,6 +197,8 @@ declare \
         win_active_tags= \
         win_number= \
         file_tmp= \
+        file_input= \
+        file_conf= \
         row_number= \
         col_number= \
         frame= \
@@ -382,7 +384,7 @@ do
         \?)
                 { echo "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
                 ;;
-        :)
+        \:)
                 { echo "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
                 ;;
     esac
@@ -392,6 +394,7 @@ done
 {
     if [[ -f $XWINREG_CONF_FILE ]]
     then
+        file_conf=$XWINREG_CONF_FILE
         source "$XWINREG_CONF_FILE"
     else
         { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
@@ -400,6 +403,7 @@ done
 
 [[ $XWINREG_INPUT_FILE ]] &&
 {
+    file_input=$XWINREG_INPUT_FILE
     __src_script check_variables_input
     if [[ $XWINREG_INPUT_FILE == - ]]
     then
