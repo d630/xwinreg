@@ -226,7 +226,8 @@ declare \
         direction_moving= \
         win_number_maximum= \
         gravity= \
-        layout_action=
+        layout_action= \
+        reg_number=0
 
 declare -a \
         desk_select=() \
@@ -236,8 +237,9 @@ declare -a \
         win_geo_x_y=() \
         win_geo_w_h=() \
         win_frame_extents=() \
-        win_tags=() \
-        layout=()
+        win_tags=()
+
+declare -A layout
 
 __src_script \
         check_args \
@@ -452,7 +454,7 @@ then
                 __src_script order_num_asc_array mktmp check_region calculating
                 __calculating
                 ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                mapfile -t layout < <(__order_num_asc_array "${layout[@]}")
+                #mapfile -t layout < <(__order_num_asc_array "${layout[@]}")
                 __mktmp
                 __check_region && exit 0
                 ;;
