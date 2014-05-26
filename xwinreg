@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
-#set -o xtrace #; exec 2>> ~/xwinreg.log
+set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o verbose
 #set -o noexec
 #set -o errexit

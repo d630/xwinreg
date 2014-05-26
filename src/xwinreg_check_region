@@ -2,12 +2,25 @@
 
 __check_region()
 {
-    __src_script store_x_y_w_h check_gravity decrease_win_xid restore_x_y_w_h
+    #__src_script store_x_y_w_h check_gravity decrease_win_xid restore_x_y_w_h
+    __src_script check_gravity decrease_win_xid
 
-    __store_x_y_w_h
+    #__store_x_y_w_h
     # Write reg_number to file_temp.
     #printf '%s\n' "reg_number=${#layout[@]}" >> "$file_tmp"
     #printf '%s\n' "reg_number=$reg_number" >> "$file_tmp"
+
+    declare \
+            i= \
+            region_number= \
+            win_number_maximum= \
+            layout_action= \
+            entity_region= \
+            gravity= \
+            win_region_number=
+    declare -a \
+            region_geo=() \
+            reg_geo=()
 
     #~ for l in "${layout[@]}"
     for ((i=1 ; i <= $reg_number ; i++))
@@ -29,28 +42,34 @@ __check_region()
             alias)
                     #eval region_geo=('${region_'${l_r##*,}'[@]}')
                     eval region_geo=('${region_'${layout[${i}:region_geo]}'[@]}')
-                    x=${region_geo[0]}
-                    y=${region_geo[1]}
-                    w=${region_geo[2]}
-                    h=${region_geo[3]}
+                    layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
+                    printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]} #redeclared" >> "$file_tmp"
+                    #x=${region_geo[0]}
+                    #y=${region_geo[1]}
+                    #w=${region_geo[2]}
+                    #h=${region_geo[3]}
                     ;;
             px)
                     #l_r=${l_r#*,}
                     #region_geo=(${l_r//,/ })
-                    region_geo=${layout[${i}:region_geo]}
-                    x=${region_geo[0]}
-                    y=${region_geo[1]}
-                    w=${region_geo[2]}
-                    h=${region_geo[3]}
+                    region_geo=(${layout[${i}:region_geo]//,/ })
+                    #x=${region_geo[0]}
+                    #y=${region_geo[1]}
+                    #w=${region_geo[2]}
+                    #h=${region_geo[3]}
                     ;;
             pro)
                     #l_r=${l_r#*,}
                     #region_geo=(${l_r//,/ })
-                    region_geo=${layout[${i}:region_geo]}
-                    x=$((w*${region_geo[0]}/100))
-                    y=$((h*${region_geo[1]}/100))
-                    w=$((w*${region_geo[2]}/100))
-                    h=$((h*${region_geo[3]}/100))
+                    region_geo=(${layout[${i}:region_geo]//,/ })
+                    #x=$((w*${region_geo[0]}/100))
+                    region_geo[0]=$((w*${region_geo[0]}/100))
+                    #y=$((h*${region_geo[1]}/100))
+                    region_geo[1]=$((h*${region_geo[1]}/100))
+                    #w=$((w*${region_geo[2]}/100))
+                    region_geo[2]=$((w*${region_geo[2]}/100))
+                    #h=$((h*${region_geo[3]}/100))
+                    region_geo[3]=$((h*${region_geo[3]}/100))
                     ;;
         esac
 
@@ -69,15 +88,15 @@ __check_region()
         # After layouting we redeclare win_xid.
         __decrease_win_xid
 
-        __restore_x_y_w_h
-        reg_geo+=(${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]})
-        eval "region_${region_number}_geo=(${region_geo[*]})"
-        eval region_geo_tmp=('${region_'${region_number}'_geo[@]}')
+        #__restore_x_y_w_h
+        reg_geo+=(${layout[${i}:region_geo]})
+        #eval "region_${region_number}_geo=(${region_geo[*]})"
+        #eval region_geo_tmp=('${region_'${region_number}'_geo[@]}')
 
         # For every region write new variables to file_tmp.
-        printf '%s\n' "region_${region_number}_entity=$entity_region
-region_${region_number}_action=$layout_action
-region_${region_number}_geo=(${region_geo_tmp[*]})" >> "$file_tmp"
+        #printf '%s\n' "region_${region_number}_entity=$entity_region
+#region_${region_number}_action=$layout_action
+#region_${region_number}_geo=(${region_geo_tmp[*]})" >> "$file_tmp"
     done
 
     # Write reg_geo to file_tmp.
@@ -85,16 +104,17 @@ region_${region_number}_geo=(${region_geo_tmp[*]})" >> "$file_tmp"
     unset -v reg_geo
 
     #for ((region_number=1 ; region_number <= ${#layout[@]} ; region_number++))
-    r=$region_number
-    for ((region_number=1 ; region_number <= $r ; region_number++))
+    #r=$region_number
+    #for ((region_number=1 ; region_number <= $r ; region_number++))
+    for ((i=1 ; i <= $reg_number ; i++))
     do
-        eval win_xid_region_tmp=('${win_xid_region_'${region_number}'[@]}')
-        eval win_geo_x_y_region_tmp=('${win_geo_x_y_region_'${region_number}'[@]}')
-        eval win_geo_w_h_region_tmp=('${win_geo_w_h_region_'${region_number}'[@]}')
+        eval win_xid_region_tmp=('${win_xid_region_'${i}'[@]}')
+        eval win_geo_x_y_region_tmp=('${win_geo_x_y_region_'${i}'[@]}')
+        eval win_geo_w_h_region_tmp=('${win_geo_w_h_region_'${i}'[@]}')
 
         # In the end we write some arrays to file_tmp.
-        printf '%s\n' "win_xid_region_${region_number}=(${win_xid_region_tmp[*]})
-win_geo_x_y_region_${region_number}=(${win_geo_x_y_region_tmp[*]})
-win_geo_w_h_region_${region_number}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
+        printf '%s\n' "win_xid_region_${i}=(${win_xid_region_tmp[*]})
+win_geo_x_y_region_${i}=(${win_geo_x_y_region_tmp[*]})
+win_geo_w_h_region_${i}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
     done
 }

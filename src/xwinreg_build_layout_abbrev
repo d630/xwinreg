@@ -9,7 +9,7 @@ __build_layout_abbrev()
         set -- ${l_l//,/ }
         layout[${1}:region_number]=$1
         layout[${1}:win_number_maximum]=$2
-        layout[${1}:layout_action]=$3
+        layout[${1}:layout_action]=${3//-/_}
         layout[${1}:entity_region]=$4
         layout[${1}:gravity]=${l_r%%,*}
         layout[${1}:region_geo]=${l_r#*,}

@@ -2,7 +2,16 @@
 
 __horizontal()
 {
+    declare \
+            i= \
+            win= \
+            x=${region_geo[0]} \
+            y=${region_geo[1]} \
+            w=${region_geo[2]} \
+            h=${region_geo[3]}
+
     h=$((h/win_region_number))
+
     for ((i=0 ; i <= win_region_number-1 ; i++))
     do
         win=${win_xid[i]}

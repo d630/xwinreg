@@ -3,6 +3,26 @@
 __grid_horizontal()
 {
     # Adapted. See for more details http://forum.ubuntuusers.de/topic/wmtiler-fuer-floating-wm-s/
+    declare \
+            i= \
+            win= \
+            x= \
+            y= \
+            w= \
+            h= \
+            normal_row_windows= \
+            bottom_row_windows= \
+            windows_not_in_bottom_row= \
+            x_org= \
+            normal_row_width= \
+            bottom_row_width=
+            current_row= \
+            current_row_windows=
+
+    x=${region_geo[0]}
+    y=${region_geo[1]}
+    w=${region_geo[2]}
+    h=${region_geo[3]}
 
     normal_row_windows=$((win_region_number/row_number))
     bottom_row_windows=$((normal_row_windows+win_region_number%row_number))
@@ -13,6 +33,7 @@ __grid_horizontal()
     bottom_row_width=$(((w/bottom_row_windows)-normal_row_windows))
 
     current_row=1
+
     for ((i=0 , current_row_windows=0 ; i <= win_region_number-1 ; i++ , current_row_windows++))
     do
         ((current_row < row_number)) &&

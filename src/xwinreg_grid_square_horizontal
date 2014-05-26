@@ -3,10 +3,17 @@
 __grid_square_horizontal()
 {
     # Adapted. See for more details http://bashscripts.org/forum/viewtopic.php?f=7&t=1568
-
-    col_number=${col_number-$(bc <<< "sqrt(${win_region_number})")}
-    row_number=$col_number
-    tiles=$((row_number*col_number))
+    declare \
+            i= \
+            nx=0 \
+            ny=0 \
+            x=${region_geo[0]} \
+            y=${region_geo[1]} \
+            w=${region_geo[2]} \
+            h=${region_geo[3]} \
+            col_number=${col_number-$(bc <<< "sqrt(${win_region_number})")} \
+            row_number=$col_number \
+            tiles=$((row_number*col_number))
 
     ((tiles < win_region_number)) &&
     {
@@ -18,8 +25,6 @@ __grid_square_horizontal()
     w=$((w/col_number))
     h=$((h/row_number))
 
-    nx=0
-    ny=0
     for ((i=0 ; i <= win_region_number-1 ; i++))
     do
         wmctrl -i -r "${win_xid[i]}" -b "remove,maximized_vert,maximized_horz"
