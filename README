@@ -324,7 +324,7 @@ CONFIGURATIONS
               XWINREG_TMP_FILE=FILE
               XWINREG_INPUT_FILE=FILE
 
-       normal variables:
+       normal scalar variables:
               workarea_x=PX
               workarea_y=PX
               workarea_width=PX
@@ -336,11 +336,13 @@ CONFIGURATIONS
               row_number=INT
               col_number=INT
 
-       indexed array variables (you can use above variables). You need
-       to set them inside a function called __calculating_frame_alias
-       respectively __calculating_region_alias:
-              frame_framealias=( X Y W H )
-              region_regalias=( X Y W H )
+       associativ array variables (you can use it with above variables).
+       You need to set them inside a function called
+       __calculating_frame_alias respectively __calculating_region_alias
+       and declare it with 'declare -gA frames' respectively 'declare
+       -gA regions':
+              frames[ALIAS]="X Y W H"
+              regions[ALIAS]="X Y W H"
 
 ENVIROMENT
        TMPDIR
@@ -406,4 +408,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.2.1                    2014-05-24                        XWINREG(1)
+0.1.4.0                    2014-05-27                        XWINREG(1)

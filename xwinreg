@@ -203,7 +203,7 @@ declare \
         file_conf= \
         row_number= \
         col_number= \
-        frame= \
+        frame_alias= \
         workarea_x= \
         workarea_y= \
         workarea_width= \
@@ -275,7 +275,7 @@ do
                 __check_args "col_number=$OPTARG"
                 ;;
         a)
-                __check_args "frame=$OPTARG"
+                __check_args "frame_alias=$OPTARG"
                 ;;
         1)
                 __check_args "frame_width=$OPTARG"

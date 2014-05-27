@@ -70,7 +70,7 @@ __check_region()
 
         case $entity_region in
             alias)
-                    eval region_geo=('${region_'${layout[${i}:region_geo]}'[@]}')
+                    region_geo=(${regions[${layout[${i}:region_geo]}]})
                     layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
                     printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]} " >> "$file_tmp"
                     ;;
