@@ -98,8 +98,6 @@ __check_region()
             win_region_number=$win_number_maximum
         fi
 
-        win=
-
         case $layout_action in
             maximize)
                     for ((j=0 ; j <= win_region_number-1 ; j++))
@@ -258,9 +256,48 @@ __check_region()
         eval win_geo_x_y_region_tmp=('${win_geo_x_y_region_'${i}'[@]}')
         eval win_geo_w_h_region_tmp=('${win_geo_w_h_region_'${i}'[@]}')
 
+
         # In the end we write some arrays to file_tmp.
         printf '%s\n' "win_xid_region_${i}=(${win_xid_region_tmp[*]})
 win_geo_x_y_region_${i}=(${win_geo_x_y_region_tmp[*]})
 win_geo_w_h_region_${i}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
     done
+
+    unset -v \
+            bottom_row_width \
+            bottom_row_windows \
+            current_column \
+            current_column_windows \
+            current_row \
+            current_row_windows \
+            entity_region \
+            gravity \
+            i \
+            j \
+            k \
+            l \
+            layout_action \
+            m \
+            n \
+            normal_column_height \
+            normal_column_windows \
+            normal_row_width \
+            normal_row_windows \
+            nx \
+            ny \
+            o \
+            p \
+            region_geo \
+            region_number \
+            right_column_height \
+            right_column_windows \
+            tiles \
+            win \
+            windows_not_in_bottom_column \
+            windows_not_in_bottom_row \
+            win_number_maximum \
+            win_region_number \
+            x_org \
+            y_org
+    __mktmp
 }

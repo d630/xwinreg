@@ -457,6 +457,7 @@ then
         layout|layout_abbrev)
                 __src_script mktmp check_region calculating
                 ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
+                unset -v action
                 __calculating
                 __mktmp
                 __check_region "$file_tmp" && exit 0

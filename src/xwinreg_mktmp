@@ -11,6 +11,4 @@ __mktmp()
              -e "^BASH_SOURCE=" \
              -e "^FUNCNAME=" \
     > "$file_tmp"
-
-    unset -v vars_base
 }
