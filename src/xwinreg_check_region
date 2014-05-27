@@ -299,5 +299,4 @@ win_geo_w_h_region_${i}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
             win_region_number \
             x_org \
             y_org
-    __mktmp
 }
