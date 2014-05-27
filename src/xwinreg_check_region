@@ -2,43 +2,69 @@
 
 __check_region()
 {
-    __src_script \
-                check_gravity \
-                decrease_win_xid \
-                do_wmctrl \
-                store_region
-
     declare \
-            i= \
-            region_number= \
-            win_number_maximum= \
-            layout_action= \
+            bottom_row_width= \
+            bottom_row_windows= \
+            col_number= \
+            current_column= \
+            current_column_windows=
+            current_row= \
+            current_row_windows= \
             entity_region= \
+            file_tmp=$1 \
             gravity= \
+            h= \
+            i= \
+            j= \
+            k= \
+            l= \
+            layout_action= \
+            m= \
+            n= \
+            normal_column_height= \
+            normal_column_windows= \
+            normal_row_width= \
+            normal_row_windows= \
+            o= \
+            p= \
+            region_number= \
+            reg_number= \
+            reg_number= \
+            right_column_height=
+            right_column_windows= \
+            row_number= \
+            w= \
+            windows_not_in_bottom_column= \
+            windows_not_in_bottom_row= \
+            win_number= \
+            win_number_maximum= \
             win_region_number= \
-            x=$x \
-            y=$y \
-            w=$w \
-            h=$h \
-            win_number=$win_number \
-            reg_number=$reg_number \
-            col_number=$col_number \
-            row_number=$row_number \
-            file_tmp=$file_tmp
+            x= \
+            x_org= \
+            y= \
+            y_org=
 
     declare -a \
             region_geo=() \
-            reg_geo=()
+            reg_geo=() \
+            win_xid=()
 
-    win_xid=(${win_xid[@]})
+    declare -A layout
+
+    source "$file_tmp"
+
+    __src_script \
+            check_gravity \
+            do_wmctrl \
+            store_region
 
     for ((i=1 ; i <= $reg_number ; i++))
     do
-        region_number=$i
-        win_number_maximum=${layout[${i}:win_number_maximum]}
-        layout_action=__${layout[${i}:layout_action]}
         entity_region=${layout[${i}:entity_region]}
         gravity=${layout[${i}:gravity]}
+        layout_action=${layout[${i}:layout_action]}
+        region_number=$i
+        win_number_maximum=${layout[${i}:win_number_maximum]}
 
         case $entity_region in
             alias)
@@ -58,6 +84,11 @@ __check_region()
                     ;;
         esac
 
+        x=${region_geo[0]}
+        y=${region_geo[1]}
+        w=${region_geo[2]}
+        h=${region_geo[3]}
+
         gravity=$(__check_gravity "$gravity")
 
         if [[ $win_number_maximum == max ]]
@@ -67,18 +98,159 @@ __check_region()
             win_region_number=$win_number_maximum
         fi
 
-        # Now process layout by calling specified function.
-        __src_script "${layout_action#__*}"
-        ${layout_action} "${region_geo[0]}" "${region_geo[1]}" "${region_geo[2]}" "${region_geo[3]}"
-        # After layouting we redeclare win_xid.
-        __decrease_win_xid
+        win=
+
+        case $layout_action in
+            maximize)
+                    for ((j=0 ; j <= win_region_number-1 ; j++))
+                    do
+                        win=${win_xid[j]}
+                        __do_wmctrl
+                        __store_region
+                    done
+                    ;;
+            vertical)
+                    w=$((w/win_region_number))
+                    for ((k=0 ; k <= win_region_number-1 ; k++))
+                    do
+                        win=${win_xid[k]}
+                        __do_wmctrl
+                        __store_region
+                        x=$((x+w))
+                    done
+                    ;;
+            horizontal)
+                    h=$((h/win_region_number))
+                    for ((l=0 ; l <= win_region_number-1 ; l++))
+                    do
+                        win=${win_xid[l]}
+                        __do_wmctrl
+                        __store_region
+                        y=$((y+h))
+                    done
+                    ;;
+            grid-vertical)
+                    # Adapted. See for more details http://forum.ubuntuusers.de/topic/wmtiler-fuer-floating-wm-s/
+                    normal_column_windows=$((win_region_number/col_number))
+                    right_column_windows=$((normal_column_windows+win_region_number%col_number))
+                    windows_not_in_bottom_column=$((win_region_number-right_column_windows))
+                    y_org=$y
+                    w=$((w/col_number))
+                    normal_column_height=$((h/normal_column_windows))
+                    right_column_height=$((h/right_column_windows))
+                    for ((m=0 , current_column_windows=0 , current_column=1 ; m <= win_region_number-1 ; m++ , current_column_windows++))
+                    do
+                        ((current_column < col_number)) &&
+                        {
+                            ((current_column_windows == normal_column_windows)) &&
+                            {
+                                ((current_column++))
+                                if ((current_column == col_number))
+                                then
+                                    x=$((x+w))
+                                    y=$y_org
+                                    h=$right_column_height
+                                else
+                                    current_column_windows=0
+                                fi
+                            }
+                            ((current_column_windows == 0)) && y=$y_org && h=$normal_column_height && { ((current_column != 1)) && x=$((x+w)) ; }
+                        }
+                        win=${win_xid[m]}
+                        __do_wmctrl
+                        __store_region
+                        y=$((y+h))
+                    done
+                    ;;
+            grid-horizontal)
+                    # Adapted. See for more details http://forum.ubuntuusers.de/topic/wmtiler-fuer-floating-wm-s/
+                    normal_row_windows=$((win_region_number/row_number))
+                    bottom_row_windows=$((normal_row_windows+win_region_number%row_number))
+                    windows_not_in_bottom_row=$((win_region_number-bottom_row_windows))
+                    x_org=$x
+                    h=$((h/row_number))
+                    normal_row_width=$(((w/normal_row_windows)-normal_row_windows))
+                    bottom_row_width=$(((w/bottom_row_windows)-normal_row_windows))
+                    for ((n=0 , current_row_windows=0 , current_row=1 ; n <= win_region_number-1 ; n++ , current_row_windows++))
+                    do
+                        ((current_row < row_number)) &&
+                        {
+                            ((current_row_windows == normal_row_windows)) &&
+                            {
+                                ((current_row++))
+                                if ((current_row == row_number))
+                                then
+                                    x=$x_org
+                                    y=$((y+h))
+                                    w=$bottom_row_width
+                                else
+                                    current_row_windows=0
+                                fi
+                            }
+                            ((current_row_windows == 0)) && x=$x_org && w=$normal_row_width && { ((current_row != 1)) && y=$((y+h)) ; }
+                        }
+                        win=${win_xid[n]}
+                        __do_wmctrl
+                        __store_region
+                        x=$((x+w))
+                    done
+                    ;;
+            grid-square-vertical)
+                    # Adapted. See for more details http://bashscripts.org/forum/viewtopic.php?f=7&t=1568
+                    row_number=${row_number-$(bc <<< "sqrt(${win_region_number})")}
+                    col_number=$row_number
+                    tiles=$((row_number*col_number))
+                    ((tiles < win_region_number)) &&
+                    {
+                        ((row_number++))
+                        tiles=$((row_number*col_number))
+                        ((tiles < win_region_number)) && ((col_number++)) && tiles=$((row_number*col_number))
+                    }
+                    w=$((w/col_number))
+                    h=$((h/row_number))
+                    for ((o=0 , nx=0 , ny=0 ; o <= win_region_number-1 ; o++))
+                    do
+                        wmctrl -i -r "${win_xid[o]}" -b "remove,maximized_vert,maximized_horz"
+                        wmctrl -i -r "${win_xid[o]}" -e "${gravity},$((x+nx*w)),$((y+ny*h)),${w},${h}"
+
+                        ((ny++))
+                        ((ny > row_number-1)) && ny=0 && ((nx++))
+                        __store_region
+                    done
+                    ;;
+            grid-square-horizontal)
+                    # Adapted. See for more details http://bashscripts.org/forum/viewtopic.php?f=7&t=1568
+                    col_number=${col_number-$(bc <<< "sqrt(${win_region_number})")}
+                    row_number=$col_number
+                    tiles=$((row_number*col_number))
+                    ((tiles < win_region_number)) &&
+                    {
+                        ((col_number++))
+                        tiles=$((row_number*col_number))
+                        ((tiles < win_region_number)) && ((row_number++)) && tiles=$((row_number*col_number))
+                    }
+                    w=$((w/col_number))
+                    h=$((h/row_number))
+                    for ((p=0 , nx=0 , ny=0 ; p <= win_region_number-1 ; p++))
+                    do
+                        wmctrl -i -r "${win_xid[p]}" -b "remove,maximized_vert,maximized_horz"
+                        wmctrl -i -r "${win_xid[p]}" -e "${gravity},$((x+nx*w)),$((y+ny*h)),${w},${h}"
+
+                        ((nx++))
+                        ((nx > col_number-1)) && nx=0 && ((ny++))
+                        __store_region
+                    done
+                    ;;
+        esac
 
         reg_geo+=(${layout[${i}:region_geo]})
+        # After layouting we redeclare win_xid.
+        win_xid=(${win_xid[@]:$win_region_number})
+        ((win_number-=win_region_number))
     done
 
     # Write reg_geo to file_tmp.
     printf '%s\n' "reg_geo=(${reg_geo[*]})" >> "$file_tmp"
-    unset -v reg_geo
 
     for ((i=1 ; i <= $reg_number ; i++))
     do

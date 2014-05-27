@@ -64,4 +64,10 @@ __calculating()
     # Here we declare row and column number, which are needed to perform grid layouting.
     declare -g row_number=${row_number:-2} \
                col_number=${col_number:-2}
+
+    unset -v \
+            workarea_width \
+            workarea_height \
+            frame_width \
+            frame_height
 }

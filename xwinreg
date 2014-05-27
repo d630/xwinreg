@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
-set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o verbose
 #set -o noexec
 #set -o errexit
@@ -9,7 +9,9 @@ set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 
-declare src_dir=~/code/source/xwinreg/src
+declare \
+        vars_base=$(set -o posix ; set) \
+        src_dir=~/code/source/xwinreg/src
 
 __src_script()
 {
@@ -440,6 +442,8 @@ fi
 
 [[ $action == layout ]] && __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
 
+unset -v arg args delim opt
+
 if [[ $action ]]
 then
     case $action in
@@ -451,12 +455,11 @@ then
                 ${action} && exit 0
                 ;;
         layout|layout_abbrev)
-                __src_script order_num_asc_array mktmp check_region calculating
-                __calculating
+                __src_script mktmp check_region calculating
                 ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                #mapfile -t layout < <(__order_num_asc_array "${layout[@]}")
+                __calculating
                 __mktmp
-                __check_region && exit 0
+                __check_region "$file_tmp" && exit 0
                 ;;
         __focus_toggle)
                 __src_script focus_toggle

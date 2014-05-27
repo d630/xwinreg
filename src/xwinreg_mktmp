@@ -2,47 +2,15 @@
 
 __mktmp()
 {
-    # Write variables to file_tmp. This function is called before layout is set.
-    {
-        printf '%s\n' "file_tmp=$file_tmp
-file_input=$file_input
-file_conf=$file_conf
-workarea=(${workarea[*]})
-workarea_x=$workarea_x
-workarea_y=$workarea_y
-workarea_w=$workarea_w
-workarea_h=$workarea_h
-frame=$frame
-frame_x=$frame_x
-frame_y=$frame_y
-frame_w=$frame_w
-frame_h=$frame_h
-x=$x
-y=$y
-w=$w
-h=$h
-row_number=$row_number
-col_number=$col_number
-region_northwest=(${region_northwest[*]})
-region_north=(${region_north[*]})
-region_northeast=(${region_northeast[*]})
-region_east=(${region_east[*]})
-region_southeast=(${region_southeast[*]})
-region_south=(${region_south[*]})
-region_southwest=(${region_southwest[*]})
-region_west=(${region_west[*]})
-region_all=(${region_all[*]})
-win_number=$win_number
-win_xid=(${win_xid[*]})
-reg_number=$reg_number"
-        for ((i=1 ; i <= $reg_number ; i++))
-        do
-            printf '%s\n' "layout[${i}:region_number]=${layout[${i}:region_number]}
-layout[${i}:win_number_maximum]=${layout[${i}:win_number_maximum]}
-layout[${i}:layout_action]=${layout[${i}:layout_action]}
-layout[${i}:entity_region]=${layout[${i}:entity_region]}
-layout[${i}:gravity]=${layout[${i}:gravity]}
-layout[${i}:region_geo]=${layout[${i}:region_geo]}"
-        done
-    } > "$file_tmp"
+    fgrep -v -e "$vars_base" < <(set -o posix ; set) |
+    egrep -v -e "^vars_base=" \
+             -e "^BASH_REMATCH=" \
+             -e "^OPTIND=" \
+             -e "^REPLY=" \
+             -e "^BASH_LINENO=" \
+             -e "^BASH_SOURCE=" \
+             -e "^FUNCNAME=" \
+    > "$file_tmp"
+
+    unset -v vars_base
 }
