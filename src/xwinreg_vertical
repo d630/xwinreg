@@ -5,10 +5,10 @@ __vertical()
     declare \
             i= \
             win= \
-            x=${region_geo[0]} \
-            y=${region_geo[1]} \
-            w=${region_geo[2]} \
-            h=${region_geo[3]}
+            x=$1 \
+            y=$2 \
+            w=$3 \
+            h=$4
 
     w=$((w/win_region_number))
 
