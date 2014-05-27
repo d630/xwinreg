@@ -2,7 +2,7 @@
 
 __check_gravity()
 {
-    case $gravity in
+    case $1 in
         0)
                 gravity=0
                 ;;
@@ -37,7 +37,8 @@ __check_gravity()
                 gravity=10
                 ;;
         *)
-                gravity=0
+                { echo "Unknown value for gravity." >&2 ; exit 1 ; }
                 ;;
     esac
+    printf '%s\n' "$gravity"
 }

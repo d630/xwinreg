@@ -28,7 +28,7 @@ __check_region()
             alias)
                     eval region_geo=('${region_'${layout[${i}:region_geo]}'[@]}')
                     layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
-                    printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]} #redeclared" >> "$file_tmp"
+                    printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]} " >> "$file_tmp"
                     ;;
             px)
                     region_geo=(${layout[${i}:region_geo]//,/ })
@@ -42,7 +42,7 @@ __check_region()
                     ;;
         esac
 
-        __check_gravity
+        gravity=$(__check_gravity "$gravity")
 
         if [[ $win_number_maximum == max ]]
         then
