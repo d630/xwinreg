@@ -2,7 +2,11 @@
 
 __check_region()
 {
-    __src_script check_gravity decrease_win_xid
+    __src_script \
+                check_gravity \
+                decrease_win_xid \
+                do_wmctrl \
+                store_region
 
     declare \
             i= \
@@ -11,10 +15,22 @@ __check_region()
             layout_action= \
             entity_region= \
             gravity= \
-            win_region_number=
+            win_region_number= \
+            x=$x \
+            y=$y \
+            w=$w \
+            h=$h \
+            win_number=$win_number \
+            reg_number=$reg_number \
+            col_number=$col_number \
+            row_number=$row_number \
+            file_tmp=$file_tmp
+
     declare -a \
             region_geo=() \
             reg_geo=()
+
+    win_xid=(${win_xid[@]})
 
     for ((i=1 ; i <= $reg_number ; i++))
     do
@@ -52,7 +68,7 @@ __check_region()
         fi
 
         # Now process layout by calling specified function.
-        __src_script "${layout_action#__*}" do_wmctrl store_region
+        __src_script "${layout_action#__*}"
         ${layout_action} "${region_geo[0]}" "${region_geo[1]}" "${region_geo[2]}" "${region_geo[3]}"
         # After layouting we redeclare win_xid.
         __decrease_win_xid

@@ -12,9 +12,9 @@ __grid_square_vertical()
             y=$2 \
             w=$3 \
             h=$4
-            row_number=${row_number-$(bc <<< "sqrt(${win_region_number})")}
-            col_number=$row_number
-            tiles=$((row_number*col_number))
+    row_number=${row_number-$(bc <<< "sqrt(${win_region_number})")}
+    col_number=$row_number
+    tiles=$((row_number*col_number))
 
     ((tiles < win_region_number)) &&
     {
