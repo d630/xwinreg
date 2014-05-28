@@ -1,13 +1,45 @@
 #!/usr/bin/env bash
 
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+
 __focus_toggle()
 {
-    declare -a win_xid=()
+    (($# != 2)) && { echo "__focus_toogle needs tmp file and direction as arguments." >&2 ; exit 1 ; }
 
-    __src_script check_file_tmp get_win_active do_wmctrl order_reverse_array get_win_active_geo
+    __src_script() { declare f ; for f ; do source "${src_dir}/xwinreg_${f}" ; done ; }
 
-    __check_file_tmp < <(egrep -e "^win_xid=\(.*\)$" "$file_tmp")
-    __get_win_active
+    declare \
+            direction_focus=$2 \
+            file_tmp=$1 \
+            gravity= \
+            h= \
+            src_dir= \
+            w= \
+            win= \
+            win_active= \
+            win_number= \
+            x= \
+            y=
+
+    declare -a \
+                win_active_geo_w_h=() \
+                win_active_geo_x_y=() \
+                win_xid=() \
+                xwininfo_win_active=()
+
+    while read -r
+    do
+        eval "$REPLY"
+    done < <(egrep -e "^src_dir=.*" -e "^win_active_geo_w_h=(.*)" -e "^win_active_geo_x_y=(.*)" -e "^win_active=.*" -e "^win_xid=(.*)" -e "^win_number=.*" "$file_tmp")
+
+    __src_script do_wmctrl order_reverse_array
 
     case $direction_focus in
         n|next)
@@ -28,19 +60,31 @@ __focus_toggle()
                 ;;
     esac
 
+    win_active=$win
+    mapfile -t xwininfo_win_active < <(xwininfo -id "$win_active")
+    win_active_geo_x_y=($((${xwininfo_win_active[3]##* }+${xwininfo_win_active[5]##* })),$((${xwininfo_win_active[4]##* }+${xwininfo_win_active[6]##* })))
+    win_active_geo_w_h=(${xwininfo_win_active[7]##* },${xwininfo_win_active[8]##* })
+
     # visual bell instead colorize frame border of active window
-    __get_win_active_geo
-    x=${win_active_geo_x_y_tmpp[0]%,*}
-    y=${win_active_geo_x_y_tmpp[0]#*,}
-    w=${win_active_geo_w_h_tmpp[0]%,*}
-    h=${win_active_geo_w_h_tmpp[0]#*,}
+    x=${win_active_geo_x_y[0]%,*}
+    y=${win_active_geo_x_y[0]#*,}
+    w=${win_active_geo_w_h[0]%,*}
+    h=${win_active_geo_w_h[0]#*,}
     gravity=0
     (
-        w=$((${win_active_geo_w_h_tmpp[0]%,*}*25/100))
-        h=$((${win_active_geo_w_h_tmpp[0]#*,}*25/100))
+        w=$((${win_active_geo_w_h[0]%,*}*25/100))
+        h=$((${win_active_geo_w_h[0]#*,}*25/100))
         __do_wmctrl
     )
     __do_wmctrl
 
     wmctrl -i -a "$win"
+
+    sed -i -e "s/^win_active_geo_x_y=(.*/win_active_geo_x_y=(${win_active_geo_x_y[*]})/" \
+           -e "s/^win_active_geo_w_h=(.*/win_active_geo_w_h=(${win_active_geo_w_h[*]})/" \
+           -e "s/^win_active=.*/win_active=$win_active/" "$file_tmp"
+
+    unset -v xwininfo_win_active win
 }
+
+__focus_toggle "$1" "$2"

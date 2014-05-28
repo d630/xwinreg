@@ -13,14 +13,7 @@ declare \
         vars_base=$(set -o posix ; set) \
         src_dir=~/code/source/xwinreg/src
 
-__src_script()
-{
-    declare f
-    for f
-    do
-        source "${src_dir}/xwinreg_${f}"
-    done
-}
+__src_script() { declare f ; for f ; do source "${src_dir}/xwinreg_${f}" ; done ; }
 
 (($# == 0)) &&
 {
@@ -455,16 +448,15 @@ then
                 ${action} && exit 0
                 ;;
         layout|layout_abbrev)
-                __src_script mktmp check_region calculating
                 ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
                 unset -v action
+                __src_script calculating mktmp
                 __calculating
                 __mktmp
-                __check_region "$file_tmp" && exit 0
+                ${src_dir}/xwinreg_check_region "$file_tmp" && exit 0
                 ;;
         __focus_toggle)
-                __src_script focus_toggle
-                __focus_toggle && exit 0
+                 ${src_dir}/xwinreg_focus_toggle "$file_tmp" "$direction_focus" && exit 0
                 ;;
         cycle)
                 if [[ $entity_cycle == window ]]
