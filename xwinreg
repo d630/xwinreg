@@ -238,8 +238,7 @@ declare -A layout
 
 __src_script \
         check_args \
-        build_layout_abbrev \
-        build_layout
+        build_layout_abbrev
 
 eval set -- $args
 declare opt=
