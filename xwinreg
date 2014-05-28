@@ -299,6 +299,7 @@ do
                 ;;
         r)
                 __check_args "region_selection=$OPTARG"
+                [[ $action == layout ]] && layout[${region_selection}:region_number]=$region_selection
                 ;;
         d)
                 [[ $action == cycle ]] && __check_args "direction_cycle=$OPTARG"
@@ -325,8 +326,7 @@ do
                 ;;
         l)
                 action=layout
-                __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
-                unset -v region_selection win_number_maximum layout_action entity_size gravity geo
+                ((reg_number++))
                 ;;
         H)
                 action=__check_hiding
@@ -362,21 +362,26 @@ do
                 ;;
         e)
                 __check_args "entity_size=$OPTARG"
+                [[ $action == layout ]] && layout[${region_selection}:entity_region]=$entity_size
                 ;;
         R)
                 __check_args "reference=$OPTARG"
                 ;;
         g)
                 __check_args "geo=$OPTARG"
+                [[ $action == layout ]] && layout[${region_selection}:region_geo]=$geo
                 ;;
         x)
                 __check_args "win_number_maximum=$OPTARG"
+                layout[${region_selection}:win_number_maximum]=$win_number_maximum
                 ;;
         G)
                 __check_args "gravity=$OPTARG"
+                layout[${region_selection}:gravity]=$gravity
                 ;;
         A)
                 __check_args "layout_action=$OPTARG"
+                layout[${region_selection}:layout_action]=$layout_action
                 ;;
         \?)
                 { echo "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
@@ -433,8 +438,6 @@ else
     file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
 fi
 
-[[ $action == layout ]] && __build_layout "${region_selection:-not_available}" "${win_number_maximum:-not_available}" "${layout_action:-not_available}" "${entity_size:-not_available}" "${gravity:-not_available}" "${geo:-not_available}"
-
 unset -v arg args delim opt
 
 if [[ $action ]]
@@ -456,6 +459,7 @@ then
                 ${src_dir}/xwinreg_check_region "$file_tmp" && exit 0
                 ;;
         __focus_toggle)
+                unset -v action
                  ${src_dir}/xwinreg_focus_toggle "$file_tmp" "$direction_focus" && exit 0
                 ;;
         cycle)
