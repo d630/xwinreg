@@ -325,8 +325,6 @@ win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\" " >> "$file_tmp"
             x_org \
             y \
             y_org
-
-__mktmp
 }
 
 __check_region "$1"
