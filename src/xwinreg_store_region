@@ -2,8 +2,6 @@
 
 __store_region()
 {
-    eval \
-        "win_xid_region_${region_number}+=(${win_xid[i]})" \
-        "win_geo_x_y_region_${region_number}+=(${x},${y})" \
-        "win_geo_w_h_region_${region_number}+=(${w},${h})"
+    win_regions[${i}:win_xids]="${win_regions[${i}:win_xids]}${win} "
+    win_regions[${i}:x_y_w_h]="${win_regions[${i}:x_y_w_h]}${x},${y},${w},${h} "
 }

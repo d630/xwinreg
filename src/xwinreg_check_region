@@ -16,12 +16,6 @@ __check_region()
 
     __src_script() { declare f ; for f ; do source "${src_dir}/xwinreg_${f}" ; done ; }
 
-    __store_region()
-    {
-        win_regions[${i}:win_xids]="${win_regions[${i}:win_xids]}${win} "
-        win_regions[${i}:x_y_w_h]="${win_regions[${i}:x_y_w_h]}${x},${y},${w},${h} "
-    }
-
     declare \
             bottom_row_width= \
             bottom_row_windows= \
@@ -76,6 +70,7 @@ __check_region()
 
     __src_script \
             check_gravity \
+            store_region \
             do_wmctrl
 
     for ((i=1 ; i <= $reg_number ; i++))
