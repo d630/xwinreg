@@ -9,6 +9,8 @@
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 
+vars_base=$(set -o posix ; set)
+
 __check_region()
 {
     [[ ! $1 ]] && { echo "__check_region needs an tmp file as first argument." >&2 ; exit 1 ; }
@@ -47,6 +49,7 @@ __check_region()
             o= \
             p= \
             reg_number= \
+            region_number= \
             right_column_height=
             right_column_windows= \
             row_number= \
@@ -74,6 +77,7 @@ __check_region()
 
     __src_script \
             check_gravity \
+            mktmp \
             do_wmctrl
 
     for ((i=1 ; i <= $reg_number ; i++))
@@ -274,9 +278,19 @@ win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\" " >> "$file_tmp"
             current_column_windows \
             current_row \
             current_row_windows \
+            desk_select \
+            desk_target \
+            direction_cycle \
+            direction_focus \
+            direction_moving \
+            entity \
+            entity_cycle \
             entity_region \
+            entity_size \
+            geo \
             gravity \
-            h
+            h \
+            hide_action \
             i \
             j \
             k \
@@ -292,21 +306,27 @@ win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\" " >> "$file_tmp"
             ny \
             o \
             p \
+            reference \
             region_geo \
+            region_number \
+            region_selection \
             right_column_height \
             right_column_windows \
+            stack \
+            switch \
             tiles \
-            w
+            w \
             win \
             windows_not_in_bottom_column \
             windows_not_in_bottom_row \
             win_number_maximum \
             win_region_number \
-            x
+            x \
             x_org \
             y \
             y_org
 
+__mktmp
 }
 
 __check_region "$1"
