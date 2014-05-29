@@ -8,8 +8,7 @@
 #set -o nounset
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
-
-vars_base=$(set -o posix ; set)
+#vars_base=$(set -o posix ; set)
 
 __check_region()
 {
