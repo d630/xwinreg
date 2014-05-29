@@ -76,7 +76,6 @@ __check_region()
 
     __src_script \
             check_gravity \
-            mktmp \
             do_wmctrl
 
     for ((i=1 ; i <= $reg_number ; i++))
