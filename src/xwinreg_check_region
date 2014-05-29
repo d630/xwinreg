@@ -15,6 +15,12 @@ __check_region()
 
     __src_script() { declare f ; for f ; do source "${src_dir}/xwinreg_${f}" ; done ; }
 
+    __store_region()
+    {
+        win_regions[${i}:win_xids]="${win_regions[${i}:win_xids]}${win} "
+        win_regions[${i}:x_y_w_h]="${win_regions[${i}:x_y_w_h]}${x},${y},${w},${h} "
+    }
+
     declare \
             bottom_row_width= \
             bottom_row_windows= \
@@ -40,8 +46,6 @@ __check_region()
             normal_row_windows= \
             o= \
             p= \
-            region_number= \
-            reg_number= \
             reg_number= \
             right_column_height=
             right_column_windows= \
@@ -59,19 +63,18 @@ __check_region()
 
     declare -a \
             region_geo=() \
-            reg_geo=() \
             win_xid=()
 
     declare -A \
             layout \
-            regions
+            regions \
+            win_regions
 
     source "$file_tmp"
 
     __src_script \
             check_gravity \
-            do_wmctrl \
-            store_region
+            do_wmctrl
 
     for ((i=1 ; i <= $reg_number ; i++))
     do
@@ -85,7 +88,7 @@ __check_region()
             alias)
                     region_geo=(${regions[${layout[${i}:region_geo]}]})
                     layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
-                    printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]} " >> "$file_tmp"
+                    printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}" >> "$file_tmp"
                     ;;
             px)
                     region_geo=(${layout[${i}:region_geo]//,/ })
@@ -256,26 +259,12 @@ __check_region()
                     ;;
         esac
 
-        reg_geo+=(${layout[${i}:region_geo]})
+        printf '%s\n' "win_regions[${i}:win_xids]=\"${win_regions[${i}:win_xids]}\"
+win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\" " >> "$file_tmp"
+
         # After layouting we redeclare win_xid.
         win_xid=(${win_xid[@]:$win_region_number})
         ((win_number-=win_region_number))
-    done
-
-    # Write reg_geo to file_tmp.
-    printf '%s\n' "reg_geo=(${reg_geo[*]})" >> "$file_tmp"
-
-    for ((i=1 ; i <= $reg_number ; i++))
-    do
-        eval win_xid_region_tmp=('${win_xid_region_'${i}'[@]}')
-        eval win_geo_x_y_region_tmp=('${win_geo_x_y_region_'${i}'[@]}')
-        eval win_geo_w_h_region_tmp=('${win_geo_w_h_region_'${i}'[@]}')
-
-
-        # In the end we write some arrays to file_tmp.
-        printf '%s\n' "win_xid_region_${i}=(${win_xid_region_tmp[*]})
-win_geo_x_y_region_${i}=(${win_geo_x_y_region_tmp[*]})
-win_geo_w_h_region_${i}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
     done
 
     unset -v \
@@ -287,6 +276,7 @@ win_geo_w_h_region_${i}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
             current_row_windows \
             entity_region \
             gravity \
+            h
             i \
             j \
             k \
@@ -303,17 +293,20 @@ win_geo_w_h_region_${i}=(${win_geo_w_h_region_tmp[*]})" >> "$file_tmp"
             o \
             p \
             region_geo \
-            region_number \
             right_column_height \
             right_column_windows \
             tiles \
+            w
             win \
             windows_not_in_bottom_column \
             windows_not_in_bottom_row \
             win_number_maximum \
             win_region_number \
+            x
             x_org \
+            y \
             y_org
+
 }
 
 __check_region "$1"
