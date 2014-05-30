@@ -14,8 +14,6 @@ __check_region()
 {
     [[ ! $1 ]] && { echo "__check_region needs an tmp file as first argument." >&2 ; exit 1 ; }
 
-    __src_script() { declare f ; for f ; do source "${src_dir}/xwinreg_${f}" ; done ; }
-
     declare \
             bottom_row_width= \
             bottom_row_windows= \
@@ -68,11 +66,6 @@ __check_region()
             win_regions
 
     source "$file_tmp"
-
-    __src_script \
-            check_gravity \
-            store_region \
-            do_wmctrl
 
     for ((i=1 ; i <= $reg_number ; i++))
     do
@@ -268,60 +261,116 @@ win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\"" >> "$file_tmp"
         ((win_number-=win_region_number))
     done
 
-    unset -v \
-            bottom_row_width \
-            bottom_row_windows \
-            current_column \
-            current_column_windows \
-            current_row \
-            current_row_windows \
-            desk_select \
-            desk_target \
-            direction_cycle \
-            direction_focus \
-            direction_moving \
-            entity \
-            entity_cycle \
-            entity_region \
-            entity_size \
-            geo \
-            gravity \
-            h \
-            hide_action \
-            i \
-            j \
-            k \
-            l \
-            layout_action \
-            m \
-            n \
-            normal_column_height \
-            normal_column_windows \
-            normal_row_width \
-            normal_row_windows \
-            nx \
-            ny \
-            o \
-            p \
-            reference \
-            region_geo \
-            region_number \
-            region_selection \
-            right_column_height \
-            right_column_windows \
-            stack \
-            switch \
-            tiles \
-            w \
-            win \
-            windows_not_in_bottom_column \
-            windows_not_in_bottom_row \
-            win_number_maximum \
-            win_region_number \
-            x \
-            x_org \
-            y \
-            y_org
+    #~ unset -v \
+            #~ bottom_row_width \
+            #~ bottom_row_windows \
+            #~ current_column \
+            #~ current_column_windows \
+            #~ current_row \
+            #~ current_row_windows \
+            #~ desk_select \
+            #~ desk_target \
+            #~ direction_cycle \
+            #~ direction_focus \
+            #~ direction_moving \
+            #~ entity \
+            #~ entity_cycle \
+            #~ entity_region \
+            #~ entity_size \
+            #~ geo \
+            #~ gravity \
+            #~ h \
+            #~ hide_action \
+            #~ i \
+            #~ j \
+            #~ k \
+            #~ l \
+            #~ layout_action \
+            #~ m \
+            #~ n \
+            #~ normal_column_height \
+            #~ normal_column_windows \
+            #~ normal_row_width \
+            #~ normal_row_windows \
+            #~ nx \
+            #~ ny \
+            #~ o \
+            #~ p \
+            #~ reference \
+            #~ region_geo \
+            #~ region_number \
+            #~ region_selection \
+            #~ right_column_height \
+            #~ right_column_windows \
+            #~ stack \
+            #~ switch \
+            #~ tiles \
+            #~ w \
+            #~ win \
+            #~ windows_not_in_bottom_column \
+            #~ windows_not_in_bottom_row \
+            #~ win_number_maximum \
+            #~ win_region_number \
+            #~ x \
+            #~ x_org \
+            #~ y \
+            #~ y_org
+}
+
+__check_gravity()
+{
+    case $1 in
+        0)
+                gravity=0
+                ;;
+        1|northwest*)
+                gravity=1
+                ;;
+        2|north|northgravity)
+                gravity=2
+                ;;
+        3|northeast*)
+                gravity=3
+                ;;
+        4|west|westgravity)
+                gravity=4
+                ;;
+        5|center|centergravity)
+                gravity=5
+                ;;
+        6|east|eastgravity)
+                gravity=6
+                ;;
+        7|southwest*)
+                gravity=7
+                ;;
+        8|south|southgravity)
+                gravity=8
+                ;;
+        9|southeast*)
+                gravity=9
+                ;;
+        10|static|staticgravity)
+                gravity=10
+                ;;
+        *)
+                { echo "Unknown value for gravity." >&2 ; exit 1 ; }
+                ;;
+    esac
+    printf '%s\n' "$gravity"
+}
+
+__store_region()
+{
+    win_regions[${i}:win_xids]="${win_regions[${i}:win_xids]}${win} "
+    win_regions[${i}:win_xids_number]=$win_region_number
+    win_regions[${i}:x_y_w_h]="${win_regions[${i}:x_y_w_h]}${x},${y},${w},${h} "
+}
+
+__do_wmctrl()
+{
+    wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
+    wmctrl -i -r "$win" -e "${gravity},${x},${y},${w},${h}"
 }
 
 __check_region "$1"
