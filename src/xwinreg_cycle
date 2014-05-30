@@ -70,7 +70,6 @@ __cycle_window()
         *)
                 if [[ $join == join ]]
                 then
-                    echo HALLO
                     win_xid=()
                     reg_sel=$(__order_num_asc_array $(__parse_region "$region_selection"))
                     for i in $reg_sel
@@ -157,9 +156,9 @@ __cycle_region()
         i=1
         while IFS=':' read -r entity_region gravity region_geo
         do
-            layout[${i}:entity_region]=$entity_region
-            layout[${i}:gravity]=$gravity
-            layout[${i}:region_geo]=$region_geo
+            #layout[${i}:entity_region]=$entity_region
+            #layout[${i}:gravity]=$gravity
+            #layout[${i}:region_geo]=$region_geo
             printf '%s\n' "layout[${i}:entity_region]=$entity_region
 layout[${i}:gravity]=$gravity
 layout[${i}:region_geo]=$region_geo" >> "$file_tmp"
@@ -170,7 +169,7 @@ layout[${i}:region_geo]=$region_geo" >> "$file_tmp"
         while read -r
         do
             printf '%s\n' "layout[${i}:region_geo]=${REPLY},${layout[${i}:region_geo]#*,*,}" >> "$file_tmp"
-            layout[${i}:region_geo]=${REPLY},${layout[${i}:region_geo]#*,*,}
+            #layout[${i}:region_geo]=${REPLY},${layout[${i}:region_geo]#*,*,}
             ((i++))
         done < <(__cycle $(for ((j=1 ; j <= $reg_number ; j++)) ; do printf '%s\n' "${layout[${j}:region_geo]%,*,*}" ; done))
     fi
