@@ -1,7 +1,7 @@
+TODO:
 - implement action -b of wmctrl with property names "sticky", "above" and "below"
 - provide decoration
 - layout-cycling
-- cycling of windows in a specific region
 - little dmenu-wrapper
 - implement xwinpp-tagging-action
 - give option to decide, on which desktop a region should be placed
@@ -15,9 +15,10 @@
 - create a second readme with pictures to show what layouts make sense
 - create new manpage
 - meta-command: if region change its size, then this should have an effect on region b
-- variables in the temp file, which are not imported from xwinpp, should be stored in an associative array instead using several sorted indexed arrays to avoid eval
 
-done:
+DONE:
 - revise frame-handling
 - color border of active frame, region and window (independent of gtk theme etc.)
     - we are using a "visual bell" instead
+- cycling of windows in a specific region
+- variables in the temp file, which are not imported from xwinpp, should be stored in an associative array instead using several sorted indexed arrays to avoid eval

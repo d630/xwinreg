@@ -63,6 +63,7 @@ __check_region()
 
     declare -A \
             layout \
+            frames \
             regions \
             win_regions
 
@@ -85,7 +86,9 @@ __check_region()
             alias)
                     region_geo=(${regions[${layout[${i}:region_geo]}]})
                     layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
-                    printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}" >> "$file_tmp"
+                    layout[${i}:entity_region]=px
+                    printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
+layout[${i}:entity_region]=px" >> "$file_tmp"
                     ;;
             px)
                     region_geo=(${layout[${i}:region_geo]//,/ })
@@ -257,7 +260,8 @@ __check_region()
         esac
 
         printf '%s\n' "win_regions[${i}:win_xids]=\"${win_regions[${i}:win_xids]}\"
-win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\" " >> "$file_tmp"
+win_regions[${i}:win_xids_number]=${win_regions[${i}:win_xids_number]}
+win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\"" >> "$file_tmp"
 
         # After layouting we redeclare win_xid.
         win_xid=(${win_xid[@]:$win_region_number})

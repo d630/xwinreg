@@ -38,7 +38,7 @@ SUBCOMMANDS
     -f,  --focus              <REG>
     -o,  --toggle-focus       <ODIREC>
     -M,  --move-to-desk       <REG> <DESK> -W
-    -y,  --cycle              <REG> <YDIREC> -w -k
+    -y,  --cycle              <REG> <YDIREC> -w -k -j
     -s,  --size               <REG> <ENT> <REF> <GEO> -w
     -m,  --move               <REG> <ENT> <REF> <GEO> <MDIREC> -w
     -l,  --layout             <REGN> <WINN> <SPLIT> <LENT> <GRAV> <GEO>
@@ -61,6 +61,7 @@ SUBCOMMANDS
     -w,  --window
     -W,  --switch
     -k,  --stack
+    -j,  --join
 
 ARGUMENTS
 ---------

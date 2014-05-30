@@ -108,6 +108,9 @@ do
         stack)
                 args="${args}-k "
                 ;;
+        join)
+                args="${args}-j "
+                ;;
         window)
                 args="${args}-w "
                 ;;
@@ -208,6 +211,7 @@ declare \
         region_selection= \
         direction_cycle= \
         direction_focus= \
+        join= \
         stack= \
         entity_cycle=
         action= \
@@ -243,7 +247,7 @@ __src_script \
 eval set -- $args
 declare opt=
 
-while getopts :F:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kwo:hvL:lHUcMfsmOD:We:R:g:x:G:A: opt
+while getopts :F:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwo:hvL:lHUcMfsmOD:We:R:g:x:G:A: opt
 do
     case $opt in
         F)
@@ -306,6 +310,9 @@ do
                 ;;
         k)
                 stack=stack
+                ;;
+        j)
+                join=join
                 ;;
         w)
                 [[ $action == cycle ]] && __check_args "entity_cycle=window"
@@ -459,18 +466,11 @@ then
                 ;;
         __focus_toggle)
                 unset -v action
-                 ${src_dir}/xwinreg_focus_toggle "$file_tmp" "$direction_focus" && exit 0
+                ${src_dir}/xwinreg_focus_toggle "$file_tmp" "$direction_focus" && exit 0
                 ;;
         cycle)
-                if [[ $entity_cycle == window ]]
-                then
-                    __src_script cycle_window check_region
-                    __cycle_window
-                else
-                    __src_script cycle_region check_region
-                    __cycle_region
-                fi
-                __check_region && exit 0
+                unset -v action
+                ${src_dir}/xwinreg_cycle "$entity_cycle" "$file_tmp" "$region_selection" "$direction_cycle" "$stack" "$join" && exit 0
                 ;;
         __help)
                 __src_script help

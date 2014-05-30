@@ -1,0 +1,256 @@
+#!/usr/bin/env bash
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+#vars_base=$(set -o posix ; set)
+
+__cycle_window()
+{
+    declare \
+            region_selection=$2 \
+            file_tmp=$1 \
+            join=$4 \
+            direction_cycle=$3 \
+            win_active= \
+            reg_number= \
+            src_dir= \
+            reg_sel= \
+            i= \
+            j= \
+            k= \
+            l= \
+            m=
+
+    declare -a \
+               win_xid=() \
+               win_xid_selection=()
+
+    declare -A win_regions
+
+    while read -r
+    do
+        eval "$REPLY"
+    done < <(egrep -e '^src_dir=.*' -e '^win_xid=(.*)' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
+
+    case $direction_cycle in
+        clock)
+                __cycle() { __clock "$@" ; }
+                ;;
+        anticlock)
+                __cycle() { __anticlock "$@" ; }
+                ;;
+        reverse)
+                __cycle() { __order_reverse_array "$@" ; }
+                ;;
+    esac
+
+    case $region_selection in
+        all)
+                mapfile -t win_xid < <(__cycle "${win_xid[@]}")
+                ;;
+        active)
+                read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
+                for ((i=1 ; i <= reg_number ; i++))
+                do
+                    if [[ ! ${win_regions[${i}:win_xids]} =~ $win_active ]]
+                    then
+                        win_xid_selection+=(${win_regions[${i}:win_xids]})
+                    else
+                        win_xid_selection+=($(__cycle ${win_regions[${i}:win_xids]}))
+                    fi
+                done
+                win_xid=(${win_xid_selection[@]})
+                ;;
+        *)
+                if [[ $join == join ]]
+                then
+                    echo HALLO
+                    win_xid=()
+                    reg_sel=$(__order_num_asc_array $(__parse_region "$region_selection"))
+                    for i in $reg_sel
+                    do
+                        win_xid_selection+=(${win_regions[${i}:win_xids]})
+                    done
+                    win_xid_selection=($(__cycle ${win_xid_selection[@]}))
+                    for j in $reg_sel
+                    do
+                        win_regions[${j}:win_xids]=
+                        for ((k=1 , l=${l:-0} ; k <= ${win_regions[${j}:win_xids_number]} ; l++ , k++))
+                        do
+                            win_regions[${j}:win_xids]="${win_regions[${j}:win_xids]}${win_xid_selection[$l]} "
+                        done
+                    done
+                    win_xid_selection=()
+                else
+                    for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                    do
+                        win_regions[${i}:win_xids]="$(__cycle ${win_regions[${i}:win_xids]})"
+                    done
+                fi
+                for ((m=1 ; m <= reg_number ; m++))
+                do
+                     win_xid_selection+=(${win_regions[${m}:win_xids]})
+                done
+                win_xid=(${win_xid_selection[@]})
+                ;;
+    esac
+
+    sed -i -e "s/^win_xid=(.*/win_xid=(${win_xid[*]})/" \
+           -e "/^win_regions\[.*\]=.*/ d" \
+           -e "s/^win_active=.*/win_active=$win_active/" "$file_tmp"
+
+    #~ unset -v \
+             #~ region_selection \
+             #~ direction_cycle \
+             #~ join \
+             #~ win_xid_selection \
+             #~ i= \
+             #~ j= \
+             #~ k= \
+             #~ l= \
+             #~ m=
+
+    ${src_dir}/xwinreg_check_region "$file_tmp"
+}
+
+__cycle_region()
+{
+    declare \
+            file_tmp=$1 \
+            direction_cycle=$2 \
+            stack=$3 \
+            src_dir= \
+            i= \
+            j= \
+            reg_number= \
+            entity_region= \
+            gravity= \
+            region_geo=
+
+    declare -A layout
+
+    while read -r
+    do
+        eval "$REPLY"
+    done < <(egrep -e '^src_dir=.*' -e '^layout' -e '^reg_number=.*' "$file_tmp")
+
+    case $direction_cycle in
+        clock)
+                __cycle() { __anticlock "$@" ; }
+                ;;
+        anticlock)
+                __cycle() { __clock "$@" ; }
+                ;;
+        reverse)
+                __cycle() { __order_reverse_array "$@" ; }
+                ;;
+    esac
+
+    if [[ $stack == stack ]]
+    then
+        i=1
+        while IFS=':' read -r entity_region gravity region_geo
+        do
+            layout[${i}:entity_region]=$entity_region
+            layout[${i}:gravity]=$gravity
+            layout[${i}:region_geo]=$region_geo
+            printf '%s\n' "layout[${i}:entity_region]=$entity_region
+layout[${i}:gravity]=$gravity
+layout[${i}:region_geo]=$region_geo" >> "$file_tmp"
+            ((i++))
+        done < <(__cycle $(for ((j=1 ; j <= $reg_number ; j++)) ; do printf '%s\n' "${layout[${j}:entity_region]}:${layout[${j}:gravity]}:${layout[${j}:region_geo]}" ; done))
+    else
+        i=1
+        while read -r
+        do
+            printf '%s\n' "layout[${i}:region_geo]=${REPLY},${layout[${i}:region_geo]#*,*,}" >> "$file_tmp"
+            layout[${i}:region_geo]=${REPLY},${layout[${i}:region_geo]#*,*,}
+            ((i++))
+        done < <(__cycle $(for ((j=1 ; j <= $reg_number ; j++)) ; do printf '%s\n' "${layout[${j}:region_geo]%,*,*}" ; done))
+    fi
+
+    sed -i -e "/^win_regions\[.*\]=.*/ d" "$file_tmp"
+
+    #~ unset -v \
+             #~ i \
+             #~ j \
+             #~ stack \
+             #~ direction_cycle \
+             #~ entity_region \
+             #~ gravity \
+             #~ region_geo
+
+    ${src_dir}/xwinreg_check_region "$file_tmp"
+}
+
+__clock()
+{
+    declare -a array=($@)
+    declare i=
+    printf '%s\n' "${array[-1]}"
+    for ((i=0 ; i <= ${#array[@]}-2 ; i++))
+    do
+        printf '%s\n' "${array[i]}"
+    done
+}
+
+__anticlock()
+{
+    declare -a array=($@)
+    declare i=
+    for ((i=1 ; i <= ${#array[@]}-1 ; i++))
+    do
+        printf '%s\n' "${array[i]}"
+    done
+    printf '%s\n' "${array[0]}"
+}
+
+__order_reverse_array()
+{
+    declare -a array=($@)
+    declare i=
+    for ((i=${#array[@]}-1 ; i >= 0 ; --i))
+    do
+        printf '%s\n' "${array[i]}"
+    done
+}
+
+__order_num_asc_array()
+{
+    declare -a array=($@)
+    declare i= j= element=
+    for ((i=1 ; i < ${#array[@]} ; ++i))
+    do
+        for ((j=i ; j > 0 ; --j))
+        do
+            element=${array[j]}
+            ((${element%%,*} < ${array[j-1]%%,*})) && { array[j]=${array[j-1]} ; array[j-1]=$element ; }
+        done
+    done
+    printf '%s\n' "${array[@]}"
+}
+
+__parse_region()
+{
+    declare -a args=()
+    declare i= reg=$1
+    for i in ${reg//,/ }
+    do
+        { [[ $i =~ - ]] && args+=(\{${i/-/..}\}) ; } || args+=($i)
+    done
+    eval "printf '%s\n' "${args[@]}""
+}
+
+if [[ $1 == window ]]
+then
+    shift 1
+    __cycle_window $@
+else
+    __cycle_region $@
+fi
