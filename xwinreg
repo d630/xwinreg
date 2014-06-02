@@ -472,6 +472,10 @@ then
                 unset -v action
                 ${src_dir}/xwinreg_cycle "$entity_cycle" "$file_tmp" "$region_selection" "$direction_cycle" "$stack" "$join" && exit 0
                 ;;
+        __check_closing)
+                unset -v action
+                ${src_dir}/xwinreg_close "$file_tmp" "$region_selection" && exit 0
+                ;;
         __help)
                 __src_script help
                 __help && exit 0
