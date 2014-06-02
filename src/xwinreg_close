@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+#vars_base=$(set -o posix ; set)
+
+__check_closing()
+{
+    declare \
+            region_selection=$2 \
+            file_tmp=$1 \
+            reg_number= \
+            win_active= \
+            i= \
+            j= \
+            k= \
+            l= \
+            m= \
+            src_dir= \
+            delete_win_active=
+
+    declare -a \
+               win_xid=() \
+               reg_index=() \
+               reg_sel=() \
+               win_xid_selection=()
+
+    declare -A \
+               layout \
+               win_regions
+
+    while read -r
+    do
+        eval "$REPLY"
+    done < <(egrep -e '^src_dir=.*' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" -e "^layout[\[|=].*" "$file_tmp")
+
+    reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
+
+    read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
+
+    case $region_selection in
+        all)
+                for i in "${reg_index[@]}"
+                do
+                    reg_sel+=($i)
+                    win_xid_selection+=(${win_regions[${i}:win_xids]})
+                    unset -v \
+                             layout[${i}:region_number] \
+                             layout[${i}:win_number_maximum] \
+                             layout[${i}:layout_action] \
+                             layout[${i}:entity_region] \
+                             layout[${i}:gravity] \
+                             layout[${i}:region_geo]
+                done
+                ;;
+        active)
+                for i in "${reg_index[@]}"
+                do
+                    [[ ${win_regions[${i}:win_xids]} =~ $win_active ]] &&
+                    {
+                        reg_sel=($i)
+                        win_xid_selection=(${win_regions[${i}:win_xids]})
+                        unset -v \
+                                 layout[${i}:region_number] \
+                                 layout[${i}:win_number_maximum] \
+                                 layout[${i}:layout_action] \
+                                 layout[${i}:entity_region] \
+                                 layout[${i}:gravity] \
+                                 layout[${i}:region_geo]
+                    }
+                done
+                ;;
+        *)
+                for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                do
+                    reg_sel+=($i)
+                    win_xid_selection+=(${win_regions[${i}:win_xids]})
+                    unset -v \
+                             layout[${i}:region_number] \
+                             layout[${i}:win_number_maximum] \
+                             layout[${i}:layout_action] \
+                             layout[${i}:entity_region] \
+                             layout[${i}:gravity] \
+                             layout[${i}:region_geo]
+                done
+                ;;
+    esac
+
+    mapfile -t reg_index < <(__comm_array "${reg_index[@]}" -- $(__order_num_asc_array "${reg_sel[@]}"))
+
+    if ((${#reg_index[@]} > 0))
+    then
+        j=1
+        for k in "${reg_index[@]}"
+        do
+            layout[${j}:region_number]=${layout[${k}:region_number]}
+            layout[${j}:win_number_maximum]=${layout[${k}:win_number_maximum]}
+            layout[${j}:layout_action]=${layout[${k}:layout_action]}
+            layout[${j}:entity_region]=${layout[${k}:entity_region]}
+            layout[${j}:gravity]=${layout[${k}:gravity]}
+            layout[${j}:region_geo]=${layout[${k}:region_geo]}
+            win_xid+=(${win_regions[${k}:win_xids]})
+        done
+        (
+            [[ ! ${win_xid[*]} =~ $win_active ]] && win_active=${win_xid[0]}
+
+            sed -i -e "s/^win_xid=(.*/win_xid=(${win_xid[*]})/" \
+                   -e "s/^win_number=.*/win_number=${#win_xid[@]}/" \
+                   -e "s/^win_active=.*/win_active=$win_active/" \
+                   -e "s/^reg_number=.*/reg_number=${#reg_index[@]}/" \
+                   -e "/^win_regions\[.*\]=.*/ d" \
+                   -e "/^layout[\[|=].*/ d" "$file_tmp"
+            for ((l=1 ; l <= ${#reg_index[@]} ; l++))
+            do
+                printf '%s\n' "layout[${l}:region_number]=${layout[${l}:region_number]}
+layout[${l}:win_number_maximum]=${layout[${l}:win_number_maximum]}
+layout[${l}:layout_action]=${layout[${l}:layout_action]}
+layout[${l}:entity_region]=${layout[${l}:entity_region]}
+layout[${l}:gravity]=${layout[${l}:gravity]}
+layout[${l}:region_geo]=\"${layout[${l}:region_geo]}\"" >> "$file_tmp"
+            done
+            wmctrl -i -a "$win_active"
+        )
+    else
+        > "$file_tmp"
+    fi
+
+    for m in "${win_xid_selection[@]}"
+    do
+        if [[ $m == $win_active ]]
+        then
+            delete_win_active=delete_win_active
+        else
+            wmctrl -i -c "$m"
+        fi
+    done
+
+    [[ $delete_win_active == delete_win_active ]] && wmctrl -i -c "$win_active"
+
+    #~ unset -v \
+             #~ reg_index \
+             #~ reg_sel \
+             #~ win_xid_selection \
+             #~ region_selection \
+             #~ i \
+             #~ j \
+             #~ k \
+             #~ l \
+             #~ m \
+             #~ delete_win_active
+
+   ((${#win_xid[@]} != 0)) && ${src_dir}/xwinreg_check_region "$file_tmp"
+}
+
+__order_num_asc_array()
+{
+    declare -a array=($@)
+    declare i= j= element=
+    for ((i=1 ; i < ${#array[@]} ; ++i))
+    do
+        for ((j=i ; j > 0 ; --j))
+        do
+            element=${array[j]}
+            ((${element%%,*} < ${array[j-1]%%,*})) && { array[j]=${array[j-1]} ; array[j-1]=$element ; }
+        done
+    done
+    printf '%s\n' "${array[@]}"
+}
+
+__parse_region()
+{
+    declare -a args=()
+    declare i= reg=$1
+    for i in ${reg//,/ }
+    do
+        { [[ $i =~ - ]] && args+=(\{${i/-/..}\}) ; } || args+=($i)
+    done
+    eval "printf '%s\n' "${args[@]}""
+}
+
+__comm_array()
+{
+    declare \
+            arg= \
+            counter= \
+            element_array_1= \
+            element_array_2= \
+            skip=
+
+    declare -a \
+               array_1=() \
+               array_2=()
+
+    { (($#)) && counter=1 ; } || return 1
+
+    for arg
+    do
+        [[ $arg == -- ]] && ((counter++))
+    done
+
+    for ((i=1 ; i <= $counter ; i++))
+    do
+        while [[ $# -gt 0 && $1 != -- ]]
+        do
+            eval "array_${i}+=( "$1" )"
+            shift 1
+        done
+        [[ $1 == -- ]] && shift 1
+    done
+
+    for element_array_1 in "${array_1[@]}"
+    do
+        for element_array_2 in "${array_2[@]}"
+        do
+            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; break ; }
+        done
+        ((skip)) || printf '%s\n' "$element_array_1"
+        skip=
+    done
+}
+
+__check_closing "$@"

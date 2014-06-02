@@ -2,8 +2,18 @@
 
 __comm_array()
 {
+    declare \
+            arg= \
+            counter= \
+            element_array_1= \
+            element_array_2= \
+            skip= \
+
+    declare -a \
+               array_1=() \
+               array_2=()
+
     { (($#)) && counter=1 ; } || return 1
-    arg= array_1=() array_2=()
 
     for arg
     do
