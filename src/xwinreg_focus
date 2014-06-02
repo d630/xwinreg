@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+
+__check_focusing()
+{
+    declare \
+            region_selection=$2 \
+            file_tmp=$1 \
+            i= \
+            j= \
+            src_dir= \
+            win_active= \
+            reg_number=
+
+    declare -a \
+               win_xid_selection=() \
+               reg_index=()
+
+    declare -A win_regions
+
+    while read -r
+    do
+        eval "$REPLY"
+    done < <(egrep -e '^src_dir=.*' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
+
+    reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
+    read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
+
+    case $region_selection in
+        all)
+                for i in "${reg_index[@]}"
+                do
+                    win_xid_selection+=(${win_regions[${i}:win_xids]})
+                done
+                ;;
+        active)
+                for i in "${reg_index[@]}"
+                do
+                    [[ ${win_regions[${i}:win_xids]} =~ $win_active ]] && { win_xid_selection=(${win_regions[${i}:win_xids]}) ; }
+                done
+                ;;
+        *)
+                for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                do
+                    win_xid_selection+=(${win_regions[${i}:win_xids]})
+                done
+                ;;
+    esac
+
+    for j in "${win_xid_selection[@]}"
+    do
+        wmctrl -i -a "$j"
+    done
+
+    wmctrl -i -a "$win_active"
+
+    #~ unset -v \
+         #~ reg_index \
+         #~ win_xid_selection \
+         #~ i \
+         #~ j \
+         #~ region_selection \
+}
+
+__order_num_asc_array()
+{
+    declare -a array=($@)
+    declare i= j= element=
+    for ((i=1 ; i < ${#array[@]} ; ++i))
+    do
+        for ((j=i ; j > 0 ; --j))
+        do
+            element=${array[j]}
+            ((${element%%,*} < ${array[j-1]%%,*})) && { array[j]=${array[j-1]} ; array[j-1]=$element ; }
+        done
+    done
+    printf '%s\n' "${array[@]}"
+}
+
+__parse_region()
+{
+    declare -a args=()
+    declare i= reg=$1
+    for i in ${reg//,/ }
+    do
+        { [[ $i =~ - ]] && args+=(\{${i/-/..}\}) ; } || args+=($i)
+    done
+    eval "printf '%s\n' "${args[@]}""
+}
+
+__check_focusing "$@"
