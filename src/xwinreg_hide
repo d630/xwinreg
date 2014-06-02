@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+#vars_base=$(set -o posix ; set)
+
+__check_hiding()
+{
+    declare \
+            region_selection=$2 \
+            file_tmp=$1 \
+            hide_action=$3 \
+            i= \
+            j= \
+            src_dir= \
+            win_active= \
+            reg_number=
+
+    declare -a \
+               win_xid_selection=() \
+               reg_index=()
+
+    declare -A win_regions
+
+    while read -r
+    do
+        eval "$REPLY"
+    done < <(egrep -e '^src_dir=.*' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
+
+    reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
+    read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
+
+    case $region_selection in
+        all)
+                for i in "${reg_index[@]}"
+                do
+                    win_xid_selection+=(${win_regions[${i}:win_xids]})
+                done
+                ;;
+        active)
+                for i in "${reg_index[@]}"
+                do
+                    [[ ${win_regions[${i}:win_xids]} =~ $win_active ]] && { win_xid_selection=(${win_regions[${i}:win_xids]}) ; }
+                done
+                ;;
+        *)
+                for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                do
+                    win_xid_selection+=(${win_regions[${i}:win_xids]})
+                done
+                ;;
+    esac
+
+    for j in "${win_xid_selection[@]}"
+    do
+        wmctrl -i -r "$j" -b "${hide_action},hidden"
+    done
+
+    #~ unset -v \
+         #~ reg_index \
+         #~ win_xid_selection \
+         #~ i \
+         #~ j \
+         #~ region_selection \
+         #~ hide_action
+}
+
+__order_num_asc_array()
+{
+    declare -a array=($@)
+    declare i= j= element=
+    for ((i=1 ; i < ${#array[@]} ; ++i))
+    do
+        for ((j=i ; j > 0 ; --j))
+        do
+            element=${array[j]}
+            ((${element%%,*} < ${array[j-1]%%,*})) && { array[j]=${array[j-1]} ; array[j-1]=$element ; }
+        done
+    done
+    printf '%s\n' "${array[@]}"
+}
+
+__parse_region()
+{
+    declare -a args=()
+    declare i= reg=$1
+    for i in ${reg//,/ }
+    do
+        { [[ $i =~ - ]] && args+=(\{${i/-/..}\}) ; } || args+=($i)
+    done
+    eval "printf '%s\n' "${args[@]}""
+}
+
+__check_hiding "$@"

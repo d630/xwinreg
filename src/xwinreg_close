@@ -41,7 +41,6 @@ __check_closing()
     done < <(egrep -e '^src_dir=.*' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" -e "^layout[\[|=].*" "$file_tmp")
 
     reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
-
     read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
 
     case $region_selection in
