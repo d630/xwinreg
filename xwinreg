@@ -217,7 +217,7 @@ declare \
         action= \
         hide_action= \
         desk_target= \
-        switch= \
+        switch_to_desk_target= \
         entity= \
         entity_size= \
         reference= \
@@ -364,7 +364,7 @@ do
                 __check_args "desk_target=$OPTARG"
                 ;;
         W)
-                switch=switch
+                switch_to_desk_target=switch_to_desk_target
                 ;;
         e)
                 __check_args "entity_size=$OPTARG"
@@ -483,6 +483,10 @@ then
         __check_focusing)
                 unset -v action
                 ${src_dir}/xwinreg_focus "$file_tmp" "$region_selection" && exit 0
+                ;;
+        __check_move_to_desk)
+                unset -v action
+                ${src_dir}/xwinreg_move_to_desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target" && exit 0
                 ;;
         __help)
                 __src_script help

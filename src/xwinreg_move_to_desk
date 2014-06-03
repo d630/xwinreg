@@ -10,20 +10,29 @@
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 #vars_base=$(set -o posix ; set)
 
-__check_focusing()
+shopt -s extglob
+
+__check_move_to_desk()
 {
     declare \
             region_selection=$2 \
             file_tmp=$1 \
+            desk_target=$3 \
+            switch_to_desk_target=$4 \
+            desk_curr= \
             i= \
             j= \
+            k= \
             src_dir= \
             win_active= \
+            desk_number= \
             reg_number=
 
     declare -a \
                win_xid_selection=() \
-               reg_index=()
+               reg_index=() \
+               desk_numbers=() \
+               desk_names=()
 
     declare -A win_regions
 
@@ -34,6 +43,13 @@ __check_focusing()
 
     reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
     read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
+    read -r _ _ desk_curr < <(xprop -root -notype _NET_CURRENT_DESKTOP)
+    read -r _ _ desk_number < <(xprop -root -notype _NET_NUMBER_OF_DESKTOPS)
+
+    for ((i=0 ; i <= $desk_number-1 ; i++))
+    do
+        desk_numbers+=($i)
+    done
 
     case $region_selection in
         all)
@@ -56,19 +72,50 @@ __check_focusing()
                 ;;
     esac
 
-    for j in "${win_xid_selection[@]}"
+    case $desk_target in
+        curr)
+                desk_target=$desk_curr
+                ;;
+        next)
+                desk_target=${desk_numbers[${desk_curr}+1]:-${desk_numbers[0]}}
+                ;;
+        preview)
+                desk_target=${desk_numbers[${desk_curr}-1]:-${desk_numbers[-1]}}
+                ;;
+        i:+([0-9]))
+                desk_target=${desk_target#*:}
+                ;;
+        s:!([0-9]))
+                read -r -a desk_names < <(xprop -root -notype _NET_DESKTOP_NAMES)
+                desk_names=(${desk_names[@]:2})
+                desk_names=(${desk_names[@]//\",/\"})
+                for j in "${!desk_names[@]}"
+                do
+                    [[ ${desk_names[$j]} == \"${desk_target#*:}\" ]] && desk_target=${desk_numbers[$j]}
+                done
+                ;;
+    esac
+
+    for k in "${win_xid_selection[@]}"
     do
-        wmctrl -i -a "$j"
+        wmctrl -i -r "$k" -t "$desk_target"
     done
 
-    wmctrl -i -a "$win_active"
+    [[ $switch_to_desk_target == switch_to_desk_target ]] && wmctrl -i -a "${win_xid_selection[0]}"
 
-    #~ unset -v \
-         #~ reg_index \
-         #~ win_xid_selection \
-         #~ i \
-         #~ j \
-         #~ region_selection \
+    unset -v \
+         reg_index \
+         win_xid_selection \
+         i \
+         j \
+         k \
+         region_selection \
+         switch_to_desk_target \
+         desk_target \
+         desk_curr \
+         desk_number \
+         desk_numbers \
+         desk_names
 }
 
 __order_num_asc_array()
@@ -97,4 +144,4 @@ __parse_region()
     eval "printf '%s\n' "${args[@]}""
 }
 
-__check_focusing "$@"
+__check_move_to_desk "$@"

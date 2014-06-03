@@ -76,7 +76,10 @@ ARGUMENTS
     <ODIREC>        'next' or 'preview'.
     <YDIREC>        'clock', 'anticlock' or 'reverse'.
     <MDIREC>        'north', 'east', 'south' or 'west'.
-    <DESK>          Desktop number specified by an integer or 'curr'.
+    <DESK>          'curr' or relative to the current desktop 'next' or
+                    'preview'. To specify a desktop number (starts at 0)
+                    use the prefix 'i:'; a desktop name is prefixed with
+                    's:'. Examples: 'i:1'; 's:web'; '\"s:some stuff\"'.
     <ENT>           'px' or 'pro'.
     <LENT>          'alias', 'px' or 'pro'.
     <REF>           'window', 'region' or 'frame'.

@@ -207,7 +207,10 @@ ARGUMENTS
               north, east, south or west. Used with action -m
 
        DESK
-              Desktop number specified by an integer or curr.
+              curr or relative to the current desktop next or preview. To
+              specify a desktop number (starts at 0) use the prefix i:;
+              a desktop name is prefixed with s:. Examples: i:1; s:web;
+              "s:some stuff".
 
        ENT
               px or pro. Used with actions -m and -s.
@@ -412,4 +415,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.5.0                    2014-05-30                        XWINREG(1)
+0.1.5.5                    2014-06-03                        XWINREG(1)
