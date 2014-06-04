@@ -31,7 +31,6 @@ SUBCOMMANDS
 -----------
     ACTION                    REQUIRED
     ------                    --------
-    -O,  --reset
     -c,  --close              <REG>
     -H,  --hide               <REG>
     -U,  --unhide             <REG>
@@ -39,8 +38,6 @@ SUBCOMMANDS
     -o,  --toggle-focus       <ODIREC>
     -M,  --move-to-desk       <REG> <DESK> -W
     -y,  --cycle              <REG> <YDIREC> -w -k -j
-    -s,  --size               <REG> <ENT> <REF> <GEO> -w
-    -m,  --move               <REG> <ENT> <REF> <GEO> <MDIREC> -w
     -l,  --layout             <REGN> <WINN> <SPLIT> <LENT> <GRAV> <GEO>
 
     ACTION                    ARG
@@ -50,10 +47,9 @@ SUBCOMMANDS
     OPTION                    ARG
     ------                    ---
     -r,  --region=            ( <REG> | <REGN> )
-    -d,  --direction=         ( <ODIREC> | <YDIREC> | <MDIREC> )
+    -d,  --direction=         ( <ODIREC> | <YDIREC>  )
     -D,  --desk=              <DESK>
-    -e,  --entity=            ( <ENT> | <LENT> )
-    -R,  --reference=         <REF>
+    -e,  --entity=            <LENT>
     -g,  --geo=               <GEO>
     -x,  --maximum=           <WINN>
     -G,  --gravity=           <GRAV>
@@ -75,12 +71,10 @@ ARGUMENTS
     <REGN>          Region number specified by an integer.
     <ODIREC>        'next' or 'preview'.
     <YDIREC>        'clock', 'anticlock' or 'reverse'.
-    <MDIREC>        'north', 'east', 'south' or 'west'.
     <DESK>          'curr' or relative to the current desktop 'next' or
                     'preview'. To specify a desktop number (starts at 0)
                     use the prefix 'i:'; a desktop name is prefixed with
                     's:'. Examples: 'i:1'; 's:web'; '\"s:some stuff\"'.
-    <ENT>           'px' or 'pro'.
     <LENT>          'alias', 'px' or 'pro'.
     <REF>           'window', 'region' or 'frame'.
     <WINN>          Window number specified by an integer or 'max'.
@@ -99,10 +93,9 @@ ARGUMENTS
                     <REGALIAS> 'northwest', 'north', 'northeast','east',
                                'southeast', 'south', 'southwest' or
                                'west'.
-                    -          Means, that old size is kept.
                     Samples:
-                               '<REGALIAS>', '<PRO>', '<PRO>,<PRO>',
-                               '<PRO>,<PRO>,<PRO>,<PRO>', '<X>,<Y>',
-                               '<W>,<H>' or '<X>,<Y>,<W>,<H>'.
+                               '<REGALIAS>',
+                               '<PRO>,<PRO>,<PRO>,<PRO>',
+                               '<X>,<Y>,<W>,<H>'.
 "
 }

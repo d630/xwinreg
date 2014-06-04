@@ -6,7 +6,7 @@ NAME
 SYNOPSIS
        xwinreg [-F]
                [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-               (-c|-f|-H|-h|[-l ...|-L...]|-M|-m|-O|-o|-s|-U|-v|-y)
+               (-c|-f|-H|-h|[-l ...|-L...]|-M|-U|-v|-y)
 
 REQUIREMENT
        bc, GNU bash, GNU grep, GNU sed, wmctrl, xprop, xwinpp
@@ -76,9 +76,6 @@ OPTIONS
 
 SUBCOMMANDS
    ACTIONS
-       -O, --reset
-              Restore last layout, which has been set in the Tmp File.
-
        -c, --close
               Close windows gracefully. Specify this action with
               option -r.
@@ -108,14 +105,6 @@ SUBCOMMANDS
               Cycle order of regions or windows. Specify this action
               with options -r, -d, -w, -j and -k.
 
-       -s, --size
-              Size regions or windows. The sizing is specified by
-              options -r, -e, -R, -g and -w.
-
-       -m, --move
-              Move regions or windows. The moving is specified by
-              options -r, -e, -R, -g, -w and -d.
-
        -l, --layout
               Build layout and create Tmp File. Specify the layout with
               options -r, -x, -A, -e, -G and -g.
@@ -126,24 +115,19 @@ SUBCOMMANDS
    OPTIONS
        -r, --region= ( REG | REGN )
               Select, which regions should be processed. All actions
-              must be called with this option, expect -O and -o.
+              must be called with this option, expect -o.
 
-       -d, --direction= ( ODIREC | YDIREC | MDIREC )
-              Used with action -o and -y. Moreover, specify action -m
-              with region or window as reference with it.
+       -d, --direction= ( ODIREC | YDIREC )
+              Used with action -o and -y.
 
        -D, --desk= DESK
               Move windows to desktop DESK.
 
-       -e, --entity= ( ENT | LENT )
-              Specify the entity of actions -m, -s, -l and -L.
-
-       -R, --reference= REF
-              Used with action -m and -s. If entity is pro, you need to
-              specify the reference.
+       -e, --entity= LENT
+              Specify the entity of actions -l and -L.
 
        -g, --geo= GEO
-              Specify the geometry of actions -m, -s, -l and -L.
+              Specify the geometry of actions -l and -L.
 
        -x, --maximum= WINN
               Maximal number of windows a region should contain. Used
@@ -154,12 +138,12 @@ SUBCOMMANDS
               you are indecisive, use 0.
 
        -A, --action= SPLIT
-              Used with actions -l and -L to tell xwinreg, how a region
+              Used with actions -l and -L to tell xwinreg(1), how a region
               should be filled with windows.
 
        -w, --window
-              Used with actions -y, -s and -m to indicate that windows
-              (not regions) should be processed.
+              Used with actions -y to indicate that windows (not regions)
+              should be processed.
 
        -W, --switch
               Used with action -M to switch to the desktop after moving.
@@ -203,23 +187,14 @@ ARGUMENTS
        YDIREC
               clock, anticlock or reverse. Used with action -y.
 
-       MDIREC
-              north, east, south or west. Used with action -m
-
        DESK
               curr or relative to the current desktop next or preview. To
               specify a desktop number (starts at 0) use the prefix i:;
               a desktop name is prefixed with s:. Examples: i:1; s:web;
               "s:some stuff".
 
-       ENT
-              px or pro. Used with actions -m and -s.
-
        LENT
               alias, px or pro. Used with actions -l and -L.
-
-       REF
-              window, region or frame.
 
        WINN
               Window number specified by an integer or max.
@@ -242,10 +217,9 @@ ARGUMENTS
               REGALIAS  northwest, north, northeast, east, southeast,
                         south, southwest or west. See also section
                         CONFIGURATION in this manpage.
-              -         Means, that old size is kept.
-              Samples:  <REGALIAS>, <PRO>, <PRO>,<PRO>,
-                        <PRO>,<PRO>,<PRO>,<PRO>, <X>,<Y>,
-                        <W>,<H> or <X>,<Y>,<W>,<H>.
+              Samples:  <REGALIAS>,
+                        <PRO>,<PRO>,<PRO>,<PRO>,
+                        <X>,<Y>,<W>,<H>.
 
 EXAMPLES
        To do some layouting with five windows:
@@ -281,28 +255,6 @@ EXAMPLES
 
               xwinreg -y -k -d clock
 
-       To do some moving with two windows and two regions:
-              xwinpp -F ./list -P 1 -p | xwinreg -F - \
-                -L 1,1,maximize,alias:0,northeast \
-                -L 2,1,maximize,alias:0,southeast
-
-              xwinreg -m -w -r all -e pro -R window -g 100 -d west
-
-              xwinreg -m -w -r all -e pro -R window -g 100 -d east
-
-              xwinreg -m -r all -e pro -R region -g 100 -d west
-
-       To do some sizing with three windows and two regions:
-              xwinpp -F ./lis -P1 -p | xwinreg -F - \
-                -L 1,1,maximize,alias:0,north \
-                -L 2,max,maximize,alias:0,south
-
-              xwinreg -s -w -r 2 -e pro -R window -g -,50
-
-              xwinreg -s -w -r 2 -e pro -R window -g -,200
-
-              xwinreg -s -r active -e pro -R frame -g 50,50
-
 NOTES
        ·   You may write all long commands and options without masking --.
            So, instead of --help you may use help.
@@ -316,10 +268,6 @@ NOTES
            layouting takes place in one frame. You can specify another
            Tmp File with option -T, or you may  create several Conf
            Files. See section CONFIGURATION in this manpage.
-
-       ·   If you use actions -m and -s with option -w, only new
-           window-geometries are updated in the Tmp File. Without option
-           -w the hole Tmp File is rewritten.
 
 CONFIGURATIONS
        By default, xwinreg(1) needs no Conf File, because all important
@@ -418,4 +366,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.5.5                    2014-06-03                        XWINREG(1)
+0.1.6.0                    2014-06-04                        XWINREG(1)

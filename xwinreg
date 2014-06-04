@@ -144,15 +144,6 @@ do
         focus)
                 args="${args}-f "
                 ;;
-        size)
-                args="${args}-s "
-                ;;
-        move)
-                args="${args}-m "
-                ;;
-        reset)
-                args="${args}-O "
-                ;;
         desk)
                 args="${args}-D ${arg#*=} "
                 ;;
@@ -351,15 +342,6 @@ do
         f)
                 action=__check_focusing
                 ;;
-        s)
-                action=__check_sizing
-                ;;
-        m)
-                action=__check_moving
-                ;;
-        O)
-                action=__check_resetting
-                ;;
         D)
                 __check_args "desk_target=$OPTARG"
                 ;;
@@ -449,13 +431,6 @@ unset -v arg args delim opt
 if [[ $action ]]
 then
     case $action in
-        __check_moving|__check_sizing)
-                __src_script check_moving check_sizing check_file_tmp calculating
-                __calculating
-                __check_file_tmp < "$file_tmp"
-                ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                ${action} && exit 0
-                ;;
         layout|layout_abbrev)
                 ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
                 unset -v action

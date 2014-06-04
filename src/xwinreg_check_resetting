@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-__check_resetting()
-{
-    __check_file_tmp < <(grep -v -e "reg_number" -e "region_" -e "reg_geo" -e "win_xid_region_" -e "win_geo_x_y_region_" -e "win_geo_w_h_region_" "$file_tmp")
-    __mktmp
-    __check_region
-}
