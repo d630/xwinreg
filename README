@@ -106,7 +106,7 @@ SUBCOMMANDS
               Build layout and create Tmp File. Specify the layout with
               options -r, -x, -A, -e, -G and -g.
 
-       -L, --layout-abbrev REGN,WINN,SPLIT,LENT:GRAV,GEO
+       -L, --layout-abbrev REGN,WINN,LACT,LENT:GRAV,GEO
               Write action -l in shorthand.
 
    OPTIONS
