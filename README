@@ -4,7 +4,7 @@ NAME
        xwinreg - organize X windows into regions and do tiling layouts
 
 SYNOPSIS
-       xwinreg [-F]
+       xwinreg [-I]
                [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
                (-c|-f|-H|-h|[-l ...|-L...]|-M|-U|-v|-y)
 
@@ -21,9 +21,10 @@ DESCRIPTION
        CONCEPTION in this manpage.
 
 OPTIONS
-       -F, --file= FILE
-              Obtain output of xwinpp(1) from FILE. If FILE is a hyphen, get
-              output from xwinpp(1) by reading from standard input (pipe).
+       -I, --input-file= FILE
+              Obtain output of xwinpp(1) from FILE. If FILE is a hyphen,
+              get output from xwinpp(1) by reading from standard input
+              (pipe).
 
        -C, --conf-file= FILE
               Read variables from FILE. See section CONFIGURATION in
@@ -223,23 +224,23 @@ ARGUMENTS
 
 EXAMPLES
        To do some layouting with five windows:
-              xwinpp -F ./list -P 1 -p | xwinreg -F - \
+              xwinpp -F ./list -P 1 -p | xwinreg -I - \
                 -L 1,max,horizontal,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -F - \
+              xwinpp -F ./list -P 1 -p | xwinreg -I - \
                 -L 1,max,grid-horizontal,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -F - \
+              xwinpp -F ./list -P 1 -p | xwinreg -I - \
                 -L 1,max,grid-square-horizontal,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -F - \
+              xwinpp -F ./list -P 1 -p | xwinreg -I - \
                 -L 1,max,maximize,alias:0,all
 
-              xwinpp -F ./list -P 1 -p | xwinreg -F - \
+              xwinpp -F ./list -P 1 -p | xwinreg -I - \
                 -L 1,1,maximize,alias:0,west \
                 -L 2,max,horizontal,alias:0,east
 
-              xwinpp -F ./list -P 1 -p | xwinreg -F - \
+              xwinpp -F ./list -P 1 -p | xwinreg -I - \
                 -L 1,1,maximize,alias:0,west \
                 -L 2,1,maximize,alias:0,northeast \
                 -L 3,max,vertical,alias:0,southeast
@@ -319,7 +320,7 @@ ENVIROMENT
               File.
 
         XWINREG_INPUT_FILE
-              Use this instead of option -F.
+              Use this instead of option -I.
 
 BUGS & REQUESTS
        Report it on <https://github.com/D630/xwinreg/issues>
@@ -366,4 +367,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.6.0                    2014-06-04                        XWINREG(1)
+0.1.7.0                    2014-06-05                        XWINREG(1)

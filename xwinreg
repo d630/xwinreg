@@ -15,12 +15,12 @@ declare \
 
 # -- Functions.
 
-__version() { echo "0.1.6.1" ; }
+__version() { echo "0.1.7.0" ; }
 
 __usage()
 {
     printf 'xwinreg
-        [-F]
+        [-I]
         [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
         (-c|-f|-H|-h|[-l ...|-L...]|-M|-U|-v|-y)'
 }
@@ -34,50 +34,52 @@ OPTIONS
 -------
     OPTION                    ARG
     ------                    ---
-    -F,  --file=              <FILE> or hyphen (-)
-    -C,  --conf-file=         <FILE>
-    -T,  --tmp-file=          <FILE>
-    -n,  --number-of-rows=    <INT>
-    -N,  --number-of-cols=    <INT>
-    -a,  --frame-alias=       <FRAMEALIAS>
-    -fx, --frame-x=           <PX>
-    -fy, --frame-y=           <PX>
-    -fw, --frame-width=       <PX>
-    -fh, --frame-height=      <PX>
-    -wx, --workarea-x=        <PX>
-    -wy, --workarea-y=        <PX>
-    -ww, --workarea-width=    <PX>
-    -wh, --workarea-height=   <PX>
+    -I,  --input-file=              <FILE> or hyphen (-)
+    -C,  --conf-file=               <FILE>
+    -T,  --tmp-file=                <FILE>
+    -n,  --number-of-rows=          <INT>
+    -N,  --number-of-cols=          <INT>
+    -a,  --frame-alias=             <FRAMEALIAS>
+    -fx, --frame-x=                 <PX>
+    -fy, --frame-y=                 <PX>
+    -fw, --frame-width=             <PX>
+    -fh, --frame-height=            <PX>
+    -wx, --workarea-x=              <PX>
+    -wy, --workarea-y=              <PX>
+    -ww, --workarea-width=          <PX>
+    -wh, --workarea-height=         <PX>
     -h,  --help
     -v,  --version
 
 SUBCOMMANDS
 -----------
-    ACTION                    REQUIRED
-    ------                    --------
-    -c,  --close              <REG>
-    -H,  --hide               <REG>
-    -U,  --unhide             <REG>
-    -f,  --focus              <REG>
-    -o,  --toggle-focus       <ODIREC>
-    -M,  --move-to-desk       <REG> <DESK> -W
-    -y,  --cycle              <REG> <YDIREC> -w -k -j
-    -l,  --layout             <REGN> <WINN> <SPLIT> <LENT> <GRAV> <GEO>
+    ACTION                          REQUIRED
+    ------                          --------
+    -c,  --close                    <REG>
+    -H,  --hide                     <REG>
+    -U,  --unhide                   <REG>
+    -f,  --focus                    <REG>
+    -o,  --toggle-focus             <ODIREC>
+    -M,  --move-to-desk             <REG> <DESK> -W
+    -y,  --cycle                    <REG> <YDIREC> -w -k -j
+    -l,  --layout                   <REGN> <WINN> <SPLIT> <LENT> <GRAV>
+                                    <GEO>
 
-    ACTION                    ARG
-    ------                    ---
-    -L,  --layout-abbrev=     <REGN>,<WINN>,<SPLIT>,<LENT>:<GRAV>,<GEO>
+    ACTION                          ARG
+    ------                          ---
+    -L,  --layout-abbrev=           <REGN>,<WINN>,<SPLIT>,<LENT>:<GRAV>,
+                                    <GEO>
 
-    OPTION                    ARG
-    ------                    ---
-    -r,  --region=            ( <REG> | <REGN> )
-    -d,  --direction=         ( <ODIREC> | <YDIREC>  )
-    -D,  --desk=              <DESK>
-    -e,  --entity=            <LENT>
-    -g,  --geo=               <GEO>
-    -x,  --maximum=           <WINN>
-    -G,  --gravity=           <GRAV>
-    -A,  --action=            <SPLIT>
+    OPTION                          ARG
+    ------                          ---
+    -r,  --region=                  ( <REG> | <REGN> )
+    -d,  --direction=               ( <ODIREC> | <YDIREC>  )
+    -D,  --desk=                    <DESK>
+    -e,  --entity=                  <LENT>
+    -g,  --geo=                     <GEO>
+    -x,  --maximum=                 <WINN>
+    -G,  --gravity=                 <GRAV>
+    -A,  --action=                  <SPLIT>
     -w,  --window
     -W,  --switch
     -k,  --stack
@@ -261,8 +263,8 @@ for arg
 do
     arg=${arg#--}
     case $arg in
-        file=*)
-                args="${args}-F ${arg#*=} "
+        input-file=*)
+                args="${args}-I ${arg#*=} "
                 ;;
         conf-file=*)
                 args="${args}-C ${arg#*=} "
@@ -459,10 +461,10 @@ declare -A layout
 eval set -- $args
 declare opt=
 
-while getopts :F:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwo:hvL:lHUcMfD:We:g:x:G:A: opt
+while getopts :I:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwo:hvL:lHUcMfD:We:g:x:G:A: opt
 do
     case $opt in
-        F)
+        I)
                 if [[ ! $OPTARG =~ -.+ ]]
                 then
                     XWINREG_INPUT_FILE=$OPTARG
@@ -642,8 +644,6 @@ else
     file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
 fi
 
-unset -v arg args delim opt
-
 case $action in
     close)
             ${src_dir}/xwinreg-close "$file_tmp" "$region_selection" && ${src_dir}/xwinreg-layout "$file_tmp"
@@ -668,8 +668,7 @@ case $action in
             ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
             __calculating
             fgrep -v -e "$vars_base" < <(set -o posix ; set) |
-            egrep -v -e "^vars_base=" \
-                     -e "^BASH_REMATCH=" \
+            egrep -v -e "^BASH_REMATCH=" \
                      -e "^OPTIND=" \
                      -e "^REPLY=" \
                      -e "^BASH_LINENO=" \
@@ -683,13 +682,18 @@ case $action in
             ${src_dir}/xwinreg-move-to-desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target"
             ;;
     version)
-            __version && exit 0
+            __version
             ;;
     *)
             { echo "No valid action spezified." >&2 ; exit 1 ; }
             ;;
 esac
 
-#unset -v action
+unset -v \
+         arg \
+         args \
+         delim \
+         opt \
+         action
 
 exit 0

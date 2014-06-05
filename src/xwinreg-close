@@ -224,4 +224,20 @@ __comm_array()
     done
 }
 
+while getopts :T:r: opt
+do
+    case $opt in
+        T)
+                ;;
+        r)
+                ;;
+        \?)
+                { echo "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                ;;
+        \:)
+                { echo "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                ;;
+    esac
+done
+
 __check_closing "$@"
