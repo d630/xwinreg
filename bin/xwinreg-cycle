@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# -- DEBUGGING.
+
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
 #set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o verbose
@@ -8,23 +10,28 @@
 #set -o nounset
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
-#vars_base=$(set -o posix ; set)
+
+# -- SETTINGS.
+
+#declare vars_base=$(set -o posix ; set)
+
+# -- FUNCTIONS.
 
 __cycle_window()
 {
     declare \
-            region_selection=$2 \
-            file_tmp=$1 \
-            join=$4 \
             direction_cycle=$3 \
-            win_active= \
-            reg_number= \
-            reg_sel= \
+            file_tmp=$1 \
             i= \
             j= \
+            join=$4 \
             k= \
             l= \
-            m=
+            m= \
+            region_selection=$2 \
+            reg_number= \
+            reg_sel= \
+            win_active=
 
     declare -a \
                win_xid=() \
@@ -35,7 +42,9 @@ __cycle_window()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e '^win_xid=(.*)' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
+    done < <(egrep -e '^win_xid=(.*)' \
+                   -e "^reg_number=.*" \
+                   -e "^win_regions\[.*\]=.*" "$file_tmp")
 
     case $direction_cycle in
         clock)
@@ -118,22 +127,23 @@ __cycle_window()
 __cycle_region()
 {
     declare \
-            file_tmp=$1 \
             direction_cycle=$2 \
-            stack=$3 \
+            entity_region= \
+            file_tmp=$1 \
+            gravity= \
             i= \
             j= \
+            region_geo= \
             reg_number= \
-            entity_region= \
-            gravity= \
-            region_geo=
+            stack=$3
 
     declare -A layout
 
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e '^layout' -e '^reg_number=.*' "$file_tmp")
+    done < <(egrep -e '^layout' \
+                   -e '^reg_number=.*' "$file_tmp")
 
     case $direction_cycle in
         clock)
@@ -240,10 +250,83 @@ __parse_region()
     eval "printf '%s\n' "${args[@]}""
 }
 
-if [[ $1 == window ]]
+__check_args()
+{
+    declare o
+    if [[ ! $OPTARG = -* ]]
+    then
+        for o
+        do
+            declare -g "$o"
+        done
+    else
+        { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+    fi
+}
+
+# -- MAIN.
+
+declare \
+        direction_cycle= \
+        entity_cycle= \
+        file_tmp= \
+        join= \
+        opt= \
+        region_selection= \
+        stack=
+
+while getopts :d:jkr:T:w opt
+do
+    case $opt in
+        d)
+                __check_args "direction_cycle=$OPTARG"
+                ;;
+        j)
+                join=join
+                ;;
+        k)
+                stack=stack
+                ;;
+        r)
+                __check_args "region_selection=$OPTARG"
+                ;;
+        T)
+                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        w)
+                entity_cycle=window
+                ;;
+        \?)
+                { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                ;;
+        \:)
+                { printf '%s\n' "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                ;;
+    esac
+done
+
+if [[ $XWINREG_TMP_FILE ]]
 then
-    shift 1
-    __cycle_window $@
+    file_tmp=$XWINREG_TMP_FILE
 else
-    __cycle_region $@
+    file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
 fi
+
+[[ ! $direction_cycle ]] && { echo "No direction specified." >&2 ; exit 1 ; }
+
+if [[ $entity_cycle == window ]]
+then
+    [[ ! $region_selection ]] && { echo "No region specified." >&2 ; exit 1 ; }
+    __cycle_window "$file_tmp" "$region_selection" "$direction_cycle" "$join"
+else
+    __cycle_region "$file_tmp" "$direction_cycle" "$stack"
+fi
+
+#~ unset -v \
+        #~ file_tmp= \
+        #~ region_selection= \
+        #~ direction_cycle= \
+        #~ entity_cycle= \
+        #~ stack= \
+        #~ join= \
+        #~ opt=

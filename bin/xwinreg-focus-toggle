@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# -- DEBUGGING.
+
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
 #set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o verbose
@@ -8,6 +10,12 @@
 #set -o nounset
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+
+# -- SETTINGS.
+
+#declare vars_base=$(set -o posix ; set)
+
+# -- FUNCTIONS.
 
 __focus_toggle()
 {
@@ -18,7 +26,6 @@ __focus_toggle()
             file_tmp=$1 \
             gravity= \
             h= \
-            src_dir= \
             w= \
             win= \
             win_active= \
@@ -35,7 +42,11 @@ __focus_toggle()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e "^win_active_geo_w_h=(.*)" -e "^win_active_geo_x_y=(.*)" -e "^win_active=.*" -e "^win_xid=(.*)" -e "^win_number=.*" "$file_tmp")
+    done < <(egrep -e "^win_active_geo_w_h=(.*)" \
+                   -e "^win_active_geo_x_y=(.*)" \
+                   -e "^win_active=.*" \
+                   -e "^win_xid=(.*)" \
+                   -e "^win_number=.*" "$file_tmp")
 
     case $direction_focus in
         n|next)
@@ -80,7 +91,7 @@ __focus_toggle()
            -e "s/^win_active_geo_w_h=(.*/win_active_geo_w_h=(${win_active_geo_w_h[*]})/" \
            -e "s/^win_active=.*/win_active=$win_active/" "$file_tmp"
 
-    unset -v xwininfo_win_active win
+    #~ unset -v xwininfo_win_active win
 }
 
 __do_wmctrl()
@@ -99,4 +110,59 @@ __order_reverse_array()
     done
 }
 
-__focus_toggle "$1" "$2"
+__check_args()
+{
+    declare o
+    if [[ ! $OPTARG = -* ]]
+    then
+        for o
+        do
+            declare -g "$o"
+        done
+    else
+        { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+    fi
+}
+
+# -- MAIN.
+
+declare \
+        file_tmp= \
+        direction_focus= \
+        opt=
+
+while getopts :d:T: opt
+do
+    case $opt in
+        d)
+                __check_args "direction_focus=$OPTARG"
+                ;;
+        T)
+                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        \?)
+                { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                ;;
+        \:)
+                { printf '%s\n' "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                ;;
+    esac
+done
+
+if [[ $XWINREG_TMP_FILE ]]
+then
+    file_tmp=$XWINREG_TMP_FILE
+else
+    file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
+fi
+
+[[ ! $direction_focus ]] && { echo "No direction specified." >&2 ; exit 1 ; }
+
+__focus_toggle "$file_tmp" "$direction_focus"
+
+#~ unset -v \
+        #~ file_tmp= \
+        #~ direction_focus= \
+        #~ opt=
+
+exit 0

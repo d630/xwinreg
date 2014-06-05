@@ -10,16 +10,17 @@
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 
 declare vars_base=$(set -o posix ; set)
+
 # -- Functions.
 
-__version() { echo "0.1.7.1" ; }
+__version() { echo "0.1.8.0" ; }
 
 __usage()
 {
     printf 'xwinreg
         [-I]
         [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-        (-c|-f|-H|-h|[-l ...|-L...]|-M|-U|-v|-y)'
+        (-c|-f|-H|-h|[-l ...|-L...]|-M|-v|-y)'
 }
 
 __help()
@@ -29,84 +30,67 @@ $(__usage)
 
 OPTIONS
 -------
-    OPTION                    ARG
-    ------                    ---
-    -I,  --input-file=              <FILE> or hyphen (-)
-    -C,  --conf-file=               <FILE>
-    -T,  --tmp-file=                <FILE>
-    -n,  --number-of-rows=          <INT>
-    -N,  --number-of-cols=          <INT>
+    OPTION                          ARG
+    ------                          ---
     -a,  --frame-alias=             <FRAMEALIAS>
+    -C,  --conf-file=               <FILE>
+    -fh, --frame-height=            <PX>
+    -fw, --frame-width=             <PX>
     -fx, --frame-x=                 <PX>
     -fy, --frame-y=                 <PX>
-    -fw, --frame-width=             <PX>
-    -fh, --frame-height=            <PX>
+    -h,  --help
+    -I,  --input-file=              <FILE> or hyphen (-)
+    -N,  --number-of-cols=          <INT>
+    -n,  --number-of-rows=          <INT>
+    -T,  --tmp-file=                <FILE>
+    -v,  --version
+    -wh, --workarea-height=         <PX>
+    -ww, --workarea-width=          <PX>
     -wx, --workarea-x=              <PX>
     -wy, --workarea-y=              <PX>
-    -ww, --workarea-width=          <PX>
-    -wh, --workarea-height=         <PX>
-    -h,  --help
-    -v,  --version
 
 SUBCOMMANDS
 -----------
     ACTION                          REQUIRED
     ------                          --------
     -c,  --close                    <REG>
-    -H,  --hide                     <REG>
-    -U,  --unhide                   <REG>
     -f,  --focus                    <REG>
-    -o,  --toggle-focus             <ODIREC>
-    -M,  --move-to-desk             <REG> <DESK> -W
-    -y,  --cycle                    <REG> <YDIREC> -w -k -j
-    -l,  --layout                   <REGN> <WINN> <SPLIT> <LENT> <GRAV>
+    -H,  --hide                     <REG> <HACT>
+    -l,  --layout                   <REGN> <WINN> <LACT> <LENT> <GRAV>
                                     <GEO>
+    -M,  --move-to-desk             <REG> <DESK> -W
+    -o,  --toggle-focus             <ODIREC>
+    -y,  --cycle                    <REG> <YDIREC> -w -k -j
 
     ACTION                          ARG
     ------                          ---
-    -L,  --layout-abbrev=           <REGN>,<WINN>,<SPLIT>,<LENT>:<GRAV>,
+    -L,  --layout-abbrev=           <REGN>,<WINN>,<LACT>,<LENT>:<GRAV>,
                                     <GEO>
 
     OPTION                          ARG
     ------                          ---
-    -r,  --region=                  ( <REG> | <REGN> )
-    -d,  --direction=               ( <ODIREC> | <YDIREC>  )
+    -A,  --action=                  ( <HACT> | <LACT> )
     -D,  --desk=                    <DESK>
+    -d,  --direction=               ( <ODIREC> | <YDIREC>  )
     -e,  --entity=                  <LENT>
     -g,  --geo=                     <GEO>
-    -x,  --maximum=                 <WINN>
     -G,  --gravity=                 <GRAV>
-    -A,  --action=                  <SPLIT>
-    -w,  --window
-    -W,  --switch
-    -k,  --stack
     -j,  --join
+    -k,  --stack
+    -r,  --region=                  ( <REG> | <REGN> )
+    -W,  --switch
+    -w,  --window
+    -x,  --maximum=                 <WINN>
 
 ARGUMENTS
 ---------
-    <FILE>          Regular file or named pipe.
-    <INT>           Default is '2'.
-    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
-                    'southeast', 'south', 'southwest' or 'west'.
-    <PX>            Pixel size specified by an integer.
-    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
-                    Additional: 'active' or 'all'.
-    <REGN>          Region number specified by an integer.
-    <ODIREC>        'next' or 'preview'.
-    <YDIREC>        'clock', 'anticlock' or 'reverse'.
     <DESK>          'curr' or relative to the current desktop 'next' or
                     'preview'. To specify a desktop number (starts at 0)
                     use the prefix 'i:'; a desktop name is prefixed with
                     's:'. Examples: 'i:1'; 's:web'; '\"s:some stuff\"'.
-    <LENT>          'alias', 'px' or 'pro'.
-    <REF>           'window', 'region' or 'frame'.
-    <WINN>          Window number specified by an integer or 'max'.
-    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
-                    'east', 'southwest', 'south', 'southeast' or
-                    'static'. Additional: '[0-10]'.
-    <SPLIT>         'maximize', 'horizontal', 'vertical',
-                    'grid-horizontal', 'grid-vertical',
-                    'grid-square-horizontal' or 'grid-square-vertical'.
+    <FILE>          Regular file or named pipe.
+    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
+                    'southeast', 'south', 'southwest' or 'west'.
     <GEO>
                     <X>        Pixel x size specified by an integer.
                     <Y>        Pixel y size specified by an integer.
@@ -120,6 +104,23 @@ ARGUMENTS
                                '<REGALIAS>',
                                '<PRO>,<PRO>,<PRO>,<PRO>',
                                '<X>,<Y>,<W>,<H>'.
+    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
+                    'east', 'southwest', 'south', 'southeast' or
+                    'static'. Additional: '[0-10]'.
+    <HACT>          'add' or 'remove'.
+    <INT>           Default is '2'.
+    <LACT>          'maximize', 'horizontal', 'vertical',
+                    'grid-horizontal', 'grid-vertical',
+                    'grid-square-horizontal' or 'grid-square-vertical'.
+    <LENT>          'alias', 'px' or 'pro'.
+    <ODIREC>        'next' or 'preview'.
+    <PX>            Pixel size specified by an integer.
+    <REF>           'window', 'region' or 'frame'.
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'all'.
+    <REGN>          Region number specified by an integer.
+    <WINN>          Window number specified by an integer or 'max'.
+    <YDIREC>        'clock', 'anticlock' or 'reverse'.
 "
 }
 
@@ -362,9 +363,6 @@ do
         hide)
                 args="${args}-H "
                 ;;
-        unhide)
-                args="${args}-U "
-                ;;
         close)
                 args="${args}-c "
                 ;;
@@ -413,7 +411,7 @@ declare \
         desk_target= \
         direction_cycle= \
         direction_focus= \
-        entity_cycle=
+        entity_cycle= \
         entity_size= \
         file_conf= \
         file_input= \
@@ -458,7 +456,7 @@ declare -A layout
 eval set -- $args
 declare opt=
 
-while getopts :I:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwo:hvL:lHUcMfD:We:g:x:G:A: opt
+while getopts :I:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwohvL:lHcMfD:We:g:x:G:A: opt
 do
     case $opt in
         I)
@@ -517,6 +515,7 @@ do
                 ;;
         d)
                 [[ $action == cycle ]] && __check_args "direction_cycle=$OPTARG"
+                [[ $action == focus-toggle ]] && __check_args "direction_focus=$OPTARG"
                 ;;
         k)
                 stack=stack
@@ -525,10 +524,10 @@ do
                 join=join
                 ;;
         w)
-                [[ $action == cycle ]] && __check_args "entity_cycle=window"
+                [[ $action == cycle ]] && entity_cycle=window
                 ;;
         o)
-                __check_args "action=focus-toggle" "direction_focus=$OPTARG"
+                action=focus-toggle
                 ;;
         h)
                 action=help
@@ -545,11 +544,6 @@ do
                 ;;
         H)
                 action=hide
-                hide_action=add
-                ;;
-        U)
-                action=hide
-                hide_action=remove
                 ;;
         c)
                 action=close
@@ -583,8 +577,8 @@ do
                 layout[${region_selection}:gravity]=$gravity
                 ;;
         A)
-                __check_args "layout_action=$OPTARG"
-                layout[${region_selection}:layout_action]=$layout_action
+                [[ $action == layout ]] && { __check_args "layout_action=$OPTARG" ; layout[${region_selection}:layout_action]=$layout_action ; }
+                [[ $action == hide ]] && __check_args "hide_action=$OPTARG"
                 ;;
         \?)
                 { echo "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
@@ -643,23 +637,23 @@ fi
 
 case $action in
     close)
-            xwinreg-close "$file_tmp" "$region_selection" && xwinreg-layout "$file_tmp"
+            xwinreg-close -T "$file_tmp" -r "$region_selection" && xwinreg-layout "$file_tmp"
             ;;
     cycle)
-            xwinreg-cycle "$entity_cycle" "$file_tmp" "$region_selection" "$direction_cycle" "$stack" "$join"
+            xwinreg-cycle -T "$file_tmp" -r "$region_selection" -d "$direction_cycle" "${entity_cycle:+"-w"}" "${stack:+"-k"}" "${join:+"-j"}"
             xwinreg-layout "$file_tmp"
             ;;
     focus)
-            xwinreg-focus "$file_tmp" "$region_selection"
+            xwinreg-focus -T "$file_tmp" -r "$region_selection"
             ;;
     focus-toggle)
-            xwinreg-focus-toggle "$file_tmp" "$direction_focus"
+            xwinreg-focus-toggle -T "$file_tmp" -d "$direction_focus"
             ;;
     help)
             __help
             ;;
     hide)
-            xwinreg-hide "$file_tmp" "$region_selection" "$hide_action"
+            xwinreg-hide -T "$file_tmp" -r "$region_selection" -A "$hide_action"
             ;;
     layout|layout-abbrev)
             ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
@@ -676,7 +670,7 @@ case $action in
             xwinreg-layout "$file_tmp"
             ;;
     move-to-desk)
-            xwinreg-move-to-desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target"
+            xwinreg-move-to-desk -T "$file_tmp" -r "$region_selection" -D "$desk_target" "${switch_to_desk_target:+"-W"}"
             ;;
     version)
             __version
@@ -686,11 +680,11 @@ case $action in
             ;;
 esac
 
-unset -v \
-         arg \
-         args \
-         delim \
-         opt \
-         action
+#~ unset -v \
+         #~ arg \
+         #~ args \
+         #~ delim \
+         #~ opt \
+         #~ action
 
 exit 0

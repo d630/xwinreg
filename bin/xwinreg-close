@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# -- DEBUGGING.
+
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
 #set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o verbose
@@ -8,26 +10,31 @@
 #set -o nounset
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
-#vars_base=$(set -o posix ; set)
+
+# -- SETTINGS.
+
+#declare vars_base=$(set -o posix ; set)
+
+# -- FUNCTIONS.
 
 __check_closing()
 {
     declare \
-            region_selection=$2 \
+            delete_win_active= \
             file_tmp=$1 \
-            reg_number= \
-            win_active= \
             i= \
             j= \
             k= \
             l= \
             m= \
-            delete_win_active=
+            region_selection=$2 \
+            reg_number= \
+            win_active=
 
     declare -a \
-               win_xid=() \
                reg_index=() \
                reg_sel=() \
+               win_xid=() \
                win_xid_selection=()
 
     declare -A \
@@ -37,7 +44,9 @@ __check_closing()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" -e "^layout[\[|=].*" "$file_tmp")
+    done < <(egrep -e "^reg_number=.*" \
+                   -e "^win_regions\[.*\]=.*" \
+                   -e "^layout[\[|=].*" "$file_tmp")
 
     reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
     read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
@@ -153,7 +162,12 @@ layout[${l}:region_geo]=\"${layout[${l}:region_geo]}\"" >> "$file_tmp"
              #~ m \
              #~ delete_win_active
 
-   ((${#win_xid[@]} != 0))
+    if ((${#win_xid[@]} == 0))
+    then
+        return 1
+    else
+        return 0
+    fi
 }
 
 __order_num_asc_array()
@@ -223,20 +237,57 @@ __comm_array()
     done
 }
 
-while getopts :T:r: opt
+__check_args()
+{
+    declare o
+    if [[ ! $OPTARG = -* ]]
+    then
+        for o
+        do
+            declare -g "$o"
+        done
+    else
+        { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+    fi
+}
+
+# -- MAIN.
+
+declare \
+        file_tmp= \
+        opt= \
+        region_selection=
+
+while getopts :r:T: opt
 do
     case $opt in
-        T)
-                ;;
         r)
+                __check_args "region_selection=$OPTARG"
+                ;;
+        T)
+                __check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         \?)
-                { echo "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
                 ;;
         \:)
-                { echo "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                { printf '%s\n' "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
                 ;;
     esac
 done
 
-__check_closing "$@"
+if [[ $XWINREG_TMP_FILE ]]
+then
+    file_tmp=$XWINREG_TMP_FILE
+else
+    file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
+fi
+
+[[ ! $region_selection ]] && { echo "No region specified." >&2 ; exit 1 ; }
+
+__check_closing "$file_tmp" "$region_selection"
+
+#~ unset -v \
+        #~ file_tmp= \
+        #~ region_selection= \
+        #~ opt=

@@ -6,7 +6,7 @@ NAME
 SYNOPSIS
        xwinreg [-I]
                [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-               (-c|-f|-H|-h|[-l ...|-L...]|-M|-U|-v|-y)
+               (-c|-f|-H|-h|[-l ...|-L...]|-M|-v|-y)
 
 REQUIREMENT
        bc, GNU bash, GNU grep, GNU sed, wmctrl, xprop, xwinpp
@@ -82,12 +82,8 @@ SUBCOMMANDS
               option -r.
 
        -H, --hide
-              Add window property hidden. Specify this action with
-              option -r.
-
-       -U, --unhide
-              Remove window property hidden. Specify this action with
-              option -r.
+              Add or remove window property hidden. Specify this action
+              with option -r and -A.
 
        -f, --focus
               Switch to the desktop containing the windows, raise the
@@ -138,9 +134,10 @@ SUBCOMMANDS
               Used with actions -l and -L to specify the gravity. If
               you are indecisive, use 0.
 
-       -A, --action= SPLIT
-              Used with actions -l and -L to tell xwinreg(1), how a region
-              should be filled with windows.
+       -A, --action= ( HACT | LACT )
+              Used with actions -l and -L to tell xwinreg(1), how a
+              region should be filled with windows. Used with action -H
+              to specify hide action.
 
        -w, --window
               Used with actions -y to indicate that windows (not regions)
@@ -204,7 +201,10 @@ ARGUMENTS
               northwest, north, northeast, west, center, east, southwest,
               south, southeast or static. Additional: [0-10].
 
-       SPLIT
+       HACT
+              add or remove.
+
+       LACT
               maximize, horizontal, vertical, grid-horizontal,
               grid-vertical, grid-square-horizontal or
               grid-square-vertical.
@@ -367,4 +367,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.7.0                    2014-06-05                        XWINREG(1)
+0.1.8.0                    2014-06-05                        XWINREG(1)
