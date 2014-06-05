@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# -- DEBUGGING.
+
 #printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
 #set -o xtrace #; exec 2>> ~/xwinreg.log
 #set -o verbose
@@ -9,11 +11,13 @@
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 
+# -- SETTINGS.
+
 declare vars_base=$(set -o posix ; set)
 
-# -- Functions.
+# -- FUNCTIONS.
 
-__version() { echo "0.1.8.1" ; }
+__version() { echo "0.1.8.2" ; }
 
 __usage()
 {
@@ -248,7 +252,7 @@ __check_variables_input()
     fi
 }
 
-# -- Main.
+# -- MAIN.
 
 (($# == 0)) && { printf '%s\n' "USAGE: $(__usage)" >&2 ; exit 1 ; }
 
