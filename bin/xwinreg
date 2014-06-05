@@ -17,7 +17,7 @@ declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
-__version() { echo "0.1.8.3" ; }
+__version() { echo "0.1.8.4" ; }
 
 __usage()
 {
@@ -468,7 +468,7 @@ do
                 then
                     XWINREG_INPUT_FILE=$OPTARG
                 else
-                    { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+                    { printf '%s\n' "Option -${opt} requires an argument." >&2 ; exit 1 ; }
                 fi
                 ;;
         C)
@@ -585,10 +585,10 @@ do
                 [[ $action == hide ]] && __check_args "hide_action=$OPTARG"
                 ;;
         \?)
-                { echo "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
                 ;;
         \:)
-                { echo "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                { printf '%s\n' "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
                 ;;
     esac
 done
