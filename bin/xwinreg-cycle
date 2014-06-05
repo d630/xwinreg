@@ -19,7 +19,6 @@ __cycle_window()
             direction_cycle=$3 \
             win_active= \
             reg_number= \
-            src_dir= \
             reg_sel= \
             i= \
             j= \
@@ -36,7 +35,7 @@ __cycle_window()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e '^src_dir=.*' -e '^win_xid=(.*)' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
+    done < <(egrep -e '^win_xid=(.*)' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
 
     case $direction_cycle in
         clock)
@@ -122,7 +121,6 @@ __cycle_region()
             file_tmp=$1 \
             direction_cycle=$2 \
             stack=$3 \
-            src_dir= \
             i= \
             j= \
             reg_number= \
@@ -135,7 +133,7 @@ __cycle_region()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e '^src_dir=.*' -e '^layout' -e '^reg_number=.*' "$file_tmp")
+    done < <(egrep -e '^layout' -e '^reg_number=.*' "$file_tmp")
 
     case $direction_cycle in
         clock)

@@ -13,8 +13,6 @@ __focus_toggle()
 {
     (($# != 2)) && { echo "__focus_toogle needs tmp file and direction as arguments." >&2 ; exit 1 ; }
 
-    __src_script() { declare f ; for f ; do source "${src_dir}/xwinreg_${f}" ; done ; }
-
     declare \
             direction_focus=$2 \
             file_tmp=$1 \
@@ -37,9 +35,7 @@ __focus_toggle()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e "^src_dir=.*" -e "^win_active_geo_w_h=(.*)" -e "^win_active_geo_x_y=(.*)" -e "^win_active=.*" -e "^win_xid=(.*)" -e "^win_number=.*" "$file_tmp")
-
-    __src_script do_wmctrl order_reverse_array
+    done < <(egrep -e "^win_active_geo_w_h=(.*)" -e "^win_active_geo_x_y=(.*)" -e "^win_active=.*" -e "^win_xid=(.*)" -e "^win_number=.*" "$file_tmp")
 
     case $direction_focus in
         n|next)
@@ -85,6 +81,22 @@ __focus_toggle()
            -e "s/^win_active=.*/win_active=$win_active/" "$file_tmp"
 
     unset -v xwininfo_win_active win
+}
+
+__do_wmctrl()
+{
+    wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
+    wmctrl -i -r "$win" -e "${gravity},${x},${y},${w},${h}"
+}
+
+__order_reverse_array()
+{
+    declare -a array=($@)
+    declare i=
+    for ((i=${#array[@]}-1 ; i >= 0 ; --i))
+    do
+        printf '%s\n' "${array[i]}"
+    done
 }
 
 __focus_toggle "$1" "$2"

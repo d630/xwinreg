@@ -9,13 +9,10 @@
 #set -o pipefail
 #trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
 
-declare \
-        vars_base=$(set -o posix ; set) \
-        src_dir=~/code/source/xwinreg/bin
-
+declare vars_base=$(set -o posix ; set)
 # -- Functions.
 
-__version() { echo "0.1.7.0" ; }
+__version() { echo "0.1.7.1" ; }
 
 __usage()
 {
@@ -646,23 +643,23 @@ fi
 
 case $action in
     close)
-            ${src_dir}/xwinreg-close "$file_tmp" "$region_selection" && ${src_dir}/xwinreg-layout "$file_tmp"
+            xwinreg-close "$file_tmp" "$region_selection" && xwinreg-layout "$file_tmp"
             ;;
     cycle)
-            ${src_dir}/xwinreg-cycle "$entity_cycle" "$file_tmp" "$region_selection" "$direction_cycle" "$stack" "$join"
-            ${src_dir}/xwinreg-layout "$file_tmp"
+            xwinreg-cycle "$entity_cycle" "$file_tmp" "$region_selection" "$direction_cycle" "$stack" "$join"
+            xwinreg-layout "$file_tmp"
             ;;
     focus)
-            ${src_dir}/xwinreg-focus "$file_tmp" "$region_selection"
+            xwinreg-focus "$file_tmp" "$region_selection"
             ;;
     focus-toggle)
-            ${src_dir}/xwinreg-focus-toggle "$file_tmp" "$direction_focus"
+            xwinreg-focus-toggle "$file_tmp" "$direction_focus"
             ;;
     help)
             __help
             ;;
     hide)
-            ${src_dir}/xwinreg-hide "$file_tmp" "$region_selection" "$hide_action"
+            xwinreg-hide "$file_tmp" "$region_selection" "$hide_action"
             ;;
     layout|layout-abbrev)
             ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
@@ -676,10 +673,10 @@ case $action in
                      -e "^FUNCNAME=" \
                      -e "^action=" \
                      > "$file_tmp"
-            ${src_dir}/xwinreg-layout "$file_tmp"
+            xwinreg-layout "$file_tmp"
             ;;
     move-to-desk)
-            ${src_dir}/xwinreg-move-to-desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target"
+            xwinreg-move-to-desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target"
             ;;
     version)
             __version

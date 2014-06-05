@@ -22,7 +22,6 @@ __check_closing()
             k= \
             l= \
             m= \
-            src_dir= \
             delete_win_active=
 
     declare -a \
@@ -38,7 +37,7 @@ __check_closing()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e '^src_dir=.*' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" -e "^layout[\[|=].*" "$file_tmp")
+    done < <(egrep -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" -e "^layout[\[|=].*" "$file_tmp")
 
     reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
     read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)

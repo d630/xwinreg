@@ -23,7 +23,6 @@ __check_move_to_desk()
             i= \
             j= \
             k= \
-            src_dir= \
             win_active= \
             desk_number= \
             reg_number=
@@ -39,7 +38,7 @@ __check_move_to_desk()
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e '^src_dir=.*' -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
+    done < <(egrep -e "^reg_number=.*" -e "^win_regions\[.*\]=.*" "$file_tmp")
 
     reg_index=($(eval "printf '%s\n' {1..${reg_number}}"))
     read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
