@@ -13,14 +13,14 @@ declare vars_base=$(set -o posix ; set)
 
 # -- Functions.
 
-__version() { echo "0.1.8.0" ; }
+__version() { echo "0.1.8.1" ; }
 
 __usage()
 {
     printf 'xwinreg
         [-I]
         [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-        (-c|-f|-H|-h|[-l ...|-L...]|-M|-v|-y)'
+        (-c|-f|-H|-h|[-l ...|-L ...]|-M|-v|-y)'
 }
 
 __help()

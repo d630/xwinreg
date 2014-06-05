@@ -6,7 +6,7 @@ NAME
 SYNOPSIS
        xwinreg [-I]
                [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-               (-c|-f|-H|-h|[-l ...|-L...]|-M|-v|-y)
+               (-c|-f|-H|-h|[-l ...|-L ...]|-M|-v|-y)
 
 REQUIREMENT
        bc, GNU bash, GNU grep, GNU sed, wmctrl, xprop, xwinpp
