@@ -90,7 +90,7 @@ SUBCOMMANDS
               windows, and give them focus. At the end, focus the active
               window again. Specify this action with option -r.
 
-       -o, --toggle-focus
+       -o, --focus-toggle
               Tell xwinreg(1) to toggle focus on windows. Specify this
               action with option -d.
 
@@ -367,4 +367,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.8.0                    2014-06-05                        XWINREG(1)
+0.1.8.3                    2014-06-05                        XWINREG(1)

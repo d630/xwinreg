@@ -17,7 +17,7 @@ declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
-__version() { echo "0.1.8.2" ; }
+__version() { echo "0.1.8.3" ; }
 
 __usage()
 {
@@ -63,7 +63,7 @@ SUBCOMMANDS
     -l,  --layout                   <REGN> <WINN> <LACT> <LENT> <GRAV>
                                     <GEO>
     -M,  --move-to-desk             <REG> <DESK> -W
-    -o,  --toggle-focus             <ODIREC>
+    -o,  --focus-toggle             <ODIREC>
     -y,  --cycle                    <REG> <YDIREC> -w -k -j
 
     ACTION                          ARG
@@ -349,7 +349,7 @@ do
         window)
                 args="${args}-w "
                 ;;
-        toggle-focus=*)
+        focus-toggle=*)
                 args="${args}-o ${arg#*=} "
                 ;;
         help)
