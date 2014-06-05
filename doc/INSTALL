@@ -1,2 +1,2 @@
 1. make xwinreg executable and cp it to /usr/local/bin or $HOME/bin
-2. In xwinreg (line 12) give the variable named "src_dir" a value to locate the src dir (this is just an temporary answer)
+2. In xwinreg (line 12) give the variable named "src_dir" a value to locate the src dir (this is just a temporary answer)

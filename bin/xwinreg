@@ -11,7 +11,7 @@
 
 declare \
         vars_base=$(set -o posix ; set) \
-        src_dir=~/code/source/xwinreg/src
+        src_dir=~/code/source/xwinreg/bin
 
 # -- Functions.
 
