@@ -114,8 +114,6 @@ __cycle_window()
              #~ k= \
              #~ l= \
              #~ m=
-
-    ${src_dir}/xwinreg_check_region "$file_tmp"
 }
 
 __cycle_region()
@@ -184,8 +182,6 @@ layout[${i}:region_geo]=$region_geo" >> "$file_tmp"
              #~ entity_region \
              #~ gravity \
              #~ region_geo
-
-    ${src_dir}/xwinreg_check_region "$file_tmp"
 }
 
 __clock()

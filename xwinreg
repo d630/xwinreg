@@ -13,13 +13,244 @@ declare \
         vars_base=$(set -o posix ; set) \
         src_dir=~/code/source/xwinreg/src
 
-__src_script() { declare f ; for f ; do source "${src_dir}/xwinreg_${f}" ; done ; }
+# -- Functions.
 
-(($# == 0)) &&
+__version() { echo "0.1.6.1" ; }
+
+__usage()
 {
-    __src_script usage
-    printf '%s\n' "USAGE: $(__usage)" >&2 ; exit 1
+    printf 'xwinreg
+        [-F]
+        [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
+        (-c|-f|-H|-h|[-l ...|-L...]|-M|-U|-v|-y)'
 }
+
+__help()
+{
+    printf "
+$(__usage)
+
+OPTIONS
+-------
+    OPTION                    ARG
+    ------                    ---
+    -F,  --file=              <FILE> or hyphen (-)
+    -C,  --conf-file=         <FILE>
+    -T,  --tmp-file=          <FILE>
+    -n,  --number-of-rows=    <INT>
+    -N,  --number-of-cols=    <INT>
+    -a,  --frame-alias=       <FRAMEALIAS>
+    -fx, --frame-x=           <PX>
+    -fy, --frame-y=           <PX>
+    -fw, --frame-width=       <PX>
+    -fh, --frame-height=      <PX>
+    -wx, --workarea-x=        <PX>
+    -wy, --workarea-y=        <PX>
+    -ww, --workarea-width=    <PX>
+    -wh, --workarea-height=   <PX>
+    -h,  --help
+    -v,  --version
+
+SUBCOMMANDS
+-----------
+    ACTION                    REQUIRED
+    ------                    --------
+    -c,  --close              <REG>
+    -H,  --hide               <REG>
+    -U,  --unhide             <REG>
+    -f,  --focus              <REG>
+    -o,  --toggle-focus       <ODIREC>
+    -M,  --move-to-desk       <REG> <DESK> -W
+    -y,  --cycle              <REG> <YDIREC> -w -k -j
+    -l,  --layout             <REGN> <WINN> <SPLIT> <LENT> <GRAV> <GEO>
+
+    ACTION                    ARG
+    ------                    ---
+    -L,  --layout-abbrev=     <REGN>,<WINN>,<SPLIT>,<LENT>:<GRAV>,<GEO>
+
+    OPTION                    ARG
+    ------                    ---
+    -r,  --region=            ( <REG> | <REGN> )
+    -d,  --direction=         ( <ODIREC> | <YDIREC>  )
+    -D,  --desk=              <DESK>
+    -e,  --entity=            <LENT>
+    -g,  --geo=               <GEO>
+    -x,  --maximum=           <WINN>
+    -G,  --gravity=           <GRAV>
+    -A,  --action=            <SPLIT>
+    -w,  --window
+    -W,  --switch
+    -k,  --stack
+    -j,  --join
+
+ARGUMENTS
+---------
+    <FILE>          Regular file or named pipe.
+    <INT>           Default is '2'.
+    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
+                    'southeast', 'south', 'southwest' or 'west'.
+    <PX>            Pixel size specified by an integer.
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'all'.
+    <REGN>          Region number specified by an integer.
+    <ODIREC>        'next' or 'preview'.
+    <YDIREC>        'clock', 'anticlock' or 'reverse'.
+    <DESK>          'curr' or relative to the current desktop 'next' or
+                    'preview'. To specify a desktop number (starts at 0)
+                    use the prefix 'i:'; a desktop name is prefixed with
+                    's:'. Examples: 'i:1'; 's:web'; '\"s:some stuff\"'.
+    <LENT>          'alias', 'px' or 'pro'.
+    <REF>           'window', 'region' or 'frame'.
+    <WINN>          Window number specified by an integer or 'max'.
+    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
+                    'east', 'southwest', 'south', 'southeast' or
+                    'static'. Additional: '[0-10]'.
+    <SPLIT>         'maximize', 'horizontal', 'vertical',
+                    'grid-horizontal', 'grid-vertical',
+                    'grid-square-horizontal' or 'grid-square-vertical'.
+    <GEO>
+                    <X>        Pixel x size specified by an integer.
+                    <Y>        Pixel y size specified by an integer.
+                    <W>        Pixel width size specified by an integer.
+                    <H>        Pixel height size specified by an integer.
+                    <PRO>      Procent size specified by an integer.
+                    <REGALIAS> 'northwest', 'north', 'northeast','east',
+                               'southeast', 'south', 'southwest' or
+                               'west'.
+                    Samples:
+                               '<REGALIAS>',
+                               '<PRO>,<PRO>,<PRO>,<PRO>',
+                               '<X>,<Y>,<W>,<H>'.
+"
+}
+
+__calculating()
+{
+    # Check, if geo of workarea is manually set; if not, we use __NET_WORKAREA instead.
+    declare -ga workarea=()
+    read -a workarea < <(xprop -root -notype _NET_WORKAREA) &&
+            workarea=(${workarea[@]//,}) &&
+            workarea=(${workarea[@]:2})
+    declare -g workarea_x=${workarea_x:-${workarea[0]}} \
+               workarea_y=${workarea_y:-${workarea[1]}} \
+               workarea_w=${workarea_width:-${workarea[2]}} \
+               workarea_h=${workarea_height:-${workarea[3]}}
+
+    # Check, if frame aliases have been set in a Conf File.
+    if declare -f __calculating_frame_alias > /dev/null
+    then
+        __calculating_frame_alias
+    else
+        declare -gA frames
+    fi
+
+    # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
+    #declare -gA frame
+    frames[northwest]=${frames[northwest]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))}
+    frames[north]=${frames[north]:-$workarea_x $workarea_y $workarea_w $((workarea_h/2))}
+    frames[northeast]=${frames[northeast]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))}
+    frames[east]=${frames[east]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h}
+    frames[southeast]=${frames[southeast]:-$((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
+    frames[south]=${frames[south]:-$workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2))}
+    frames[southwest]=${frames[southwest]:-$workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
+    frames[west]=${frames[west]:-$workarea_x $workarea_y $((workarea_w/2)) $workarea_h}
+    frames[all]=${frames[all]:-$workarea_x $workarea_y $workarea_w $workarea_h}
+
+    if [[ $frame_alias ]]
+    then
+        declare -a frame_geo=(${frames[$frame_alias]})
+        declare -g frame_x=${frame_x:-${frame_geo[0]}} \
+                   frame_y=${frame_y:-${frame_geo[1]}} \
+                   frame_w=${frame_width:-${frame_geo[2]}} \
+                   frame_h=${frame_height:-${frame_geo[3]}}
+    else
+        declare -g frame_x=${frame_x:-$workarea_x} \
+                   frame_y=${frame_y:-$workarea_y} \
+                   frame_w=${frame_width:-$workarea_w} \
+                   frame_h=${frame_height:-$workarea_h}
+    fi
+
+    # To simplify matters, we alias frames geo to x,y,w and h.
+    declare -g x=$frame_x \
+               y=$frame_y \
+               w=$frame_w \
+               h=$frame_h
+
+    # Check, if region aliases have been set in a Conf File.
+    if declare -f __calculating_region_alias > /dev/null
+    then
+        __calculating_region_alias
+    else
+        declare -gA regions
+    fi
+
+    # We use these aliases for regions geo. We also check, if aliases with same names have been set manually.
+    regions[northwest]=${regions[northwest]:-$x $y $((w/2)) $((h/2))}
+    regions[north]=${regions[north]:-$x $y $w $((h/2))}
+    regions[northeast]=${regions[northeast]:-$((x+w/2)) $y $((w/2)) $((h/2))}
+    regions[east]=${regions[east]:-$((x+w/2)) $y $((w/2)) $h}
+    regions[southeast]=${regions[southeast]:-$((x+w/2)) $((y+h/2)) $((w/2)) $((h/2))}
+    regions[south]=${regions[south]:-$x $((y+h/2)) $w $((h/2))}
+    regions[southwest]=${regions[southwest]:-$x $((y+h/2)) $((w/2)) $((h/2))}
+    regions[west]=${regions[west]:-$x $y $((w/2)) $h}
+    regions[all]=${regions[all]:-$x $y $w $h}
+
+    # Here we declare row and column number, which are needed to perform grid layouting.
+    declare -g row_number=${row_number:-2} \
+               col_number=${col_number:-2}
+
+    unset -v \
+            workarea_width \
+            workarea_height \
+            frame_width \
+            frame_height
+}
+
+__check_args()
+{
+    declare o
+    if [[ ! $OPTARG = -* ]]
+    then
+        for o
+        do
+            declare -g "$o"
+        done
+    else
+        { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+    fi
+}
+
+__build_layout_abbrev()
+{
+    declare l_l= l_r=
+    [[ $1 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] &&
+    {
+        IFS=: read -r l_l l_r <<< "$1"
+        set -- ${l_l//,/ }
+        layout[${1}:region_number]=$1
+        layout[${1}:win_number_maximum]=$2
+        layout[${1}:layout_action]=$3
+        layout[${1}:entity_region]=$4
+        layout[${1}:gravity]=${l_r%%,*}
+        layout[${1}:region_geo]=${l_r#*,}
+
+        ((reg_number++))
+    }
+}
+
+__check_variables_input()
+{
+    if [[ $1 =~ ^(desk_curr|win_active|win_active_frame_extents|win_active_tags|win_number|desk_select|win_active_geo_x_y|win_active_geo_w_h|win_xid|win_geo_x_y|win_geo_w_h|win_frame_extents|win_tags)=.*$ ]]
+    then
+        eval "$1"
+    else
+        { echo "Irregular variable inside input." >&2 ; exit 1 ; }
+    fi
+}
+
+# -- Main.
+
+(($# == 0)) && { printf '%s\n' "USAGE: $(__usage)" >&2 ; exit 1 ; }
 
 declare \
         arg= \
@@ -153,9 +384,6 @@ do
         entity)
                 args="${args}-e ${arg#*=} "
                 ;;
-        reference)
-                args="${args}-R ${arg#*=} "
-                ;;
         geo)
                 args="${args}-g ${arg#*=} "
                 ;;
@@ -180,65 +408,58 @@ do
 done
 
 declare \
+        action= \
+        col_number= \
         desk_curr= \
+        desk_target= \
+        direction_cycle= \
+        direction_focus= \
+        entity_cycle=
+        entity_size= \
+        file_conf= \
+        file_input= \
+        file_tmp= \
+        frame_alias= \
+        frame_height= \
+        frame_width= \
+        frame_x= \
+        frame_y= \
+        geo= \
+        gravity= \
+        hide_action= \
+        join= \
+        layout_action= \
+        region_selection= \
+        reg_number=0 \
+        row_number= \
+        stack= \
+        switch_to_desk_target= \
         win_active= \
         win_active_frame_extents= \
         win_active_tags= \
         win_number= \
-        file_tmp= \
-        file_input= \
-        file_conf= \
-        row_number= \
-        col_number= \
-        frame_alias= \
-        workarea_x= \
-        workarea_y= \
-        workarea_width= \
-        workarea_height= \
-        frame_width= \
-        frame_height= \
-        frame_x= \
-        frame_y= \
-        region_selection= \
-        direction_cycle= \
-        direction_focus= \
-        join= \
-        stack= \
-        entity_cycle=
-        action= \
-        hide_action= \
-        desk_target= \
-        switch_to_desk_target= \
-        entity= \
-        entity_size= \
-        reference= \
-        geo= \
-        direction_moving= \
         win_number_maximum= \
-        gravity= \
-        layout_action= \
-        reg_number=0
+        workarea_height= \
+        workarea_width= \
+        workarea_x= \
+        workarea_y=
 
 declare -a \
         desk_select=() \
-        win_active_geo_x_y=() \
         win_active_geo_w_h=() \
-        win_xid=() \
-        win_geo_x_y=() \
-        win_geo_w_h=() \
+        win_active_geo_x_y=() \
         win_frame_extents=() \
-        win_tags=()
+        win_geo_w_h=() \
+        win_geo_x_y=() \
+        win_tags=() \
+        win_xid=()
 
 declare -A layout
-
-__src_script \
-        check_args \
-        build_layout_abbrev
 
 eval set -- $args
 declare opt=
 
-while getopts :F:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwo:hvL:lHUcMfsmOD:We:R:g:x:G:A: opt
+while getopts :F:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwo:hvL:lHUcMfD:We:g:x:G:A: opt
 do
     case $opt in
         F)
@@ -297,7 +518,6 @@ do
                 ;;
         d)
                 [[ $action == cycle ]] && __check_args "direction_cycle=$OPTARG"
-                [[ $action == __check_moving ]] && __check_args "direction_moving=$OPTARG"
                 ;;
         k)
                 stack=stack
@@ -307,40 +527,39 @@ do
                 ;;
         w)
                 [[ $action == cycle ]] && __check_args "entity_cycle=window"
-                [[ $action == __check_moving || $action == __check_sizing ]] && __check_args "entity=window"
                 ;;
         o)
-                __check_args "action=__focus_toggle" "direction_focus=$OPTARG"
+                __check_args "action=focus-toggle" "direction_focus=$OPTARG"
                 ;;
         h)
-                action=__help
+                action=help
                 ;;
         v)
-                action=__version
+                action=version
                 ;;
         L)
-                __check_args "action=layout_abbrev" && __build_layout_abbrev "$OPTARG"
+                __check_args "action=layout-abbrev" && __build_layout_abbrev "$OPTARG"
                 ;;
         l)
                 action=layout
                 ((reg_number++))
                 ;;
         H)
-                action=__check_hiding
+                action=hide
                 hide_action=add
                 ;;
         U)
-                action=__check_hiding
+                action=hide
                 hide_action=remove
                 ;;
         c)
-                action=__check_closing
+                action=close
                 ;;
         M)
-                action=__check_move_to_desk
+                action=move-to-desk
                 ;;
         f)
-                action=__check_focusing
+                action=focus
                 ;;
         D)
                 __check_args "desk_target=$OPTARG"
@@ -351,9 +570,6 @@ do
         e)
                 __check_args "entity_size=$OPTARG"
                 [[ $action == layout ]] && layout[${region_selection}:entity_region]=$entity_size
-                ;;
-        R)
-                __check_args "reference=$OPTARG"
                 ;;
         g)
                 __check_args "geo=$OPTARG"
@@ -394,7 +610,7 @@ done
 [[ $XWINREG_INPUT_FILE ]] &&
 {
     file_input=$XWINREG_INPUT_FILE
-    __src_script check_variables_input
+
     if [[ $XWINREG_INPUT_FILE == - ]]
     then
         if [[ -p /dev/stdin ]]
@@ -428,55 +644,52 @@ fi
 
 unset -v arg args delim opt
 
-if [[ $action ]]
-then
-    case $action in
-        layout|layout_abbrev)
-                ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-                unset -v action
-                __src_script calculating mktmp
-                __calculating
-                __mktmp
-                ${src_dir}/xwinreg_check_region "$file_tmp" && exit 0
-                ;;
-        __focus_toggle)
-                unset -v action
-                ${src_dir}/xwinreg_focus_toggle "$file_tmp" "$direction_focus" && exit 0
-                ;;
-        cycle)
-                unset -v action
-                ${src_dir}/xwinreg_cycle "$entity_cycle" "$file_tmp" "$region_selection" "$direction_cycle" "$stack" "$join" && exit 0
-                ;;
-        __check_closing)
-                unset -v action
-                ${src_dir}/xwinreg_close "$file_tmp" "$region_selection" && exit 0
-                ;;
-        __check_hiding)
-                unset -v action
-                ${src_dir}/xwinreg_hide "$file_tmp" "$region_selection" "$hide_action" && exit 0
-                ;;
-        __check_focusing)
-                unset -v action
-                ${src_dir}/xwinreg_focus "$file_tmp" "$region_selection" && exit 0
-                ;;
-        __check_move_to_desk)
-                unset -v action
-                ${src_dir}/xwinreg_move_to_desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target" && exit 0
-                ;;
-        __help)
-                __src_script help
-                __help && exit 0
-                ;;
-        __version)
-                __src_script version
-                __version && exit 0
-                ;;
-        *)
-                __src_script calculating "${action#__*}"
-                __calculating
-                ${action} && exit 0
-                ;;
-    esac
-else
-    { echo "No action spezified." >&2 ; exit 1 ; }
-fi
+case $action in
+    close)
+            ${src_dir}/xwinreg-close "$file_tmp" "$region_selection" && ${src_dir}/xwinreg-layout "$file_tmp"
+            ;;
+    cycle)
+            ${src_dir}/xwinreg-cycle "$entity_cycle" "$file_tmp" "$region_selection" "$direction_cycle" "$stack" "$join"
+            ${src_dir}/xwinreg-layout "$file_tmp"
+            ;;
+    focus)
+            ${src_dir}/xwinreg-focus "$file_tmp" "$region_selection"
+            ;;
+    focus-toggle)
+            ${src_dir}/xwinreg-focus-toggle "$file_tmp" "$direction_focus"
+            ;;
+    help)
+            __help
+            ;;
+    hide)
+            ${src_dir}/xwinreg-hide "$file_tmp" "$region_selection" "$hide_action"
+            ;;
+    layout|layout-abbrev)
+            ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
+            __calculating
+            fgrep -v -e "$vars_base" < <(set -o posix ; set) |
+            egrep -v -e "^vars_base=" \
+                     -e "^BASH_REMATCH=" \
+                     -e "^OPTIND=" \
+                     -e "^REPLY=" \
+                     -e "^BASH_LINENO=" \
+                     -e "^BASH_SOURCE=" \
+                     -e "^FUNCNAME=" \
+                     -e "^action=" \
+                     > "$file_tmp"
+            ${src_dir}/xwinreg-layout "$file_tmp"
+            ;;
+    move-to-desk)
+            ${src_dir}/xwinreg-move-to-desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target"
+            ;;
+    version)
+            __version && exit 0
+            ;;
+    *)
+            { echo "No valid action spezified." >&2 ; exit 1 ; }
+            ;;
+esac
+
+#unset -v action
+
+exit 0

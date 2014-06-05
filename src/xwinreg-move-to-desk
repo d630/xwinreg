@@ -103,19 +103,19 @@ __check_move_to_desk()
 
     [[ $switch_to_desk_target == switch_to_desk_target ]] && wmctrl -i -a "${win_xid_selection[0]}"
 
-    unset -v \
-         reg_index \
-         win_xid_selection \
-         i \
-         j \
-         k \
-         region_selection \
-         switch_to_desk_target \
-         desk_target \
-         desk_curr \
-         desk_number \
-         desk_numbers \
-         desk_names
+    #~ unset -v \
+         #~ reg_index \
+         #~ win_xid_selection \
+         #~ i \
+         #~ j \
+         #~ k \
+         #~ region_selection \
+         #~ switch_to_desk_target \
+         #~ desk_target \
+         #~ desk_curr \
+         #~ desk_number \
+         #~ desk_numbers \
+         #~ desk_names
 }
 
 __order_num_asc_array()

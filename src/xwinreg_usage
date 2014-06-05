@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-__usage()
-{
-    printf 'xwinreg
-        [-F]
-        [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-        (-c|-f|-H|-h|[-l ...|-L...]|-M|-U|-v|-y)'
-}

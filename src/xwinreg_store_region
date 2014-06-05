@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-__store_region()
-{
-    win_regions[${i}:win_xids]="${win_regions[${i}:win_xids]}${win} "
-    win_regions[${i}:win_xids_number]=$win_region_number
-    win_regions[${i}:x_y_w_h]="${win_regions[${i}:x_y_w_h]}${x},${y},${w},${h} "
-}

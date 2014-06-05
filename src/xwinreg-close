@@ -154,7 +154,7 @@ layout[${l}:region_geo]=\"${layout[${l}:region_geo]}\"" >> "$file_tmp"
              #~ m \
              #~ delete_win_active
 
-   ((${#win_xid[@]} != 0)) && ${src_dir}/xwinreg_check_region "$file_tmp"
+   ((${#win_xid[@]} != 0))
 }
 
 __order_num_asc_array()

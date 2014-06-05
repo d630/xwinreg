@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-__get_region_active() { read -r -a region_active < <(sed -n "/win_xid_region_/ s/win_xid_region_\(.*\)=.*${win_active:2}.*/\1/ p" "$file_tmp") ; }

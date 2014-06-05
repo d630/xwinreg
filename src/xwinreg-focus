@@ -68,7 +68,7 @@ __check_focusing()
          #~ win_xid_selection \
          #~ i \
          #~ j \
-         #~ region_selection \
+         #~ region_selection
 }
 
 __order_num_asc_array()
