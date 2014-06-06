@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+
+# -- DEBUGGING.
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+
+# -- SETTINGS.
+
+declare vars_base=$(set -o posix ; set)
+
+# -- FUNCTIONS.
+
+__check_variables_input()
+{
+    if [[ $1 =~ ^(desk_curr|win_active|win_active_frame_extents|win_active_tags|win_number|desk_select|win_active_geo_x_y|win_active_geo_w_h|win_xid|win_geo_x_y|win_geo_w_h|win_frame_extents|win_tags)=.*$ ]]
+    then
+        eval "$1"
+    else
+        { echo "Irregular variable inside input." >&2 ; exit 1 ; }
+    fi
+}
+
+# -- MAIN.
+
+declare \
+        file_input= \
+        file_tmp= \
+        opt=
+
+while getopts :I:T: opt
+do
+    case $opt in
+        I)
+                if [[ ! $OPTARG =~ -.+ ]]
+                then
+                    XWINREG_INPUT_FILE=$OPTARG
+                else
+                    { printf '%s\n' "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+                fi
+                ;;
+        T)
+                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        \?)
+                { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                ;;
+        \:)
+                { printf '%s\n' "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                ;;
+    esac
+done
+
+if [[ $XWINREG_INPUT_FILE ]]
+then
+    file_input=$XWINREG_INPUT_FILE
+
+    if [[ $XWINREG_INPUT_FILE == - ]]
+    then
+        if [[ -p /dev/stdin ]]
+        then
+            while read -r
+            do
+                __check_variables_input "$REPLY"
+            done
+        else
+            { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
+        fi
+    else
+        if [[ -p $XWINREG_INPUT_FILE || -f $XWINREG_INPUT_FILE ]]
+        then
+            while read -r
+            do
+                __check_variables_input "$REPLY"
+            done < "$XWINREG_INPUT_FILE"
+        else
+            { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
+        fi
+    fi
+else
+    { echo "Input file is not set." >&2 ; exit 1 ; }
+fi
+
+if [[ $XWINREG_TMP_FILE ]]
+then
+    file_tmp=$XWINREG_TMP_FILE
+else
+    file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
+fi
+
+unset -v opt
+
+fgrep -v -e "$vars_base" < <(set -o posix ; set) |
+egrep -v -e "^BASH_REMATCH=" \
+         -e "^OPTIND=" \
+         -e "^REPLY=" \
+         -e "^BASH_LINENO=" \
+         -e "^BASH_SOURCE=" \
+         -e "^FUNCNAME=" \
+         > "$file_tmp"
+
+exit 0

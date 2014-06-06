@@ -3,7 +3,7 @@
 # Frame has same size as workarea.
 # Tmp File will be written to $HOME.
 
-XWINREG_TMP_FILE=$HOME/.xwinreg_default.tmp
+XWINREG_TMP_FILE=${HOME}/.xwinreg_default.tmp
 #XWINREG_INPUT_FILE=
 
 workarea_x=0

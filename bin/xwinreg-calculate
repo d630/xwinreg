@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+
+# -- DEBUGGING.
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+
+# -- SETTINGS.
+
+declare vars_base=$(set -o posix ; set)
+
+# -- FUNCTIONS.
+
+__calculating()
+{
+    # Check, if geo of workarea is manually set; if not, we use __NET_WORKAREA instead.
+    declare -a workarea=()
+    read -a workarea < <(xprop -root -notype _NET_WORKAREA) &&
+            workarea=(${workarea[@]//,}) &&
+            workarea=(${workarea[@]:2})
+    declare workarea_x=${workarea_x:-${workarea[0]}} \
+            workarea_y=${workarea_y:-${workarea[1]}} \
+            workarea_w=${workarea_width:-${workarea[2]}} \
+            workarea_h=${workarea_height:-${workarea[3]}}
+
+    # Check, if frame aliases have been set in a Conf File.
+    if declare -f __calculating_frame_alias > /dev/null
+    then
+        __calculating_frame_alias
+    else
+        declare -A frames
+    fi
+
+    # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
+    frames[northwest]=${frames[northwest]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))}
+    frames[north]=${frames[north]:-$workarea_x $workarea_y $workarea_w $((workarea_h/2))}
+    frames[northeast]=${frames[northeast]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))}
+    frames[east]=${frames[east]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h}
+    frames[southeast]=${frames[southeast]:-$((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
+    frames[south]=${frames[south]:-$workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2))}
+    frames[southwest]=${frames[southwest]:-$workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
+    frames[west]=${frames[west]:-$workarea_x $workarea_y $((workarea_w/2)) $workarea_h}
+    frames[all]=${frames[all]:-$workarea_x $workarea_y $workarea_w $workarea_h}
+
+    if [[ $frame_alias ]]
+    then
+        declare -a frame_geo=(${frames[$frame_alias]})
+        declare frame_x=${frame_x:-${frame_geo[0]}} \
+                frame_y=${frame_y:-${frame_geo[1]}} \
+                frame_w=${frame_width:-${frame_geo[2]}} \
+                frame_h=${frame_height:-${frame_geo[3]}}
+    else
+        declare frame_x=${frame_x:-$workarea_x} \
+                frame_y=${frame_y:-$workarea_y} \
+                frame_w=${frame_width:-$workarea_w} \
+                frame_h=${frame_height:-$workarea_h}
+    fi
+
+    # To simplify matters, we alias frames geo to x,y,w and h.
+    declare x=$frame_x \
+            y=$frame_y \
+            w=$frame_w \
+            h=$frame_h
+
+    # Check, if region aliases have been set in a Conf File.
+    if declare -f __calculating_region_alias > /dev/null
+    then
+        __calculating_region_alias
+    else
+        declare -A regions
+    fi
+
+    # We use these aliases for regions geo. We also check, if aliases with same names have been set manually.
+    regions[northwest]=${regions[northwest]:-$x $y $((w/2)) $((h/2))}
+    regions[north]=${regions[north]:-$x $y $w $((h/2))}
+    regions[northeast]=${regions[northeast]:-$((x+w/2)) $y $((w/2)) $((h/2))}
+    regions[east]=${regions[east]:-$((x+w/2)) $y $((w/2)) $h}
+    regions[southeast]=${regions[southeast]:-$((x+w/2)) $((y+h/2)) $((w/2)) $((h/2))}
+    regions[south]=${regions[south]:-$x $((y+h/2)) $w $((h/2))}
+    regions[southwest]=${regions[southwest]:-$x $((y+h/2)) $((w/2)) $((h/2))}
+    regions[west]=${regions[west]:-$x $y $((w/2)) $h}
+    regions[all]=${regions[all]:-$x $y $w $h}
+
+    # Here we declare row and column number, which are needed to perform grid layouting.
+    declare row_number=${row_number:-2} \
+            col_number=${col_number:-2}
+
+    unset -v \
+            workarea_width \
+            workarea_height \
+            frame_width \
+            frame_height
+
+    fgrep -v -e "$vars_base" < <(set -o posix ; set) |
+    egrep -v -e "^BASH_REMATCH=" \
+             -e "^OPTIND=" \
+             -e "^REPLY=" \
+             -e "^BASH_LINENO=" \
+             -e "^BASH_SOURCE=" \
+             -e "^FUNCNAME=" \
+             >> "$file_tmp"
+}
+
+__check_args()
+{
+    declare o=
+    if [[ ! $OPTARG =~ -.+ ]]
+    then
+        for o
+        do
+            declare -g "$o"
+        done
+    else
+        { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+    fi
+}
+
+declare \
+        col_number= \
+        file_conf= \
+        file_tmp= \
+        frame_alias= \
+        frame_height= \
+        frame_width= \
+        frame_x= \
+        frame_y= \
+        opt= \
+        row_number= \
+        workarea_height= \
+        workarea_width= \
+        workarea_x= \
+        workarea_y=
+
+while getopts :1:2:3:4:5:6:7:8:a:C:n:N:T: opt
+do
+    case $opt in
+        C)  __check_args "XWINREG_CONF_FILE=$OPTARG" ; break ;;
+        *)  : ;;
+    esac
+done
+
+OPTIND=1
+opt=
+
+[[ $XWINREG_CONF_FILE ]] &&
+{
+    if [[ -f $XWINREG_CONF_FILE ]]
+    then
+        file_conf=$XWINREG_CONF_FILE
+        source "$XWINREG_CONF_FILE"
+    else
+        { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
+    fi
+}
+
+while getopts :1:2:3:4:5:6:7:8:a:C:n:N:T: opt
+do
+    case $opt in
+        1)
+                __check_args "frame_width=$OPTARG"
+                ;;
+        2)
+                __check_args "frame_height=$OPTARG"
+                ;;
+        3)
+                __check_args "frame_x=$OPTARG"
+                ;;
+        4)
+                __check_args "frame_y=$OPTARG"
+                ;;
+        5)
+                __check_args "workarea_x=$OPTARG"
+                ;;
+        6)
+                __check_args "workarea_y=$OPTARG"
+                ;;
+        7)
+                __check_args "workarea_width=$OPTARG"
+                ;;
+        8)
+                __check_args "workarea_height=$OPTARG"
+                ;;
+        a)
+                __check_args "frame_alias=$OPTARG"
+                ;;
+        C)
+                :
+                ;;
+        n)
+                __check_args "row_number=$OPTARG"
+                ;;
+        N)
+                __check_args "col_number=$OPTARG"
+                ;;
+        T)
+                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        \?)
+                { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
+                ;;
+        \:)
+                { printf '%s\n' "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
+                ;;
+    esac
+done
+
+unset -v opt
+
+if [[ $XWINREG_TMP_FILE ]]
+then
+    file_tmp=$XWINREG_TMP_FILE
+else
+    file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
+fi
+
+__calculating
+
+exit 0

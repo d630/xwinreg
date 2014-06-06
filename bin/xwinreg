@@ -13,11 +13,11 @@
 
 # -- SETTINGS.
 
-declare vars_base=$(set -o posix ; set)
+#declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
-__version() { echo "0.1.8.4" ; }
+__version() { echo "0.1.9.0" ; }
 
 __usage()
 {
@@ -128,127 +128,17 @@ ARGUMENTS
 "
 }
 
-__calculating()
-{
-    # Check, if geo of workarea is manually set; if not, we use __NET_WORKAREA instead.
-    declare -ga workarea=()
-    read -a workarea < <(xprop -root -notype _NET_WORKAREA) &&
-            workarea=(${workarea[@]//,}) &&
-            workarea=(${workarea[@]:2})
-    declare -g workarea_x=${workarea_x:-${workarea[0]}} \
-               workarea_y=${workarea_y:-${workarea[1]}} \
-               workarea_w=${workarea_width:-${workarea[2]}} \
-               workarea_h=${workarea_height:-${workarea[3]}}
-
-    # Check, if frame aliases have been set in a Conf File.
-    if declare -f __calculating_frame_alias > /dev/null
-    then
-        __calculating_frame_alias
-    else
-        declare -gA frames
-    fi
-
-    # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
-    #declare -gA frame
-    frames[northwest]=${frames[northwest]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))}
-    frames[north]=${frames[north]:-$workarea_x $workarea_y $workarea_w $((workarea_h/2))}
-    frames[northeast]=${frames[northeast]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))}
-    frames[east]=${frames[east]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h}
-    frames[southeast]=${frames[southeast]:-$((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
-    frames[south]=${frames[south]:-$workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2))}
-    frames[southwest]=${frames[southwest]:-$workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
-    frames[west]=${frames[west]:-$workarea_x $workarea_y $((workarea_w/2)) $workarea_h}
-    frames[all]=${frames[all]:-$workarea_x $workarea_y $workarea_w $workarea_h}
-
-    if [[ $frame_alias ]]
-    then
-        declare -a frame_geo=(${frames[$frame_alias]})
-        declare -g frame_x=${frame_x:-${frame_geo[0]}} \
-                   frame_y=${frame_y:-${frame_geo[1]}} \
-                   frame_w=${frame_width:-${frame_geo[2]}} \
-                   frame_h=${frame_height:-${frame_geo[3]}}
-    else
-        declare -g frame_x=${frame_x:-$workarea_x} \
-                   frame_y=${frame_y:-$workarea_y} \
-                   frame_w=${frame_width:-$workarea_w} \
-                   frame_h=${frame_height:-$workarea_h}
-    fi
-
-    # To simplify matters, we alias frames geo to x,y,w and h.
-    declare -g x=$frame_x \
-               y=$frame_y \
-               w=$frame_w \
-               h=$frame_h
-
-    # Check, if region aliases have been set in a Conf File.
-    if declare -f __calculating_region_alias > /dev/null
-    then
-        __calculating_region_alias
-    else
-        declare -gA regions
-    fi
-
-    # We use these aliases for regions geo. We also check, if aliases with same names have been set manually.
-    regions[northwest]=${regions[northwest]:-$x $y $((w/2)) $((h/2))}
-    regions[north]=${regions[north]:-$x $y $w $((h/2))}
-    regions[northeast]=${regions[northeast]:-$((x+w/2)) $y $((w/2)) $((h/2))}
-    regions[east]=${regions[east]:-$((x+w/2)) $y $((w/2)) $h}
-    regions[southeast]=${regions[southeast]:-$((x+w/2)) $((y+h/2)) $((w/2)) $((h/2))}
-    regions[south]=${regions[south]:-$x $((y+h/2)) $w $((h/2))}
-    regions[southwest]=${regions[southwest]:-$x $((y+h/2)) $((w/2)) $((h/2))}
-    regions[west]=${regions[west]:-$x $y $((w/2)) $h}
-    regions[all]=${regions[all]:-$x $y $w $h}
-
-    # Here we declare row and column number, which are needed to perform grid layouting.
-    declare -g row_number=${row_number:-2} \
-               col_number=${col_number:-2}
-
-    unset -v \
-            workarea_width \
-            workarea_height \
-            frame_width \
-            frame_height
-}
-
 __check_args()
 {
-    declare o
-    if [[ ! $OPTARG = -* ]]
+    declare o=
+    if [[ ! $OPTARG =~ -.+ ]]
     then
         for o
         do
-            declare -g "$o"
+            declare -gr "$o"
         done
     else
         { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
-    fi
-}
-
-__build_layout_abbrev()
-{
-    declare l_l= l_r=
-    [[ $1 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] &&
-    {
-        IFS=: read -r l_l l_r <<< "$1"
-        set -- ${l_l//,/ }
-        layout[${1}:region_number]=$1
-        layout[${1}:win_number_maximum]=$2
-        layout[${1}:layout_action]=$3
-        layout[${1}:entity_region]=$4
-        layout[${1}:gravity]=${l_r%%,*}
-        layout[${1}:region_geo]=${l_r#*,}
-
-        ((reg_number++))
-    }
-}
-
-__check_variables_input()
-{
-    if [[ $1 =~ ^(desk_curr|win_active|win_active_frame_extents|win_active_tags|win_number|desk_select|win_active_geo_x_y|win_active_geo_w_h|win_xid|win_geo_x_y|win_geo_w_h|win_frame_extents|win_tags)=.*$ ]]
-    then
-        eval "$1"
-    else
-        { echo "Irregular variable inside input." >&2 ; exit 1 ; }
     fi
 }
 
@@ -265,158 +155,61 @@ for arg
 do
     arg=${arg#--}
     case $arg in
-        input-file=*)
-                args="${args}-I ${arg#*=} "
-                ;;
-        conf-file=*)
-                args="${args}-C ${arg#*=} "
-                ;;
-        tmp-file=*)
-                args="${args}-T ${arg#*=} "
-                ;;
-        number-of-rows=*)
-                args="${args}-n ${arg#*=} "
-                ;;
-        number-of-cols=*)
-                args="${args}-N ${arg#*=} "
-                ;;
-        frame-alias=*)
-                args="${args}-a ${arg#*=} "
-                ;;
-        frame-width=*)
-                args="${args}-1 ${arg#*=} "
-                ;;
-        -fw)
-                args="${args}-1 "
-                ;;
-        frame-height=*)
-                args="${args}-2 ${arg#*=} "
-                ;;
-        -fh)
-                args="${args}-2 "
-                ;;
-        frame-x=*)
-                args="${args}-3 ${arg#*=} "
-                ;;
-        -fx)
-                args="${args}-3 "
-                ;;
-        frame-y=*)
-                args="${args}-4 ${arg#*=} "
-                ;;
-        -fy)
-                args="${args}-4 "
-                ;;
-        workarea-x=*)
-                args="${args}-5 ${arg#*=} "
-                ;;
-        -wx)
-                args="${args}-5 "
-                ;;
-        workarea-y=*)
-                args="${args}-6 ${arg#*=} "
-                ;;
-        -wy)
-                args="${args}-6 "
-                ;;
-        workarea-width=*)
-                args="${args}-7 ${arg#*=} "
-                ;;
-        -ww)
-                args="${args}-7 "
-                ;;
-        workarea-height=*)
-                args="${args}-8 ${arg#*=} "
-                ;;
-        -wh)
-                args="${args}-8 "
-                ;;
-        cycle)
-                args="${args}-y "
-                ;;
-        region=*)
-                args="${args}-r ${arg#*=} "
-                ;;
-        direction=*)
-                args="${args}-d ${arg#*=} "
-                ;;
-        stack)
-                args="${args}-k "
-                ;;
-        join)
-                args="${args}-j "
-                ;;
-        window)
-                args="${args}-w "
-                ;;
-        focus-toggle=*)
-                args="${args}-o ${arg#*=} "
-                ;;
-        help)
-                args="${args}-h "
-                ;;
-        version)
-                args="${args}-v "
-                ;;
-        layout-abbrev=*)
-                args="${args}-L ${arg#*=} "
-                ;;
-        layout)
-                args="${args}-l "
-                ;;
-        hide)
-                args="${args}-H "
-                ;;
-        close)
-                args="${args}-c "
-                ;;
-        move-to-desk)
-                args="${args}-M "
-                ;;
-        focus)
-                args="${args}-f "
-                ;;
-        desk)
-                args="${args}-D ${arg#*=} "
-                ;;
-        switch)
-                args="${args}-W "
-                ;;
-        entity)
-                args="${args}-e ${arg#*=} "
-                ;;
-        geo)
-                args="${args}-g ${arg#*=} "
-                ;;
-        maximum)
-                args="${args}-x ${arg#*=} "
-                ;;
-        gravity)
-                args="${args}-G ${arg#*=} "
-                ;;
-        action)
-                args="${args}-A ${arg#*=} "
-                ;;
-        "")
-                args="${args}-- "
-                ;;
-       *)
-                [[ ${arg:0:1} != - ]] && delim='"'
-                args="${args}${delim}${arg}${delim} "
-                delim=
-                ;;
+        action)             args="${args}-A ${arg#*=} "             ;;
+        "")                 args="${args}-- "                       ;;
+        close)              args="${args}-c "                       ;;
+        conf-file=*)        args="${args}-C ${arg#*=} "             ;;
+        cycle)              args="${args}-y "                       ;;
+        desk)               args="${args}-D ${arg#*=} "             ;;
+        direction=*)        args="${args}-d ${arg#*=} "             ;;
+        entity)             args="${args}-e ${arg#*=} "             ;;
+        -fh)                args="${args}-2 "                       ;;
+        focus)              args="${args}-f "                       ;;
+        focus-toggle)       args="${args}-o "                       ;;
+        frame-alias=*)      args="${args}-a ${arg#*=} "             ;;
+        frame-height=*)     args="${args}-2 ${arg#*=} "             ;;
+        frame-width=*)      args="${args}-1 ${arg#*=} "             ;;
+        frame-x=*)          args="${args}-3 ${arg#*=} "             ;;
+        frame-y=*)          args="${args}-4 ${arg#*=} "             ;;
+        -fw)                args="${args}-1 "                       ;;
+        -fx)                args="${args}-3 "                       ;;
+        -fy)                args="${args}-4 "                       ;;
+        geo)                args="${args}-g ${arg#*=} "             ;;
+        gravity)            args="${args}-G ${arg#*=} "             ;;
+        help)               args="${args}-h "                       ;;
+        hide)               args="${args}-H "                       ;;
+        input-file=*)       args="${args}-I ${arg#*=} "             ;;
+        join)               args="${args}-j "                       ;;
+        layout-abbrev=*)    args="${args}-L ${arg#*=} "             ;;
+        layout)             args="${args}-l "                       ;;
+        maximum)            args="${args}-x ${arg#*=} "             ;;
+        move-to-desk)       args="${args}-M "                       ;;
+        number-of-cols=*)   args="${args}-N ${arg#*=} "             ;;
+        number-of-rows=*)   args="${args}-n ${arg#*=} "             ;;
+        region=*)           args="${args}-r ${arg#*=} "             ;;
+        stack)              args="${args}-k "                       ;;
+        switch)             args="${args}-W "                       ;;
+        tmp-file=*)         args="${args}-T ${arg#*=} "             ;;
+        version)            args="${args}-v "                       ;;
+        -wh)                args="${args}-8 "                       ;;
+        window)             args="${args}-w "                       ;;
+        workarea-height=*)  args="${args}-8 ${arg#*=} "             ;;
+        workarea-width=*)   args="${args}-7 ${arg#*=} "             ;;
+        workarea-x=*)       args="${args}-5 ${arg#*=} "             ;;
+        workarea-y=*)       args="${args}-6 ${arg#*=} "             ;;
+        -ww)                args="${args}-7 "                       ;;
+        -wx)                args="${args}-5 "                       ;;
+        -wy)                args="${args}-6 "                       ;;
+        *)                  [[ ${arg:0:1} != - ]] && delim=\"
+                            args="${args}${arg} "
+                            delim=
+                            ;;
     esac
 done
 
 declare \
         action= \
         col_number= \
-        desk_curr= \
-        desk_target= \
-        direction_cycle= \
-        direction_focus= \
-        entity_cycle= \
-        entity_size= \
         file_conf= \
         file_input= \
         file_tmp= \
@@ -425,256 +218,106 @@ declare \
         frame_width= \
         frame_x= \
         frame_y= \
-        geo= \
-        gravity= \
-        hide_action= \
-        join= \
-        layout_action= \
-        region_selection= \
-        reg_number=0 \
+        opt= \
         row_number= \
-        stack= \
-        switch_to_desk_target= \
-        win_active= \
-        win_active_frame_extents= \
-        win_active_tags= \
-        win_number= \
-        win_number_maximum= \
         workarea_height= \
         workarea_width= \
         workarea_x= \
         workarea_y=
 
-declare -a \
-        desk_select=() \
-        win_active_geo_w_h=() \
-        win_active_geo_x_y=() \
-        win_frame_extents=() \
-        win_geo_w_h=() \
-        win_geo_x_y=() \
-        win_tags=() \
-        win_xid=()
-
-declare -A layout
-
 eval set -- $args
-declare opt=
 
-while getopts :I:C:T:n:N:a:1:2:3:4:5:6:7:8:yr:d:kjwohvL:lHcMfD:We:g:x:G:A: opt
+while getopts :1:2:3:4:5:6:7:8:a:A:cC:d:D:e:fg:G:hHI:jklLm:Mn:N:or:T:vwWx:y opt $args
 do
     case $opt in
-        I)
-                if [[ ! $OPTARG =~ -.+ ]]
-                then
-                    XWINREG_INPUT_FILE=$OPTARG
-                else
-                    { printf '%s\n' "Option -${opt} requires an argument." >&2 ; exit 1 ; }
-                fi
-                ;;
-        C)
-                __check_args "XWINREG_CONF_FILE=$OPTARG"
-                ;;
-        T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
-                ;;
-        n)
-                __check_args "row_number=$OPTARG"
-                ;;
-        N)
-                __check_args "col_number=$OPTARG"
-                ;;
-        a)
-                __check_args "frame_alias=$OPTARG"
-                ;;
-        1)
-                __check_args "frame_width=$OPTARG"
-                ;;
-        2)
-                __check_args "frame_height=$OPTARG"
-                ;;
-        3)
-                __check_args "frame_x=$OPTARG"
-                ;;
-        4)
-                __check_args "frame_y=$OPTARG"
-                ;;
-        5)
-                __check_args "workarea_x=$OPTARG"
-                ;;
-        6)
-                __check_args "workarea_y=$OPTARG"
-                ;;
-        7)
-                __check_args "workarea_width=$OPTARG"
-                ;;
-        8)
-                __check_args "workarea_height=$OPTARG"
-                ;;
-        y)
-                action=cycle
-                ;;
-        r)
-                __check_args "region_selection=$OPTARG"
-                [[ $action == layout ]] && layout[${region_selection}:region_number]=$region_selection
-                ;;
-        d)
-                [[ $action == cycle ]] && __check_args "direction_cycle=$OPTARG"
-                [[ $action == focus-toggle ]] && __check_args "direction_focus=$OPTARG"
-                ;;
-        k)
-                stack=stack
-                ;;
-        j)
-                join=join
-                ;;
-        w)
-                [[ $action == cycle ]] && entity_cycle=window
-                ;;
-        o)
-                action=focus-toggle
-                ;;
-        h)
-                action=help
-                ;;
-        v)
-                action=version
-                ;;
-        L)
-                __check_args "action=layout-abbrev" && __build_layout_abbrev "$OPTARG"
-                ;;
-        l)
-                action=layout
-                ((reg_number++))
-                ;;
-        H)
-                action=hide
-                ;;
-        c)
-                action=close
-                ;;
-        M)
-                action=move-to-desk
-                ;;
-        f)
-                action=focus
-                ;;
-        D)
-                __check_args "desk_target=$OPTARG"
-                ;;
-        W)
-                switch_to_desk_target=switch_to_desk_target
-                ;;
-        e)
-                __check_args "entity_size=$OPTARG"
-                [[ $action == layout ]] && layout[${region_selection}:entity_region]=$entity_size
-                ;;
-        g)
-                __check_args "geo=$OPTARG"
-                [[ $action == layout ]] && layout[${region_selection}:region_geo]=$geo
-                ;;
-        x)
-                __check_args "win_number_maximum=$OPTARG"
-                layout[${region_selection}:win_number_maximum]=$win_number_maximum
-                ;;
-        G)
-                __check_args "gravity=$OPTARG"
-                layout[${region_selection}:gravity]=$gravity
-                ;;
-        A)
-                [[ $action == layout ]] && { __check_args "layout_action=$OPTARG" ; layout[${region_selection}:layout_action]=$layout_action ; }
-                [[ $action == hide ]] && __check_args "hide_action=$OPTARG"
-                ;;
-        \?)
-                { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
-                ;;
-        \:)
-                { printf '%s\n' "Option -${OPTARG} requires an argument." >&2 ; exit 1 ; }
-                ;;
+        a)      __check_args "frame_alias=$OPTARG" ;        shift 2 ;;
+        A|D|d|e|g|G|j|k|r|W|w|x) : ;                        shift 0 ;;
+        c)      action=close ;                              shift 1 ;;
+        C)      __check_args "XWINREG_CONF_FILE=$OPTARG" ;  shift 2 ;;
+        f)      action=focus ;                              shift 1 ;;
+        h)      action=help ;                               shift 1 ;;
+        H)      action=hide ;                               shift 1 ;;
+        I)      __check_args "XWINREG_INPUT_FILE=$OPTARG" ; shift 2 ;;
+        L)      action=layout-abbrev ;                      shift 0 ;;
+        l)      action=layout ;                             shift 0 ;;
+        M)      action=move-to-desk ;                       shift 1 ;;
+        N)      __check_args "col_number=$OPTARG" ;         shift 2 ;;
+        n)      __check_args "row_number=$OPTARG" ;         shift 2 ;;
+        o)      action=focus-toggle ;                       shift 1 ;;
+        T)      __check_args "XWINREG_TMP_FILE=$OPTARG" ;   shift 2 ;;
+        v)      action=version ;                            shift 1 ;;
+        y)      action=cycle ;                              shift 1 ;;
+        1)      __check_args "frame_width=$OPTARG" ;        shift 2 ;;
+        2)      __check_args "frame_height=$OPTARG" ;       shift 2 ;;
+        3)      __check_args "frame_x=$OPTARG" ;            shift 2 ;;
+        4)      __check_args "frame_y=$OPTARG" ;            shift 2 ;;
+        5)      __check_args "workarea_x=$OPTARG" ;         shift 2 ;;
+        6)      __check_args "workarea_y=$OPTARG" ;         shift 2 ;;
+        7)      __check_args "workarea_width=$OPTARG" ;     shift 2 ;;
+        8)      __check_args "workarea_height=$OPTARG" ;    shift 2 ;;
+        \?)     printf '%s\n' "Unknown flag: -${OPTARG}." >&2
+                exit 1                                              ;;
     esac
 done
 
 [[ $XWINREG_CONF_FILE ]] &&
 {
-    if [[ -f $XWINREG_CONF_FILE ]]
-    then
-        file_conf=$XWINREG_CONF_FILE
-        source "$XWINREG_CONF_FILE"
-    else
-        { echo "Conf File does not exist or is not a regular file." >&2 ; exit 1 ; }
-    fi
+    file_conf=$XWINREG_CONF_FILE
+    source "$file_conf" > /dev/null 2>&1
 }
 
 [[ $XWINREG_INPUT_FILE ]] &&
 {
     file_input=$XWINREG_INPUT_FILE
-
-    if [[ $XWINREG_INPUT_FILE == - ]]
+    if [[ $file_input == - ]]
     then
         if [[ -p /dev/stdin ]]
         then
             while read -r
             do
-                __check_variables_input "$REPLY"
-            done
+                printf '%s\n' "$REPLY"
+            done | xwinreg-id -I -
         else
             { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
         fi
     else
-        if [[ -p $XWINREG_INPUT_FILE || -f $XWINREG_INPUT_FILE ]]
+        if [[ -p $file_input || -f $file_input ]]
         then
-            while read -r
-            do
-                __check_variables_input "$REPLY"
-            done < "$XWINREG_INPUT_FILE"
+            xwinreg-id -I "$file_input"
         else
             { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
         fi
     fi
 }
 
-if [[ $XWINREG_TMP_FILE ]]
-then
-    file_tmp=$XWINREG_TMP_FILE
-else
-    file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
-fi
+file_tmp=${XWINREG_TMP_FILE:-"${TMPDIR:-/tmp}/xwinreg_default.tmp"}
 
 case $action in
     close)
-            xwinreg-close -T "$file_tmp" -r "$region_selection" && xwinreg-layout "$file_tmp"
+            xwinreg-close -T "$file_tmp" "$@" && xwinreg-layout -T "$file_tmp"
             ;;
     cycle)
-            xwinreg-cycle -T "$file_tmp" -r "$region_selection" -d "$direction_cycle" "${entity_cycle:+"-w"}" "${stack:+"-k"}" "${join:+"-j"}"
-            xwinreg-layout "$file_tmp"
+            xwinreg-cycle -T "$file_tmp" "$@"
+            xwinreg-layout -T "$file_tmp"
             ;;
     focus)
-            xwinreg-focus -T "$file_tmp" -r "$region_selection"
+            xwinreg-focus -T "$file_tmp" "$@"
             ;;
     focus-toggle)
-            xwinreg-focus-toggle -T "$file_tmp" -d "$direction_focus"
+            xwinreg-focus-toggle -T "$file_tmp" "$@"
             ;;
     help)
             __help
             ;;
     hide)
-            xwinreg-hide -T "$file_tmp" -r "$region_selection" -A "$hide_action"
+            xwinreg-hide -T "$file_tmp" "$@"
             ;;
     layout|layout-abbrev)
-            ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-            __calculating
-            fgrep -v -e "$vars_base" < <(set -o posix ; set) |
-            egrep -v -e "^BASH_REMATCH=" \
-                     -e "^OPTIND=" \
-                     -e "^REPLY=" \
-                     -e "^BASH_LINENO=" \
-                     -e "^BASH_SOURCE=" \
-                     -e "^FUNCNAME=" \
-                     -e "^action=" \
-                     > "$file_tmp"
-            xwinreg-layout "$file_tmp"
+            xwinreg-calculate -T "$file_tmp" ${file_conf:+-C${file_conf}} ${frame_alias:+-a${frame_alias}} ${frame_height:+-2${frame_height}} ${frame_width:+-1${frame_width}} ${frame_x:+-3${frame_x}} ${frame_y:+-4${frame_y}} ${workarea_height:+-8${workarea_height}} ${workarea_width:+-7${workarea_width}} ${workarea_x:+-5${workarea_x}} ${workarea_y:+-6${workarea_y}} ${col_number:+-N${col_number}} ${row_number:+-n${row_number}}
+            xwinreg-layout -T "$file_tmp" "$@"
             ;;
     move-to-desk)
-            xwinreg-move-to-desk -T "$file_tmp" -r "$region_selection" -D "$desk_target" "${switch_to_desk_target:+"-W"}"
+            xwinreg-move-to-desk -T "$file_tmp" "$@"
             ;;
     version)
             __version
@@ -685,10 +328,24 @@ case $action in
 esac
 
 #~ unset -v \
+         #~ action= \
          #~ arg \
          #~ args \
+         #~ col_number= \
          #~ delim \
-         #~ opt \
-         #~ action
+         #~ file_conf= \
+         #~ file_input= \
+         #~ file_tmp= \
+         #~ frame_alias= \
+         #~ frame_height= \
+         #~ frame_width= \
+         #~ frame_x= \
+         #~ frame_y= \
+         #~ opt= \
+         #~ row_number= \
+         #~ workarea_height= \
+         #~ workarea_width= \
+         #~ workarea_x= \
+         #~ workarea_y=
 
 exit 0
