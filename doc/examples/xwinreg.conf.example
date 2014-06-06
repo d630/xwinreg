@@ -21,7 +21,7 @@ row_number=2
 col_number=2
 
 # default frame-aliases.
-__calculating_frame_alias()
+__xwr_xwinreg_calculate_calculating_frame_alias()
 {
     declare -gA frames
 
@@ -38,7 +38,7 @@ __calculating_frame_alias()
 
 # To simplify matters, frames geo are aliased to x,y,w and h.
 # default region-aliases.
-__calculating_region_alias()
+__xwr_xwinreg_calculate_calculating_region_alias()
 {
     declare -gA regions
 

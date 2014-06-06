@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__cycle_window()
+__xwr_xwinreg_cycle_cycle_window()
 {
     declare \
             direction_cycle=$3 \
@@ -48,19 +48,19 @@ __cycle_window()
 
     case $direction_cycle in
         clock)
-                __cycle() { __clock "$@" ; }
+                __xwr_xwinreg_cycle_cycle() { __xwr_xwinreg_cycle_clock "$@" ; }
                 ;;
         anticlock)
-                __cycle() { __anticlock "$@" ; }
+                __xwr_xwinreg_cycle_cycle() { __xwr_xwinreg_cycle_anticlock "$@" ; }
                 ;;
         reverse)
-                __cycle() { __order_reverse_array "$@" ; }
+                __xwr_xwinreg_cycle_cycle() { __xwr_xwinreg_cycle_order_reverse_array "$@" ; }
                 ;;
     esac
 
     case $region_selection in
         all)
-                mapfile -t win_xid < <(__cycle "${win_xid[@]}")
+                mapfile -t win_xid < <(__xwr_xwinreg_cycle_cycle "${win_xid[@]}")
                 ;;
         active)
                 read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
@@ -70,7 +70,7 @@ __cycle_window()
                     then
                         win_xid_selection+=(${win_regions[${i}:win_xids]})
                     else
-                        win_xid_selection+=($(__cycle ${win_regions[${i}:win_xids]}))
+                        win_xid_selection+=($(__xwr_xwinreg_cycle_cycle ${win_regions[${i}:win_xids]}))
                     fi
                 done
                 win_xid=(${win_xid_selection[@]})
@@ -79,12 +79,12 @@ __cycle_window()
                 if [[ $join == join ]]
                 then
                     win_xid=()
-                    reg_sel=$(__order_num_asc_array $(__parse_region "$region_selection"))
+                    reg_sel=$(__xwr_xwinreg_cycle_order_num_asc_array $(__xwr_xwinreg_cycle_parse_region "$region_selection"))
                     for i in $reg_sel
                     do
                         win_xid_selection+=(${win_regions[${i}:win_xids]})
                     done
-                    win_xid_selection=($(__cycle ${win_xid_selection[@]}))
+                    win_xid_selection=($(__xwr_xwinreg_cycle_cycle ${win_xid_selection[@]}))
                     for j in $reg_sel
                     do
                         win_regions[${j}:win_xids]=
@@ -95,9 +95,9 @@ __cycle_window()
                     done
                     win_xid_selection=()
                 else
-                    for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                    for i in $(__xwr_xwinreg_cycle_order_num_asc_array $(__xwr_xwinreg_cycle_parse_region "$region_selection"))
                     do
-                        win_regions[${i}:win_xids]="$(__cycle ${win_regions[${i}:win_xids]})"
+                        win_regions[${i}:win_xids]="$(__xwr_xwinreg_cycle_cycle ${win_regions[${i}:win_xids]})"
                     done
                 fi
                 for ((m=1 ; m <= reg_number ; m++))
@@ -124,7 +124,7 @@ __cycle_window()
              #~ m=
 }
 
-__cycle_region()
+__xwr_xwinreg_cycle_cycle_region()
 {
     declare \
             direction_cycle=$2 \
@@ -147,13 +147,13 @@ __cycle_region()
 
     case $direction_cycle in
         clock)
-                __cycle() { __anticlock "$@" ; }
+                __xwr_xwinreg_cycle_cycle() { __xwr_xwinreg_cycle_anticlock "$@" ; }
                 ;;
         anticlock)
-                __cycle() { __clock "$@" ; }
+                __xwr_xwinreg_cycle_cycle() { __xwr_xwinreg_cycle_clock "$@" ; }
                 ;;
         reverse)
-                __cycle() { __order_reverse_array "$@" ; }
+                __xwr_xwinreg_cycle_cycle() { __xwr_xwinreg_cycle_order_reverse_array "$@" ; }
                 ;;
     esac
 
@@ -169,7 +169,7 @@ __cycle_region()
 layout[${i}:gravity]=$gravity
 layout[${i}:region_geo]=$region_geo" >> "$file_tmp"
             ((i++))
-        done < <(__cycle $(for ((j=1 ; j <= $reg_number ; j++)) ; do printf '%s\n' "${layout[${j}:entity_region]}:${layout[${j}:gravity]}:${layout[${j}:region_geo]}" ; done))
+        done < <(__xwr_xwinreg_cycle_cycle $(for ((j=1 ; j <= $reg_number ; j++)) ; do printf '%s\n' "${layout[${j}:entity_region]}:${layout[${j}:gravity]}:${layout[${j}:region_geo]}" ; done))
     else
         i=1
         while read -r
@@ -177,7 +177,7 @@ layout[${i}:region_geo]=$region_geo" >> "$file_tmp"
             printf '%s\n' "layout[${i}:region_geo]=${REPLY},${layout[${i}:region_geo]#*,*,}" >> "$file_tmp"
             #layout[${i}:region_geo]=${REPLY},${layout[${i}:region_geo]#*,*,}
             ((i++))
-        done < <(__cycle $(for ((j=1 ; j <= $reg_number ; j++)) ; do printf '%s\n' "${layout[${j}:region_geo]%,*,*}" ; done))
+        done < <(__xwr_xwinreg_cycle_cycle $(for ((j=1 ; j <= $reg_number ; j++)) ; do printf '%s\n' "${layout[${j}:region_geo]%,*,*}" ; done))
     fi
 
     sed -i -e "/^win_regions\[.*\]=.*/ d" "$file_tmp"
@@ -192,7 +192,7 @@ layout[${i}:region_geo]=$region_geo" >> "$file_tmp"
              #~ region_geo
 }
 
-__clock()
+__xwr_xwinreg_cycle_clock()
 {
     declare -a array=($@)
     declare i=
@@ -203,7 +203,7 @@ __clock()
     done
 }
 
-__anticlock()
+__xwr_xwinreg_cycle_anticlock()
 {
     declare -a array=($@)
     declare i=
@@ -214,7 +214,7 @@ __anticlock()
     printf '%s\n' "${array[0]}"
 }
 
-__order_reverse_array()
+__xwr_xwinreg_cycle_order_reverse_array()
 {
     declare -a array=($@)
     declare i=
@@ -224,7 +224,7 @@ __order_reverse_array()
     done
 }
 
-__order_num_asc_array()
+__xwr_xwinreg_cycle_order_num_asc_array()
 {
     declare -a array=($@)
     declare i= j= element=
@@ -239,7 +239,7 @@ __order_num_asc_array()
     printf '%s\n' "${array[@]}"
 }
 
-__parse_region()
+__xwr_xwinreg_cycle_parse_region()
 {
     declare -a args=()
     declare i= reg=$1
@@ -250,7 +250,7 @@ __parse_region()
     eval "printf '%s\n' "${args[@]}""
 }
 
-__check_args()
+__xwr_xwinreg_cycle_check_args()
 {
     declare o
     if [[ ! $OPTARG = -* ]]
@@ -279,7 +279,7 @@ while getopts :d:jkr:T:w opt
 do
     case $opt in
         d)
-                __check_args "direction_cycle=$OPTARG"
+                __xwr_xwinreg_cycle_check_args "direction_cycle=$OPTARG"
                 ;;
         j)
                 join=join
@@ -288,10 +288,10 @@ do
                 stack=stack
                 ;;
         r)
-                __check_args "region_selection=$OPTARG"
+                __xwr_xwinreg_cycle_check_args "region_selection=$OPTARG"
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_cycle_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         w)
                 entity_cycle=window
@@ -317,9 +317,9 @@ fi
 if [[ $entity_cycle == window ]]
 then
     [[ ! $region_selection ]] && { echo "No region specified." >&2 ; exit 1 ; }
-    __cycle_window "$file_tmp" "$region_selection" "$direction_cycle" "$join"
+    __xwr_xwinreg_cycle_cycle_window "$file_tmp" "$region_selection" "$direction_cycle" "$join"
 else
-    __cycle_region "$file_tmp" "$direction_cycle" "$stack"
+    __xwr_xwinreg_cycle_cycle_region "$file_tmp" "$direction_cycle" "$stack"
 fi
 
 #~ unset -v \

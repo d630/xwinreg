@@ -17,9 +17,9 @@
 
 # -- FUNCTIONS.
 
-__version() { echo "0.1.9.0" ; }
+__xwr_xwinreg_version() { echo "0.1.9.1" ; }
 
-__usage()
+__xwr_xwinreg_usage()
 {
     printf 'xwinreg
         [-I]
@@ -27,10 +27,10 @@ __usage()
         (-c|-f|-H|-h|[-l ...|-L ...]|-M|-v|-y)'
 }
 
-__help()
+__xwr_xwinreg_help()
 {
     printf "
-$(__usage)
+$(__xwr_xwinreg_usage)
 
 OPTIONS
 -------
@@ -128,7 +128,7 @@ ARGUMENTS
 "
 }
 
-__check_args()
+__xwr_xwinreg_check_args()
 {
     declare o=
     if [[ ! $OPTARG =~ -.+ ]]
@@ -144,7 +144,7 @@ __check_args()
 
 # -- MAIN.
 
-(($# == 0)) && { printf '%s\n' "USAGE: $(__usage)" >&2 ; exit 1 ; }
+(($# == 0)) && { printf '%s\n' "USAGE: $(__xwr_xwinreg_usage)" >&2 ; exit 1 ; }
 
 declare \
         arg= \
@@ -230,31 +230,31 @@ eval set -- $args
 while getopts :1:2:3:4:5:6:7:8:a:A:cC:d:D:e:fg:G:hHI:jklLm:Mn:N:or:T:vwWx:y opt $args
 do
     case $opt in
-        a)      __check_args "frame_alias=$OPTARG" ;        shift 2 ;;
-        A|D|d|e|g|G|j|k|r|W|w|x) : ;                        shift 0 ;;
-        c)      action=close ;                              shift 1 ;;
-        C)      __check_args "XWINREG_CONF_FILE=$OPTARG" ;  shift 2 ;;
-        f)      action=focus ;                              shift 1 ;;
-        h)      action=help ;                               shift 1 ;;
-        H)      action=hide ;                               shift 1 ;;
-        I)      __check_args "XWINREG_INPUT_FILE=$OPTARG" ; shift 2 ;;
-        L)      action=layout-abbrev ;                      shift 0 ;;
-        l)      action=layout ;                             shift 0 ;;
-        M)      action=move-to-desk ;                       shift 1 ;;
-        N)      __check_args "col_number=$OPTARG" ;         shift 2 ;;
-        n)      __check_args "row_number=$OPTARG" ;         shift 2 ;;
-        o)      action=focus-toggle ;                       shift 1 ;;
-        T)      __check_args "XWINREG_TMP_FILE=$OPTARG" ;   shift 2 ;;
-        v)      action=version ;                            shift 1 ;;
-        y)      action=cycle ;                              shift 1 ;;
-        1)      __check_args "frame_width=$OPTARG" ;        shift 2 ;;
-        2)      __check_args "frame_height=$OPTARG" ;       shift 2 ;;
-        3)      __check_args "frame_x=$OPTARG" ;            shift 2 ;;
-        4)      __check_args "frame_y=$OPTARG" ;            shift 2 ;;
-        5)      __check_args "workarea_x=$OPTARG" ;         shift 2 ;;
-        6)      __check_args "workarea_y=$OPTARG" ;         shift 2 ;;
-        7)      __check_args "workarea_width=$OPTARG" ;     shift 2 ;;
-        8)      __check_args "workarea_height=$OPTARG" ;    shift 2 ;;
+        a)      __xwr_xwinreg_check_args "frame_alias=$OPTARG" ;        shift 2 ;;
+        A|D|d|e|g|G|j|k|r|W|w|x) : ;                                    shift 0 ;;
+        c)      action=close ;                                          shift 1 ;;
+        C)      __xwr_xwinreg_check_args "XWINREG_CONF_FILE=$OPTARG" ;  shift 2 ;;
+        f)      action=focus ;                                          shift 1 ;;
+        h)      action=help ;                                           shift 1 ;;
+        H)      action=hide ;                                           shift 1 ;;
+        I)      __xwr_xwinreg_check_args "XWINREG_INPUT_FILE=$OPTARG" ; shift 2 ;;
+        L)      action=layout-abbrev ;                                  shift 0 ;;
+        l)      action=layout ;                                         shift 0 ;;
+        M)      action=move-to-desk ;                                   shift 1 ;;
+        N)      __xwr_xwinreg_check_args "col_number=$OPTARG" ;         shift 2 ;;
+        n)      __xwr_xwinreg_check_args "row_number=$OPTARG" ;         shift 2 ;;
+        o)      action=focus-toggle ;                                   shift 1 ;;
+        T)      __xwr_xwinreg_check_args "XWINREG_TMP_FILE=$OPTARG" ;   shift 2 ;;
+        v)      action=version ;                                        shift 1 ;;
+        y)      action=cycle ;                                          shift 1 ;;
+        1)      __xwr_xwinreg_check_args "frame_width=$OPTARG" ;        shift 2 ;;
+        2)      __xwr_xwinreg_check_args "frame_height=$OPTARG" ;       shift 2 ;;
+        3)      __xwr_xwinreg_check_args "frame_x=$OPTARG" ;            shift 2 ;;
+        4)      __xwr_xwinreg_check_args "frame_y=$OPTARG" ;            shift 2 ;;
+        5)      __xwr_xwinreg_check_args "workarea_x=$OPTARG" ;         shift 2 ;;
+        6)      __xwr_xwinreg_check_args "workarea_y=$OPTARG" ;         shift 2 ;;
+        7)      __xwr_xwinreg_check_args "workarea_width=$OPTARG" ;     shift 2 ;;
+        8)      __xwr_xwinreg_check_args "workarea_height=$OPTARG" ;    shift 2 ;;
         \?)     printf '%s\n' "Unknown flag: -${OPTARG}." >&2
                 exit 1                                              ;;
     esac
@@ -307,7 +307,7 @@ case $action in
             xwinreg-focus-toggle -T "$file_tmp" "$@"
             ;;
     help)
-            __help
+            __xwr_xwinreg_help
             ;;
     hide)
             xwinreg-hide -T "$file_tmp" "$@"
@@ -320,7 +320,7 @@ case $action in
             xwinreg-move-to-desk -T "$file_tmp" "$@"
             ;;
     version)
-            __version
+            __xwr_xwinreg_version
             ;;
     *)
             { echo "No valid action spezified." >&2 ; exit 1 ; }

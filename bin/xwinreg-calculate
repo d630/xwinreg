@@ -17,7 +17,7 @@ declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
-__calculating()
+__xwr_xwinreg_calculate_calculating()
 {
     # Check, if geo of workarea is manually set; if not, we use __NET_WORKAREA instead.
     declare -a workarea=()
@@ -30,9 +30,9 @@ __calculating()
             workarea_h=${workarea_height:-${workarea[3]}}
 
     # Check, if frame aliases have been set in a Conf File.
-    if declare -f __calculating_frame_alias > /dev/null
+    if declare -f __xwr_xwinreg_calculate_calculating_frame_alias > /dev/null
     then
-        __calculating_frame_alias
+        __xwr_xwinreg_calculate_calculating_frame_alias
     else
         declare -A frames
     fi
@@ -69,9 +69,9 @@ __calculating()
             h=$frame_h
 
     # Check, if region aliases have been set in a Conf File.
-    if declare -f __calculating_region_alias > /dev/null
+    if declare -f __xwr_xwinreg_calculate_calculating_region_alias > /dev/null
     then
-        __calculating_region_alias
+        __xwr_xwinreg_calculate_calculating_region_alias
     else
         declare -A regions
     fi
@@ -107,7 +107,7 @@ __calculating()
              >> "$file_tmp"
 }
 
-__check_args()
+__xwr_xwinreg_calculate_check_args()
 {
     declare o=
     if [[ ! $OPTARG =~ -.+ ]]
@@ -140,7 +140,7 @@ declare \
 while getopts :1:2:3:4:5:6:7:8:a:C:n:N:T: opt
 do
     case $opt in
-        C)  __check_args "XWINREG_CONF_FILE=$OPTARG" ; break ;;
+        C)  __xwr_xwinreg_calculate_check_args "XWINREG_CONF_FILE=$OPTARG" ; break ;;
         *)  : ;;
     esac
 done
@@ -163,43 +163,43 @@ while getopts :1:2:3:4:5:6:7:8:a:C:n:N:T: opt
 do
     case $opt in
         1)
-                __check_args "frame_width=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "frame_width=$OPTARG"
                 ;;
         2)
-                __check_args "frame_height=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "frame_height=$OPTARG"
                 ;;
         3)
-                __check_args "frame_x=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "frame_x=$OPTARG"
                 ;;
         4)
-                __check_args "frame_y=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "frame_y=$OPTARG"
                 ;;
         5)
-                __check_args "workarea_x=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "workarea_x=$OPTARG"
                 ;;
         6)
-                __check_args "workarea_y=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "workarea_y=$OPTARG"
                 ;;
         7)
-                __check_args "workarea_width=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "workarea_width=$OPTARG"
                 ;;
         8)
-                __check_args "workarea_height=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "workarea_height=$OPTARG"
                 ;;
         a)
-                __check_args "frame_alias=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "frame_alias=$OPTARG"
                 ;;
         C)
                 :
                 ;;
         n)
-                __check_args "row_number=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "row_number=$OPTARG"
                 ;;
         N)
-                __check_args "col_number=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "col_number=$OPTARG"
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_calculate_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         \?)
                 { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
@@ -219,6 +219,6 @@ else
     file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
 fi
 
-__calculating
+__xwr_xwinreg_calculate_calculating
 
 exit 0

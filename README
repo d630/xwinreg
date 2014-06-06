@@ -298,9 +298,9 @@ CONFIGURATIONS
 
        associativ array variables (you can use it with above
        variables). You need to set them inside a function called
-       __calculating_frame_alias respectively __calculating_region_alias
-       and declare it with 'declare -gA frames' respectively 'declare
-       -gA regions':
+       __xwr_xwinreg_calculate_calculating_frame_alias respectively
+       __xwr_xwinreg_calculate_calculating_region_alias and declare it
+       with 'declare -gA frames' respectively 'declare -gA regions':
 
               frames[ALIAS]="X Y W H"
               regions[ALIAS]="X Y W H"
@@ -367,4 +367,4 @@ SEE ALSO
        bc(1), bash(1), grep(1), sed(1), wmctrl(1), x(7), xprop(1),
        xwinpp(1)
 
-0.1.8.3                    2014-06-05                        XWINREG(1)
+0.1.9.1                    2014-06-06                        XWINREG(1)

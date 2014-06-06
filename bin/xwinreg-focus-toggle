@@ -17,10 +17,8 @@
 
 # -- FUNCTIONS.
 
-__focus_toggle()
+__xwr_xwinreg_focus_toggle_focus_toggle()
 {
-    (($# != 2)) && { echo "__focus_toogle needs tmp file and direction as arguments." >&2 ; exit 1 ; }
-
     declare \
             direction_focus=$2 \
             file_tmp=$1 \
@@ -62,7 +60,7 @@ __focus_toggle()
                 then
                     win=${win_xid[win_number-1]}
                 else
-                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(__order_reverse_array "${win_xid[@]}") | sed -n '$p')
+                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(__xwr_xwinreg_focus_toggle_order_reverse_array "${win_xid[@]}") | sed -n '$p')
                 fi
                 ;;
     esac
@@ -81,9 +79,9 @@ __focus_toggle()
     (
         w=$((${win_active_geo_w_h[0]%,*}*25/100))
         h=$((${win_active_geo_w_h[0]#*,}*25/100))
-        __do_wmctrl
+        __xwr_xwinreg_focus_toggle_do_wmctrl
     )
-    __do_wmctrl
+    __xwr_xwinreg_focus_toggle_do_wmctrl
 
     wmctrl -i -a "$win"
 
@@ -94,13 +92,13 @@ __focus_toggle()
     #~ unset -v xwininfo_win_active win
 }
 
-__do_wmctrl()
+__xwr_xwinreg_focus_toggle_do_wmctrl()
 {
     wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
     wmctrl -i -r "$win" -e "${gravity},${x},${y},${w},${h}"
 }
 
-__order_reverse_array()
+__xwr_xwinreg_focus_toggle_order_reverse_array()
 {
     declare -a array=($@)
     declare i=
@@ -110,7 +108,7 @@ __order_reverse_array()
     done
 }
 
-__check_args()
+__xwr_xwinreg_focus_toggle_check_args()
 {
     declare o
     if [[ ! $OPTARG = -* ]]
@@ -135,10 +133,10 @@ while getopts :d:T: opt
 do
     case $opt in
         d)
-                __check_args "direction_focus=$OPTARG"
+                __xwr_xwinreg_focus_toggle_check_args "direction_focus=$OPTARG"
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_focus_toggle_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         \?)
                 { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
@@ -158,7 +156,7 @@ fi
 
 [[ ! $direction_focus ]] && { echo "No direction specified." >&2 ; exit 1 ; }
 
-__focus_toggle "$file_tmp" "$direction_focus"
+__xwr_xwinreg_focus_toggle_focus_toggle "$file_tmp" "$direction_focus"
 
 #~ unset -v \
         #~ file_tmp= \

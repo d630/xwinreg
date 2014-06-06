@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__check_closing()
+__xwr_xwinreg_close_check_closing()
 {
     declare \
             delete_win_active= \
@@ -84,7 +84,7 @@ __check_closing()
                 done
                 ;;
         *)
-                for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                for i in $(__xwr_xwinreg_close_order_num_asc_array $(__xwr_xwinreg_close_parse_region "$region_selection"))
                 do
                     reg_sel+=($i)
                     win_xid_selection+=(${win_regions[${i}:win_xids]})
@@ -99,7 +99,7 @@ __check_closing()
                 ;;
     esac
 
-    mapfile -t reg_index < <(__comm_array "${reg_index[@]}" -- $(__order_num_asc_array "${reg_sel[@]}"))
+    mapfile -t reg_index < <(__xwr_xwinreg_close_comm_array "${reg_index[@]}" -- $(__xwr_xwinreg_close_order_num_asc_array "${reg_sel[@]}"))
 
     if ((${#reg_index[@]} > 0))
     then
@@ -170,7 +170,7 @@ layout[${l}:region_geo]=\"${layout[${l}:region_geo]}\"" >> "$file_tmp"
     fi
 }
 
-__order_num_asc_array()
+__xwr_xwinreg_close_order_num_asc_array()
 {
     declare -a array=($@)
     declare i= j= element=
@@ -185,7 +185,7 @@ __order_num_asc_array()
     printf '%s\n' "${array[@]}"
 }
 
-__parse_region()
+__xwr_xwinreg_close_parse_region()
 {
     declare -a args=()
     declare i= reg=$1
@@ -196,7 +196,7 @@ __parse_region()
     eval "printf '%s\n' "${args[@]}""
 }
 
-__comm_array()
+__xwr_xwinreg_close_comm_array()
 {
     declare \
             arg= \
@@ -237,7 +237,7 @@ __comm_array()
     done
 }
 
-__check_args()
+__xwr_xwinreg_close_check_args()
 {
     declare o
     if [[ ! $OPTARG = -* ]]
@@ -262,10 +262,10 @@ while getopts :r:T: opt
 do
     case $opt in
         r)
-                __check_args "region_selection=$OPTARG"
+                __xwr_xwinreg_close_check_args "region_selection=$OPTARG"
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_close_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         \?)
                 { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
@@ -285,7 +285,7 @@ fi
 
 [[ ! $region_selection ]] && { echo "No region specified." >&2 ; exit 1 ; }
 
-__check_closing "$file_tmp" "$region_selection"
+__xwr_xwinreg_close_check_closing "$file_tmp" "$region_selection"
 
 #~ unset -v \
         #~ file_tmp= \

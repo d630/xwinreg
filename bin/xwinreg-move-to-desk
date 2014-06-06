@@ -18,7 +18,7 @@ shopt -s extglob
 
 # -- FUNCTIONS.
 
-__check_move_to_desk()
+__xwr_xwinreg_move_to_desk_check_move_to_desk()
 {
     declare \
             desk_curr= \
@@ -71,7 +71,7 @@ __check_move_to_desk()
                 done
                 ;;
         *)
-                for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                for i in $(__xwr_xwinreg_move_to_desk_order_num_asc_array $(__xwr_xwinreg_move_to_desk_parse_region "$region_selection"))
                 do
                     win_xid_selection+=(${win_regions[${i}:win_xids]})
                 done
@@ -124,7 +124,7 @@ __check_move_to_desk()
          #~ desk_names
 }
 
-__order_num_asc_array()
+__xwr_xwinreg_move_to_desk_order_num_asc_array()
 {
     declare -a array=($@)
     declare i= j= element=
@@ -139,7 +139,7 @@ __order_num_asc_array()
     printf '%s\n' "${array[@]}"
 }
 
-__parse_region()
+__xwr_xwinreg_move_to_desk_parse_region()
 {
     declare -a args=()
     declare i= reg=$1
@@ -150,7 +150,7 @@ __parse_region()
     eval "printf '%s\n' "${args[@]}""
 }
 
-__check_args()
+__xwr_xwinreg_move_to_desk_check_args()
 {
     declare o
     if [[ ! $OPTARG = -* ]]
@@ -177,13 +177,13 @@ while getopts :D:r:T:W opt
 do
     case $opt in
         D)
-                __check_args "desk_target=$OPTARG"
+                __xwr_xwinreg_move_to_desk_check_args "desk_target=$OPTARG"
                 ;;
         r)
-                __check_args "region_selection=$OPTARG"
+                __xwr_xwinreg_move_to_desk_check_args "region_selection=$OPTARG"
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_move_to_desk_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         W)
                 switch_to_desk_target=switch_to_desk_target
@@ -207,7 +207,7 @@ fi
 [[ ! $region_selection ]] && { echo "No region specified." >&2 ; exit 1 ; }
 [[ ! $desk_target ]] && { echo "No target desk specified." >&2 ; exit 1 ; }
 
-__check_move_to_desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target"
+__xwr_xwinreg_move_to_desk_check_move_to_desk "$file_tmp" "$region_selection" "$desk_target" "$switch_to_desk_target"
 
 #~ unset -v \
          #~ file_tmp= \

@@ -17,13 +17,27 @@ declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
-__check_variables_input()
+__xwr_xwinreg_id_check_variables_input()
 {
     if [[ $1 =~ ^(desk_curr|win_active|win_active_frame_extents|win_active_tags|win_number|desk_select|win_active_geo_x_y|win_active_geo_w_h|win_xid|win_geo_x_y|win_geo_w_h|win_frame_extents|win_tags)=.*$ ]]
     then
         eval "$1"
     else
         { echo "Irregular variable inside input." >&2 ; exit 1 ; }
+    fi
+}
+
+__xwr_xwinreg_id_check_args()
+{
+    declare o=
+    if [[ ! $OPTARG =~ -.+ ]]
+    then
+        for o
+        do
+            declare -g "$o"
+        done
+    else
+        { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
     fi
 }
 
@@ -46,7 +60,7 @@ do
                 fi
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_id_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         \?)
                 { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
@@ -67,7 +81,7 @@ then
         then
             while read -r
             do
-                __check_variables_input "$REPLY"
+                __xwr_xwinreg_id_check_variables_input "$REPLY"
             done
         else
             { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
@@ -77,7 +91,7 @@ then
         then
             while read -r
             do
-                __check_variables_input "$REPLY"
+                __xwr_xwinreg_id_check_variables_input "$REPLY"
             done < "$XWINREG_INPUT_FILE"
         else
             { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }

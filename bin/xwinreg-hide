@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__check_hiding()
+__xwr_xwinreg_hide_check_hiding()
 {
     declare \
             file_tmp=$1 \
@@ -57,7 +57,7 @@ __check_hiding()
                 done
                 ;;
         *)
-                for i in $(__order_num_asc_array $(__parse_region "$region_selection"))
+                for i in $(__xwr_xwinreg_hide_order_num_asc_array $(__xwr_xwinreg_hide_parse_region "$region_selection"))
                 do
                     win_xid_selection+=(${win_regions[${i}:win_xids]})
                 done
@@ -78,7 +78,7 @@ __check_hiding()
          #~ hide_action
 }
 
-__order_num_asc_array()
+__xwr_xwinreg_hide_order_num_asc_array()
 {
     declare -a array=($@)
     declare i= j= element=
@@ -93,7 +93,7 @@ __order_num_asc_array()
     printf '%s\n' "${array[@]}"
 }
 
-__parse_region()
+__xwr_xwinreg_hide_parse_region()
 {
     declare -a args=()
     declare i= reg=$1
@@ -104,7 +104,7 @@ __parse_region()
     eval "printf '%s\n' "${args[@]}""
 }
 
-__check_args()
+__xwr_xwinreg_hide_check_args()
 {
     declare o
     if [[ ! $OPTARG = -* ]]
@@ -130,13 +130,13 @@ while getopts :A:r:T: opt
 do
     case $opt in
         A)
-                __check_args "hide_action=$OPTARG"
+                __xwr_xwinreg_hide_check_args "hide_action=$OPTARG"
                 ;;
         r)
-                __check_args "region_selection=$OPTARG"
+                __xwr_xwinreg_hide_check_args "region_selection=$OPTARG"
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_hide_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         \?)
                 { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }
@@ -157,7 +157,7 @@ fi
 [[ ! $region_selection ]] && { echo "No region specified." >&2 ; exit 1 ; }
 [[ ! $hide_action ]] && { echo "No action specified." >&2 ; exit 1 ; }
 
-__check_hiding "$file_tmp" "$region_selection" "$hide_action"
+__xwr_xwinreg_hide_check_hiding "$file_tmp" "$region_selection" "$hide_action"
 
 #~ unset -v \
         #~ file_tmp= \

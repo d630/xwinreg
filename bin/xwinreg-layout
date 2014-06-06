@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__perform_layout()
+__xwr_xwinreg_layout_perform_layout()
 {
     declare \
             bottom_row_width= \
@@ -105,7 +105,7 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
         w=${region_geo[2]}
         h=${region_geo[3]}
 
-        gravity=$(__check_gravity "$gravity")
+        gravity=$(__xwr_xwinreg_layout_check_gravity "$gravity")
 
         if [[ $win_number_maximum == max ]]
         then
@@ -119,8 +119,8 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
                     for ((j=0 ; j <= win_region_number-1 ; j++))
                     do
                         win=${win_xid[j]}
-                        __do_wmctrl
-                        __store_region
+                        __xwr_xwinreg_layout_do_wmctrl
+                        __xwr_xwinreg_layout_store_region
                     done
                     ;;
             vertical)
@@ -128,8 +128,8 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
                     for ((k=0 ; k <= win_region_number-1 ; k++))
                     do
                         win=${win_xid[k]}
-                        __do_wmctrl
-                        __store_region
+                        __xwr_xwinreg_layout_do_wmctrl
+                        __xwr_xwinreg_layout_store_region
                         x=$((x+w))
                     done
                     ;;
@@ -138,8 +138,8 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
                     for ((l=0 ; l <= win_region_number-1 ; l++))
                     do
                         win=${win_xid[l]}
-                        __do_wmctrl
-                        __store_region
+                        __xwr_xwinreg_layout_do_wmctrl
+                        __xwr_xwinreg_layout_store_region
                         y=$((y+h))
                     done
                     ;;
@@ -171,8 +171,8 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
                             ((current_column_windows == 0)) && y=$y_org && h=$normal_column_height && { ((current_column != 1)) && x=$((x+w)) ; }
                         }
                         win=${win_xid[m]}
-                        __do_wmctrl
-                        __store_region
+                        __xwr_xwinreg_layout_do_wmctrl
+                        __xwr_xwinreg_layout_store_region
                         y=$((y+h))
                     done
                     ;;
@@ -204,8 +204,8 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
                             ((current_row_windows == 0)) && x=$x_org && w=$normal_row_width && { ((current_row != 1)) && y=$((y+h)) ; }
                         }
                         win=${win_xid[n]}
-                        __do_wmctrl
-                        __store_region
+                        __xwr_xwinreg_layout_do_wmctrl
+                        __xwr_xwinreg_layout_store_region
                         x=$((x+w))
                     done
                     ;;
@@ -229,7 +229,7 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
 
                         ((ny++))
                         ((ny > row_number-1)) && ny=0 && ((nx++))
-                        __store_region
+                        __xwr_xwinreg_layout_store_region
                     done
                     ;;
             grid-square-horizontal)
@@ -252,7 +252,7 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
 
                         ((nx++))
                         ((nx > col_number-1)) && nx=0 && ((ny++))
-                        __store_region
+                        __xwr_xwinreg_layout_store_region
                     done
                     ;;
         esac
@@ -321,7 +321,7 @@ win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\"" >> "$file_tmp"
             #~ y_org
 }
 
-__check_gravity()
+__xwr_xwinreg_layout_check_gravity()
 {
     case $1 in
         0)
@@ -364,20 +364,20 @@ __check_gravity()
     printf '%s\n' "$gravity"
 }
 
-__store_region()
+__xwr_xwinreg_layout_store_region()
 {
     win_regions[${i}:win_xids]="${win_regions[${i}:win_xids]}${win} "
     win_regions[${i}:win_xids_number]=$win_region_number
     win_regions[${i}:x_y_w_h]="${win_regions[${i}:x_y_w_h]}${x},${y},${w},${h} "
 }
 
-__do_wmctrl()
+__xwr_xwinreg_layout_do_wmctrl()
 {
     wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
     wmctrl -i -r "$win" -e "${gravity},${x},${y},${w},${h}"
 }
 
-__check_args()
+__xwr_xwinreg_layout_check_args()
 {
     declare o
     if [[ ! $OPTARG = -* ]]
@@ -391,7 +391,7 @@ __check_args()
     fi
 }
 
-__build_layout_abbrev()
+__xwr_xwinreg_layout_build_layout_abbrev()
 {
     declare l_l= l_r=
     [[ $1 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] &&
@@ -428,19 +428,19 @@ while getopts :A:e:g:G:lL:r:T:x: opt
 do
     case $opt in
         A)
-                __check_args "layout_action=$OPTARG"
+                __xwr_xwinreg_layout_check_args "layout_action=$OPTARG"
                 layout[${region_selection}:layout_action]=$layout_action
                 ;;
         e)
-                __check_args "entity_size=$OPTARG"
+                __xwr_xwinreg_layout_check_args "entity_size=$OPTARG"
                 layout[${region_selection}:entity_region]=$entity_size
                 ;;
         g)
-                __check_args "geo=$OPTARG"
+                __xwr_xwinreg_layout_check_args "geo=$OPTARG"
                 layout[${region_selection}:region_geo]=$geo
                 ;;
         G)
-                __check_args "gravity=$OPTARG"
+                __xwr_xwinreg_layout_check_args "gravity=$OPTARG"
                 layout[${region_selection}:gravity]=$gravity
                 ;;
         l)
@@ -449,17 +449,17 @@ do
                 ;;
         L)
                 lay_out=lay_out
-                __build_layout_abbrev "$OPTARG"
+                __xwr_xwinreg_layout_build_layout_abbrev "$OPTARG"
                 ;;
         r)
-                __check_args "region_selection=$OPTARG"
+                __xwr_xwinreg_layout_check_args "region_selection=$OPTARG"
                 layout[${region_selection}:region_number]=$region_selection
                 ;;
         T)
-                __check_args "XWINREG_TMP_FILE=$OPTARG"
+                __xwr_xwinreg_layout_check_args "XWINREG_TMP_FILE=$OPTARG"
                 ;;
         x)
-                __check_args "win_number_maximum=$OPTARG"
+                __xwr_xwinreg_layout_check_args "win_number_maximum=$OPTARG"
                 layout[${region_selection}:win_number_maximum]=$win_number_maximum
                 ;;
         \?)
@@ -501,6 +501,6 @@ unset -v \
          opt \
          region_selection
 
-__perform_layout "$file_tmp"
+__xwr_xwinreg_layout_perform_layout "$file_tmp"
 
 exit 0
