@@ -17,6 +17,34 @@
 
 # -- FUNCTIONS.
 
+__xwr_xwinreg_close_version() { echo "0.1.0.0" ; }
+
+__xwr_xwinreg_close_usage()
+{
+    printf '%s\n' 'xwinreg-close [-T] (-h|-r|-v)'
+}
+
+__xwr_xwinreg_close_help()
+{
+    printf "$(__xwr_xwinreg_close_usage)
+
+OPTIONS
+-------
+    OPT             ARG
+    ---             ---
+    -h
+    -r              <REG>
+    -T              <FILE>
+    -v
+
+ARGUMENTS
+---------
+    <FILE>          Regular file or named pipe.
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'all'.
+"
+}
+
 __xwr_xwinreg_close_check_closing()
 {
     declare \
@@ -258,14 +286,22 @@ declare \
         opt= \
         region_selection=
 
-while getopts :r:T: opt
+while getopts :hr:T:v opt
 do
     case $opt in
+        h)
+                __xwr_xwinreg_close_help
+                exit 0
+                ;;
         r)
                 __xwr_xwinreg_close_check_args "region_selection=$OPTARG"
                 ;;
         T)
                 __xwr_xwinreg_close_check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        v)
+                __xwr_xwinreg_close_version
+                exit 0
                 ;;
         \?)
                 { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }

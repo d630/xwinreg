@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_version() { echo "0.1.9.1" ; }
+__xwr_xwinreg_version() { echo "0.1.9.2" ; }
 
 __xwr_xwinreg_usage()
 {
@@ -29,13 +29,12 @@ __xwr_xwinreg_usage()
 
 __xwr_xwinreg_help()
 {
-    printf "
-$(__xwr_xwinreg_usage)
+    printf "$(__xwr_xwinreg_usage)
 
 OPTIONS
 -------
-    OPTION                          ARG
-    ------                          ---
+    OPT                             ARG
+    ---                             ---
     -a,  --frame-alias=             <FRAMEALIAS>
     -C,  --conf-file=               <FILE>
     -fh, --frame-height=            <PX>
@@ -71,8 +70,8 @@ SUBCOMMANDS
     -L,  --layout-abbrev=           <REGN>,<WINN>,<LACT>,<LENT>:<GRAV>,
                                     <GEO>
 
-    OPTION                          ARG
-    ------                          ---
+    OPT                             ARG
+    ---                             ---
     -A,  --action=                  ( <HACT> | <LACT> )
     -D,  --desk=                    <DESK>
     -d,  --direction=               ( <ODIREC> | <YDIREC>  )

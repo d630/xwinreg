@@ -17,6 +17,36 @@
 
 # -- FUNCTIONS.
 
+__xwr_xwinreg_hide_version() { echo "0.1.0.0" ; }
+
+__xwr_xwinreg_hide_usage()
+{
+    printf '%s\n' 'xwinreg-hide [-T] (-h|-r|-v) -A'
+}
+
+__xwr_xwinreg_hide_help()
+{
+    printf "$(__xwr_xwinreg_hide_usage)
+
+OPTIONS
+-------
+    OPT             ARG
+    ---             ---
+    -A              <HACT>
+    -h
+    -r              <REG>
+    -T              <FILE>
+    -v
+
+ARGUMENTS
+---------
+    <FILE>          Regular file or named pipe.
+    <HACT>          'add' or 'remove'.
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'all'.
+"
+}
+
 __xwr_xwinreg_hide_check_hiding()
 {
     declare \
@@ -126,17 +156,25 @@ declare \
         opt= \
         region_selection=
 
-while getopts :A:r:T: opt
+while getopts :A:hr:T:v opt
 do
     case $opt in
         A)
                 __xwr_xwinreg_hide_check_args "hide_action=$OPTARG"
+                ;;
+        h)
+                __xwr_xwinreg_hide_help
+                exit 0
                 ;;
         r)
                 __xwr_xwinreg_hide_check_args "region_selection=$OPTARG"
                 ;;
         T)
                 __xwr_xwinreg_hide_check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        v)
+                __xwr_xwinreg_hide_version
+                exit 0
                 ;;
         \?)
                 { printf '%s\n' "Unknown option: -${OPTARG}." >&2 ; exit 1 ; }

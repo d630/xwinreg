@@ -17,6 +17,48 @@ declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
+__xwr_xwinreg_calculate_version() { echo "0.1.0.0" ; }
+
+__xwr_xwinreg_calculate_usage()
+{
+    printf 'xwinreg-calculate
+        [-C|-T|-n|-N|-a|-1|-2|-3|-4|-5|-6|-7|-8]
+        (-h|-v)'
+}
+
+__xwr_xwinreg_calculate_help()
+{
+    printf "$(__xwr_xwinreg_calculate_usage)
+
+OPTIONS
+-------
+    OPT             ARG
+    ---             ---
+    -1              frame_width     in <PX>
+    -2              frame_height    in <PX>
+    -3              frame_x         in <PX>
+    -4              frame_y         in <PX>
+    -5              workarea_x      in <PX>
+    -6              workarea_y      in <PX>
+    -7              workarea_width  in <PX>
+    -8              workarea_height in <PX>
+    -a              <FRAMEALIAS>
+    -C              <FILE>
+    -h
+    -n              <INT>
+    -N              <INT>
+    -T              <FILE>
+    -v
+
+ARGUMENTS
+---------
+    <FILE>          Regular file or named pipe.
+    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
+                    'southeast', 'south', 'southwest' or 'west'.
+    <INT>           Default is '2'.
+    <PX>            Pixel size specified by an integer.
+"
+}
 __xwr_xwinreg_calculate_calculating()
 {
     # Check, if geo of workarea is manually set; if not, we use __NET_WORKAREA instead.
@@ -137,10 +179,12 @@ declare \
         workarea_x= \
         workarea_y=
 
-while getopts :1:2:3:4:5:6:7:8:a:C:n:N:T: opt
+while getopts :1:2:3:4:5:6:7:8:a:C:hn:N:T:v opt
 do
     case $opt in
         C)  __xwr_xwinreg_calculate_check_args "XWINREG_CONF_FILE=$OPTARG" ; break ;;
+        h)  __xwr_xwinreg_calculate_help ; exit 0 ;;
+        v)  __xwr_xwinreg_calculate_version ; exit 0 ;;
         *)  : ;;
     esac
 done

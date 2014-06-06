@@ -18,6 +18,40 @@ shopt -s extglob
 
 # -- FUNCTIONS.
 
+__xwr_xwinreg_move_to_desk_version() { echo "0.1.0.0" ; }
+
+__xwr_xwinreg_move_to_desk_usage()
+{
+    printf '%s\n' 'xwinreg-move-to-desk [-T] (-h|-r|-v) -D [-W]'
+}
+
+__xwr_xwinreg_move_to_desk_help()
+{
+    printf "$(__xwr_xwinreg_move_to_desk_usage)
+
+OPTIONS
+-------
+    OPT             ARG
+    ---             ---
+    -D              <DESK>
+    -h
+    -r              <REG>
+    -T              <FILE>
+    -v
+    -W
+
+ARGUMENTS
+---------
+    <DESK>          'curr' or relative to the current desktop 'next' or
+                    'preview'. To specify a desktop number (starts at 0)
+                    use the prefix 'i:'; a desktop name is prefixed with
+                    's:'. Examples: 'i:1'; 's:web'; '\"s:some stuff\"'.
+
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'all'.
+"
+}
+
 __xwr_xwinreg_move_to_desk_check_move_to_desk()
 {
     declare \
@@ -173,17 +207,25 @@ declare \
         region_selection= \
         switch_to_desk_target=
 
-while getopts :D:r:T:W opt
+while getopts :D:hr:T:vW opt
 do
     case $opt in
         D)
                 __xwr_xwinreg_move_to_desk_check_args "desk_target=$OPTARG"
+                ;;
+        h)
+                __xwr_xwinreg_move_to_desk_help
+                exit 0
                 ;;
         r)
                 __xwr_xwinreg_move_to_desk_check_args "region_selection=$OPTARG"
                 ;;
         T)
                 __xwr_xwinreg_move_to_desk_check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        v)
+                __xwr_xwinreg_move_to_desk_version
+                exit 0
                 ;;
         W)
                 switch_to_desk_target=switch_to_desk_target

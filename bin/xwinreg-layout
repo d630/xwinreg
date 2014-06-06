@@ -17,6 +17,67 @@
 
 # -- FUNCTIONS.
 
+__xwr_xwinreg_layout_version() { echo "0.1.0.0" ; }
+
+__xwr_xwinreg_layout_usage()
+{
+    printf '%s\n' 'xwinreg-layout (-h|-v)
+xwinreg-layout [-T] -L
+xwinreg-layout [-T] -l -A -e -g -G -r -x'
+}
+
+__xwr_xwinreg_layout_help()
+{
+    printf "$(__xwr_xwinreg_layout_usage)
+
+ACTION              ARG
+------              ---
+    -l              Requieres: <REGN> <WINN> <LACT> <LENT> <GRAV>
+                    <GEO>
+    -L              <REGN>,<WINN>,<LACT>,<LENT>:<GRAV>,<GEO>
+
+OPTIONS
+-------
+    OPT             ARG
+    ---             ---
+    -A              <LACT>
+    -e              <LENT>
+    -g              <GEO>
+    -G              <GRAV>
+    -h
+    -r              <REGN>
+    -T              <FILE>
+    -v
+    -x              <WINN>
+
+ARGUMENTS
+---------
+    <FILE>          Regular file or named pipe.
+    <GEO>
+                    <X>        Pixel x size specified by an integer.
+                    <Y>        Pixel y size specified by an integer.
+                    <W>        Pixel width size specified by an integer.
+                    <H>        Pixel height size specified by an integer.
+                    <PRO>      Procent size specified by an integer.
+                    <REGALIAS> 'northwest', 'north', 'northeast','east',
+                               'southeast', 'south', 'southwest' or
+                               'west'.
+                    Samples:
+                               '<REGALIAS>',
+                               '<PRO>,<PRO>,<PRO>,<PRO>',
+                               '<X>,<Y>,<W>,<H>'.
+    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
+                    'east', 'southwest', 'south', 'southeast' or
+                    'static'. Additional: '[0-10]'.
+    <LACT>          'maximize', 'horizontal', 'vertical',
+                    'grid-horizontal', 'grid-vertical',
+                    'grid-square-horizontal' or 'grid-square-vertical'.
+    <LENT>          'alias', 'px' or 'pro'.
+    <REGN>          Region number specified by an integer.
+    <WINN>          Window number specified by an integer or 'max'.
+"
+}
+
 __xwr_xwinreg_layout_perform_layout()
 {
     declare \
@@ -424,7 +485,7 @@ declare \
 
 declare -A layout
 
-while getopts :A:e:g:G:lL:r:T:x: opt
+while getopts :A:e:g:G:hlL:r:T:vx: opt
 do
     case $opt in
         A)
@@ -443,6 +504,10 @@ do
                 __xwr_xwinreg_layout_check_args "gravity=$OPTARG"
                 layout[${region_selection}:gravity]=$gravity
                 ;;
+        h)
+                __xwr_xwinreg_layout_help
+                exit 0
+                ;;
         l)
                 lay_out=lay_out
                 ((reg_number++))
@@ -457,6 +522,10 @@ do
                 ;;
         T)
                 __xwr_xwinreg_layout_check_args "XWINREG_TMP_FILE=$OPTARG"
+                ;;
+        v)
+                __xwr_xwinreg_layout_version
+                exit 0
                 ;;
         x)
                 __xwr_xwinreg_layout_check_args "win_number_maximum=$OPTARG"
