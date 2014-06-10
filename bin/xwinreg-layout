@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_layout_version() { echo "0.1.0.1" ; }
+__xwr_xwinreg_layout_version() { echo "0.1.0.2" ; }
 
 __xwr_xwinreg_layout_usage()
 {
@@ -132,8 +132,6 @@ __xwr_xwinreg_layout_perform_layout()
     source "$file_tmp"
 
     ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
-
-    exec 3>>"$file_tmp"
 
     for ((i=1 ; i <= $reg_number ; i++))
     do
@@ -549,6 +547,8 @@ else
     file_tmp=${TMPDIR:-/tmp}/xwinreg_default.tmp
 fi
 
+exec 3>>"$file_tmp"
+
 ((reg_number)) &&
 {
         for ((i=1 ; i <= reg_number ; i++))
@@ -563,8 +563,6 @@ layout[${i}:region_geo]=\"${layout[${i}:region_geo]}\""
         printf '%s\n' "reg_number=$reg_number"
 } >&3
 
-exec 3<&-
-
 unset -v \
          entity_size \
          geo \
@@ -573,5 +571,7 @@ unset -v \
          region_selection
 
 __xwr_xwinreg_layout_perform_layout "$file_tmp"
+
+exec 3<&-
 
 exit 0
