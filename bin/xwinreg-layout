@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_layout_version() { echo "0.1.0.0" ; }
+__xwr_xwinreg_layout_version() { echo "0.1.0.1" ; }
 
 __xwr_xwinreg_layout_usage()
 {
@@ -133,6 +133,8 @@ __xwr_xwinreg_layout_perform_layout()
 
     ((win_number <= 1)) && { echo "Insufficient windows to work with." >&2 ; exit 1 ; }
 
+    exec 3>>"$file_tmp"
+
     for ((i=1 ; i <= $reg_number ; i++))
     do
         entity_region=${layout[${i}:entity_region]}
@@ -147,7 +149,7 @@ __xwr_xwinreg_layout_perform_layout()
                     layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
                     layout[${i}:entity_region]=px
                     printf '%s\n' "layout[${i}:region_geo]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
-layout[${i}:entity_region]=px" >> "$file_tmp"
+layout[${i}:entity_region]=px" >&3
                     ;;
             px)
                     region_geo=(${layout[${i}:region_geo]//,/ })
@@ -320,7 +322,7 @@ layout[${i}:entity_region]=px" >> "$file_tmp"
 
         printf '%s\n' "win_regions[${i}:win_xids]=\"${win_regions[${i}:win_xids]}\"
 win_regions[${i}:win_xids_number]=${win_regions[${i}:win_xids_number]}
-win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\"" >> "$file_tmp"
+win_regions[${i}:x_y_w_h]=\"${win_regions[${i}:x_y_w_h]}\"" >&3
 
         win_xid=(${win_xid[@]:$win_region_number})
         ((win_number-=win_region_number))
@@ -549,7 +551,6 @@ fi
 
 ((reg_number)) &&
 {
-    {
         for ((i=1 ; i <= reg_number ; i++))
         do
             printf '%s\n' "layout[${i}:region_number]=${layout[${i}:region_number]}
@@ -560,8 +561,9 @@ layout[${i}:gravity]=${layout[${i}:gravity]}
 layout[${i}:region_geo]=\"${layout[${i}:region_geo]}\""
         done
         printf '%s\n' "reg_number=$reg_number"
-    } >> "$file_tmp"
-}
+} >&3
+
+exec 3<&-
 
 unset -v \
          entity_size \
