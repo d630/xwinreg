@@ -18,6 +18,7 @@ TODO:
 - reimplement action size and move
 - include some example commands in doc
 - give option to install with install
+- rename all variables and then use set "$ set -o posix ; set" with another grep script
 
 DONE:
 - revise frame-handling
