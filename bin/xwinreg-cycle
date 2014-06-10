@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_cycle_version() { echo "0.1.0.0" ; }
+__xwr_xwinreg_cycle_version() { echo "0.1.0.1" ; }
 
 __xwr_xwinreg_cycle_usage()
 {
@@ -293,7 +293,7 @@ __xwr_xwinreg_cycle_check_args()
             declare -g "$o"
         done
     else
-        { echo "Option -${opt} requires an argument." >&2 ; exit 1 ; }
+        { printf '%s\n' "Option -${opt} requires an argument." >&2 ; exit 1 ; }
     fi
 }
 
