@@ -17,6 +17,7 @@ TODO:
 - give much more comments in the scripts
 - reimplement action size and move
 - include some example commands in doc
+- give an example in doc, how to use xwinreg with openbox
 - give option to install with install
 - rename all variables and then use set "$ set -o posix ; set" with another grep script
 
