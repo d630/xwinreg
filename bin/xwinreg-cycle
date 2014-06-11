@@ -17,11 +17,11 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_cycle_version() { echo "0.1.0.1" ; }
+__xwr_xwinreg_cycle_version() { echo "0.1.0.2" ; }
 
 __xwr_xwinreg_cycle_usage()
 {
-    printf '%s\n' 'xwinreg-cycle [-T] (-h|-r|-v) -d [-j|-k|-w]'
+    printf '%s\n' 'xwinreg-cycle [-T] (-h|-w -r|-v|) -d (-j|-k|)'
 }
 
 __xwr_xwinreg_cycle_help()

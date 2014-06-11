@@ -4,7 +4,7 @@ xwinreg-cycle(1) -- cycle order of regions or windows.
 ## XWINREG
 Part of `xwinreg`(1).
 ## SYNOPSIS
-xwinreg-cycle [-T] (-h|-r|-v) -d [-j|-k|-w]
+xwinreg-cycle [-T] (-h|-w -r|-v|) -d (-j|-k|)
 ## REQUIREMENT
 GNU bash, grep, sed, xprop
 ## DESCRIPTION
@@ -45,6 +45,18 @@ GNU bash, grep, sed, xprop
  `clock`, `anticlock` or `reverse`.
 
 ## EXAMPLES
+ xwinreg-cycle -w -r all -d clock
+
+ xwinreg-cycle -w -r active -d anticlock
+
+ xwinreg-cycle -w -r 1,3 -d clock
+
+ xwinreg-cycle -w -r 1,3 -d clock -j
+
+ xwinreg-cycle -d anticlock
+
+ xwinreg-cycle -k -d clock
+
 ## ENVIROMENT
 * <TMPDIR>:
  By default, Tmp File will be written as **TMPDIR/xwinreg_default.tmp**, otherwise as **/tmp/xwinreg_default.tmp**.
