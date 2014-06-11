@@ -20,6 +20,7 @@ TODO:
 - give an example in doc, how to use xwinreg with openbox
 - give option to install with install
 - rename all variables and then use set "$ set -o posix ; set" with another grep script
+- give all subcommand long options, when using directly
 
 DONE:
 - revise frame-handling
