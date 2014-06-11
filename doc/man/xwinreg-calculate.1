@@ -1,0 +1,174 @@
+.\" Manpage of xwinreg-calculate/v0.1.0.0
+.\" written with GNU Emacs/v24.3.1 and markdown-mode/v2.0
+.\" generated with Ronn/v0.7.3
+.
+.TH "XWINREG\-CALCULATE" "1" "2014-06-10" "0.1.0.0" "User Manual"
+.
+.SH "NAME"
+\fBxwinreg\-calculate\fR \- calculate frame geos\.
+.
+.SH "XWINREG"
+Part of \fBxwinreg\fR(1)\.
+.
+.SH "SYNOPSIS"
+xwinreg\-calculate \fB[\-C|\-T|\-n|\-N|\-a|\-1|\-2|\-3|\-4|\-5|\-6|\-7|\-8] (\-h|\-v)\fR
+.
+.SH "REQUIREMENT"
+GNU bash, grep, X, xprop
+.
+.SH "DESCRIPTION"
+Just as \fBxwinreg\-id\fR(1), \fBxwinreg\-calculate\fR(1) is required for layouting with \fBxwinreg\-layout\fR(1)\. Its purpose is to set a frame relative to a workspace as scale base and to have base geometries; without that calculation \fBxwinreg\-layout\fR(1) is not able to arrange regions and fill those with windows\. All variables are written to a Temp File, and will then be processed in the course of layouting\. You can here also determine the number of rows and columns for grid layouting or specify a Conf File with variables and frame aliases\.
+.
+.P
+In the wrapper script \fBxwinreg\fR(1) you may not call the calculation directly; it will be called, before you build layouts with action \fB\-l\fR and \fB\-L\fR\.
+.
+.SH "OPTIONS"
+.
+.TP
+\fB\-1\fR \fIPX\fR
+Specify the \fIWIDTH\fR of the frame\.
+.
+.TP
+\fB\-2\fR \fIPX\fR
+Specify the \fIHEIGHT\fR of the frame\.
+.
+.TP
+\fB\-3\fR \fIPX\fR
+Specify the left edge of the frame\.
+.
+.TP
+\fB\-4\fR \fIPX\fR
+Specify the top edge of the frame\.
+.
+.TP
+\fB\-5\fR \fIPX\fR
+Specify the left edge of the workarea\.
+.
+.TP
+\fB\-6\fR \fIPX\fR
+Specify the top edge of the workarea\.
+.
+.TP
+\fB\-7\fR \fIPX\fR
+Specify the \fIWIDTH\fR of the workarea\.
+.
+.TP
+\fB\-8\fR \fIPX\fR
+Specify the \fIHEIGHT\fR of the workarea\.
+.
+.TP
+\fB\-a\fR \fIFRAMEALIAS\fR
+Instead of options \fB\-1\fR, \fB\-2\fR, \fB\-3\fR and \fB\-4\fR specify an alias\. See section \fBCONFIGURATIONS\fR in this Manpage\.
+.
+.TP
+\fB\-C\fR \fIFILE\fR
+Read variables in a Conf File from \fIFILE\fR\. See section \fBCONFIGURATIONS\fR in this Manpage\.
+.
+.TP
+\fB\-h\fR
+Display a short help\.
+.
+.TP
+\fB\-n\fR \fIINT\fR
+Specify number of rows for grid layouting, which is used later by \fBxwinreg\-layout\fR(1)\.
+.
+.TP
+\fB\-N\fR \fIINT\fR
+Specify number of columns for grid layouting, which is used later by \fBxwinreg\-layout\fR(1)\.
+.
+.TP
+\fB\-T\fR \fIFILE\fR
+Specify a nonregular Tmp file\.
+.
+.TP
+\fB\-v\fR
+Print current version of \fBxwinreg\-calculate\fR(1)\.
+.
+.SH "ARGUMENTS"
+.
+.TP
+\fIFILE\fR
+Regular file or named pipe\.
+.
+.TP
+\fIFRAMEALIAS\fR
+\fBnorthwest\fR, \fBnorth\fR, \fBnortheast\fR, \fBeast\fR, \fBsoutheast\fR, \fBsouth\fR, \fBsouthwest\fR or \fBwest\fR\. You can create your own aliases in a Conf File or overwrite those defaults\.
+.
+.TP
+\fIINT\fR
+Default is \fB2\fR\.
+.
+.TP
+\fIPX\fR
+Pixel size specified by an integer\.
+.
+.SH "EXAMPLES"
+xwinreg\-calculate
+.
+.P
+xwinreg\-calculate \-n 4 \-N 4
+.
+.P
+xwinreg\-calculate \-F ${Home}/tmp/xwinreg\.tmp
+.
+.P
+xwinreg\-calculate \-5 0 \-6 0 \-7 1680 \-8 1049
+.
+.P
+xwinreg\-calculate \-1 0 \-2 0 \-3 840 \-4 524
+.
+.P
+xwinreg\-calculate \-C ${Home}/\.config/xwinreg/xwinreg\.conf
+.
+.P
+xwinreg\-calculate \-C ${Home}/\.config/xwinreg/xwinreg\.conf \-a new_frame_alias
+.
+.SH "NOTES"
+If no workarea geometry is set, \fBxwinreg\-calculate\fR(1) uses \fI_NET_WORKAREA\fR\.
+.
+.P
+Currently, window decoration is not considered\.
+.
+.P
+If no frame geometry is set, \fI_NET_WORKAREA\fR is used as frame\. Every new frame needs its own Tmp File\. In other words: all layouting takes place in one frame\. You can specify another Tmp File with option \fB\-T\fR, or you may create several Conf Files\. See section \fBCONFIGURATIONS\fR in this Manpage\.
+.
+.P
+Options on command line overwrites variables in a Conf File\.
+.
+.SH "CONFIGURATIONS"
+By default, \fBxwinreg\-calculate\fR(1) needs no Conf File, because all important geometries will be calculated in the script\. You can also use the relating options on command line\. So, only use a Conf File, if you want to work with several frames (and several Tmp Files are needed) or if you need to set own aliases for frame and region geometries\. Along with this programm comes an exemplary Conf File\. Specify a Conf File with option \fB\-C\fR or use \fIXWINREG_CONF_FILE\fR\. You can set following parameters:
+.
+.TP
+enviroment variables
+XWINREG_TMP_FILE=\fIFILE\fR; XWINREG_INPUT_FILE=\fIFILE\fR
+.
+.TP
+normal scalar variables
+workarea_x=\fIPX\fR; workarea_y=\fIPX\fR; workarea_width=\fIPX\fR; workarea_height=\fIPX\fR; frame_x=\fIPX\fR; frame_y=\fIPX\fR; frame_width=\fIPX\fR; frame_height=\fIPX\fR; row_number=\fIINT\fR; col_number=\fIINT\fR
+.
+.TP
+associativ array variables
+You can use it with above variables\. You need to set them inside a function called \fB__xwr_xwinreg_calculate_calculating_frame_alias\fR respectively \fB__xwr_xwinreg_calculate_calculating_region_alias\fR and declare it with \fBdeclare \-gA frames\fR respectively \fBdeclare \-gA regions\fR: frames[\fIALIAS\fR]="\fIX\fR \fIY\fR \fIW\fR \fIH\fR"; regions[\fIALIAS\fR]="\fIX\fR \fIY\fR \fIW\fR \fIH\fR"
+.
+.SH "ENVIROMENT"
+.
+.TP
+\fITMPDIR\fR
+By default, Tmp File will be written as \fBTMPDIR/xwinreg_default\.tmp\fR, otherwise as \fB/tmp/xwinreg_default\.tmp\fR\.
+.
+.TP
+\fIXWINREG_TMP_FILE\fR
+Specify this instead default setting and instead using \fIXWINREG_TMP_FILE\fR in a Conf File\.
+.
+.TP
+\fIXWINREG_CONF_FILE\fR
+Use this instead of option \fB\-C\fR, if you want to use a Conf File\.
+.
+.SH "BUGS & REQUESTS"
+Report it on \fBhttps://github\.com/D630/xwinreg/issues\fR
+.
+.SH "LICENSE"
+\fBxwinreg\-calculate\fR(1) is licensed with GNU GPLv3\. You should have received a copy of the GNU General Public License along with this program\. If not, see for more details \fBhttp://www\.gnu\.org/licenses/gpl\-3\.0\.html\fR\.
+.
+.SH "SEE ALSO"
+\fBbash\fR(1), \fBgrep\fR(1), \fBx\fR(7), \fBxprop\fR(1), \fBxwinreg\fR(1), \fBxwinreg\-close\fR(1), \fBxwinreg\-cycle\fR(1), \fBxwinreg\-focus\fR(1), \fBxwinreg\-focus\-toggle\fR(1), \fBxwinreg\-hide\fR(1), \fBxwinreg\-id\fR(1), \fBxwinreg\-layout\fR(1), \fBxwinreg\-move\-to\-desk\fR(1)
