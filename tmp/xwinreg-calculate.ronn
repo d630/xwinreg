@@ -75,7 +75,7 @@ In the wrapper script `xwinreg`(1) you may not call the calculation directly; it
 
  xwinreg-calculate -n 4 -N 4
 
- xwinreg-calculate -F ${Home}/tmp/xwinreg.tmp
+ xwinreg-calculate -T ${Home}/tmp/xwinreg.tmp
 
  xwinreg-calculate -5 0 -6 0 -7 1680 -8 1049
 
