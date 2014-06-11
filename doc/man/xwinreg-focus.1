@@ -1,0 +1,73 @@
+.\" Manpage of xwinreg-focus/v0.1.0.1
+.\" written with GNU Emacs/v24.3.1 and markdown-mode/v2.0
+.\" generated with Ronn/v0.7.3
+.
+.TH "XWINREG\-FOCUS" "1" "2014-06-10" "0.1.0.1" "User Manual"
+.
+.SH "NAME"
+\fBxwinreg\-focus\fR \- focus all windows in specified regions\.
+.
+.SH "XWINREG"
+Part of \fBxwinreg\fR(1)\.
+.
+.SH "SYNOPSIS"
+xwinreg\-focus [\-T] (\-h|\-r|\-v)
+.
+.SH "REQUIREMENT"
+GNU bash, grep, wmctrl, xprop
+.
+.SH "DESCRIPTION"
+\fBxwinreg\-focus\fR(1) reads variables inside a Tmp File and focuses windows in specified regions\. Therefore, it switches to the desktop containing the windows, raises the windows, and gives them focus\. At the end, the active window will be focused again\. The Tmp File will not have an update\.
+.
+.SH "OPTIONS"
+.
+.TP
+\fB\-h\fR
+Display a short help\.
+.
+.TP
+\fB\-r\fR \fIREG\fR
+Select, which regions should be processed\.
+.
+.TP
+\fB\-T\fR \fIFILE\fR
+Specify a nonregular Tmp file\.
+.
+.TP
+\fB\-v\fR
+Print current version of \fBxwinreg\-focus\fR(1)\.
+.
+.SH "ARGUMENTS"
+.
+.TP
+\fIFILE\fR
+Regular file or named pipe\.
+.
+.TP
+\fIREG\fR
+Up to this sample: \fB1\fR or \fB1,3\fR or \fB1\-3\fR or \fB1,2\-3\fR\. Additional: \fBactive\fR or \fBall\fR\.
+.
+.SH "EXAMPLES"
+xwinreg\-focus \-r active
+.
+.P
+xwinreg\-focus \-T ${Home}/tmp/xwinreg\.tmp \-r 2
+.
+.SH "ENVIROMENT"
+.
+.TP
+\fITMPDIR\fR
+By default, Tmp File will be written as \fBTMPDIR/xwinreg_default\.tmp\fR, otherwise as \fB/tmp/xwinreg_default\.tmp\fR\.
+.
+.TP
+\fIXWINREG_TMP_FILE\fR
+Specify this instead default setting and instead using \fIXWINREG_TMP_FILE\fR in a Conf File\.
+.
+.SH "BUGS & REQUESTS"
+Report it on \fBhttps://github\.com/D630/xwinreg/issues\fR
+.
+.SH "LICENSE"
+\fBxwinreg\-focus\fR(1) is licensed with GNU GPLv3\. You should have received a copy of the GNU General Public License along with this program\. If not, see for more details \fBhttp://www\.gnu\.org/licenses/gpl\-3\.0\.html\fR\.
+.
+.SH "SEE ALSO"
+\fBbash\fR(1), \fBgrep\fR(1), \fBwmctrl\fR(1), \fBx\fR(7), \fBxprop\fR(1), \fBxwinreg\fR(1), \fBxwinreg\-calculate\fR(1), \fBxwinreg\-close\fR(1), \fBxwinreg\-cycle\fR(1), \fBxwinreg\-focus\-toggle\fR(1), \fBxwinreg\-hide\fR(1), \fBxwinreg\-id\fR(1), \fBxwinreg\-layout\fR(1), \fBxwinreg\-move\-to\-desk\fR(1)
