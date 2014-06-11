@@ -1,5 +1,5 @@
-xwinreg-id(1) -- calculate frame geos.
-========================================
+xwinreg-id(1) -- get prepared X window ids from xwinpp(1).
+=====================================================
 
 ## XWINREG
 Part of `xwinreg`(1).
