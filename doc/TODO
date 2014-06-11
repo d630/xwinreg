@@ -21,6 +21,7 @@ TODO:
 - give option to install with install
 - rename all variables and then use set "$ set -o posix ; set" with another grep script
 - give all subcommand long options, when using directly
+- insert copyright head into every script
 
 DONE:
 - revise frame-handling
