@@ -1,0 +1,73 @@
+.\" Manpage of xwinreg-focus-toggle/v0.1.0.1
+.\" written with GNU Emacs/v24.3.1 and markdown-mode/v2.0
+.\" generated with Ronn/v0.7.3
+.
+.TH "XWINREG\-FOCUS\-TOGGLE" "1" "2014-06-10" "0.1.0.1" "User Manual"
+.
+.SH "NAME"
+\fBxwinreg\-focus\-toggle\fR \- toggle focus on windows in all regions\.
+.
+.SH "XWINREG"
+Part of \fBxwinreg\fR(1)\.
+.
+.SH "SYNOPSIS"
+xwinreg\-focus\-toggle [\-T] (\-h|\-d|\-v)
+.
+.SH "REQUIREMENT"
+GNU bash, GNU sed, grep, wmctrl, xwininfo
+.
+.SH "DESCRIPTION"
+\fBxwinreg\-focus\-toggle\fR(1) reads a Tmp File with variables and changes the active window\. After focusing, the Tmp file will be updated\.
+.
+.SH "OPTIONS"
+.
+.TP
+\fB\-d\fR \fIODIREC\fR
+Specify, in which direction the windows are toggled\.
+.
+.TP
+\fB\-h\fR
+Display a short help\.
+.
+.TP
+\fB\-T\fR \fIFILE\fR
+Specify a nonregular Tmp file\.
+.
+.TP
+\fB\-v\fR
+Print current version of \fBxwinreg\-focus\-toggle\fR(1)\.
+.
+.SH "ARGUMENTS"
+.
+.TP
+\fIODIREC\fR
+\fBnext\fR or \fBpreview\fR\.
+.
+.TP
+\fIFILE\fR
+Regular file or named pipe\.
+.
+.SH "EXAMPLES"
+xwinreg\-focus\-toggle \-d preview
+.
+.P
+xwinreg\-focus\-toggle \-T ${Home}/tmp/xwinreg\.tmp \-d next
+.
+.SH "ENVIROMENT"
+.
+.TP
+\fITMPDIR\fR
+By default, Tmp File will be written as \fBTMPDIR/xwinreg_default\.tmp\fR, otherwise as \fB/tmp/xwinreg_default\.tmp\fR\.
+.
+.TP
+\fIXWINREG_TMP_FILE\fR
+Specify this instead default setting and instead using \fIXWINREG_TMP_FILE\fR in a Conf File\.
+.
+.SH "BUGS & REQUESTS"
+Report it on \fBhttps://github\.com/D630/xwinreg/issues\fR
+.
+.SH "LICENSE"
+\fBxwinreg\-focus\-toggle\fR(1) is licensed with GNU GPLv3\. You should have received a copy of the GNU General Public License along with this program\. If not, see for more details \fBhttp://www\.gnu\.org/licenses/gpl\-3\.0\.html\fR\.
+.
+.SH "SEE ALSO"
+\fBbash\fR(1), \fBgrep\fR(1), \fBsed\fR(1), \fBwmctrl\fR(1), \fBx\fR(7), \fBxwininfo\fR(1), \fBxwinreg\fR(1), \fBxwinreg\-calculate\fR(1), \fBxwinreg\-close\fR(1), \fBxwinreg\-cycle\fR(1), \fBxwinreg\-focus\fR(1), \fBxwinreg\-hide\fR(1), \fBxwinreg\-id\fR(1), \fBxwinreg\-layout\fR(1), \fBxwinreg\-move\-to\-desk\fR(1)
