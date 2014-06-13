@@ -259,4 +259,94 @@ following parameters:
 
 ## Openbox ##
 
+The best way to use `xwinreg`(1) is to create several shell scripts and call
+them with keybinds. There are some example scripts in this repo for layouting
+with one frame and two regions.
+
+In `openbox`(1) it is nice to use them with its own actions for seizing and
+moving of windows. In the repo there is also a `rc.xml` with sections
+`<keyboard>` and `<applications>` and the script `dmenu_xwin_list.sh`.
+
+```
+rc.xml KEYBINDS
+
+ 0      A-Escape        ToggleDockAutohide
+ 1      W-A-Left        DesktopLeft
+ 2      W-A-Right       DesktopRight
+ 3      W-S-Left        SendToDesktopLeft
+ 4      W-S-Right       SendToDesktopRight
+ 5      W-A-Down        ToggleShowDesktop
+ 6      W-F4            Close
+ 7      W-Down          Iconify
+ 8      W-Escape        ToggleDecorations
+ 9      W-0x23          UnmaximizeFull; ResizeRelative: bottom=-1%
+10      W-0x33          UnmaximizeFull; ResizeRelative: bottom=1%
+11      W-0x3C          UnmaximizeFull; ResizeRelative: right=-1%
+12      W-0x3D          UnmaximizeFull; ResizeRelative: right=1%
+13      W-0x30          UnmaximizeFull; MoveRelative: x=0 , y=1%
+14      W-0x22          UnmaximizeFull; MoveRelative: x=0 , y=-1%
+15      W-m             UnmaximizeFull; MoveRelative: x=-1% , y=0
+16      W-0x3B          UnmaximizeFull; MoveRelative: x=1% , y=0
+17      W-1             xwinreg_master_west.sh
+18      W-2             xwinreg_master_north.sh
+19      W-3             xwinreg_master_east.sh
+20      W-4             xwinreg_master_south.sh
+21      W-5             xwinreg_grid_square_horizontal.sh
+22      W-6             xwinreg_grid_square_vertical.sh
+23      W-7             xwinreg_grid_horizontal.sh
+24      W-8             xwinreg_grid_vertical.sh
+25      W-9             xwinreg_hide_active_region.sh
+26      W-0             xwinreg_unhide_active_region.sh
+27      W-0x14          xwinreg_maximize_all.sh
+28      W-0x5E          xwinreg_focus_toggle_next.sh
+29      W-S-0x5E        xwinreg_focus_toggle_preview.sh
+30      W-0x76          xwinreg_cycle_clock.sh
+31      W-0x6E          xwinreg_cycle_anticlock.sh
+32      W-0x70          xwinreg_cycle_reverse.sh
+33      W-0x77          xwinreg_cycle_reg_clock.sh
+34      W-Tab           NextWindow
+35      W-S-Tab         PreviousWindow
+36      W-space         dmenu_xwin_list.sh
+37      A-Tab           client-list-combined-menu
+38      A-space         root-menu
+39      W-Print         scrot '%Y-%m-%d--%s_$wx$h.png' -e 'mv $f ~/Bilder/ & viewnior ~/Bilder/$f'
+40      W-A-Print       scrot -d 10 '%Y-%m-%d--%s_$wx$h.png' -e 'mv $f ~/Bilder/ & viewnior ~/Bilder/$f'
+41      W-b             gmrun
+42      W-t             xterm
+43      W-u             urxvt
+44      W-A-l           bash -c "slock"
+45      W-s             xscreensaver-demo
+46      W-v             acti.sh --gui
+47      W-r             arandr
+48      W-A-C           xwinreg_close_active_region.sh
+49      W-A-F           xwinreg_focus_active_region.sh
+50      W-A-1           UnmaximizeFull; MoveResizeTo: x=0, y=0 , w=50% , h=50%
+51      W-A-2           UnmaximizeFull; MoveResizeTo: x=0, y=0 , w=100% , h=50%
+52      W-A-3           UnmaximizeFull; MoveResizeTo: x=50%, y=0 , w=50% , h=50%
+53      W-A-4           UnmaximizeFull; MoveResizeTo: x=50%, y=0 , w=50% , h=100%
+54      W-A-5           UnmaximizeFull; MoveResizeTo: x=50%, y=50% , w=50% , h=50%
+55      W-A-6           UnmaximizeFull; MoveResizeTo: x=0, y=50% , w=100% , h=50%
+56      W-A-7           UnmaximizeFull; MoveResizeTo: x=0, y=50% , w=50% , h=50%
+57      W-A-8           UnmaximizeFull; MoveResizeTo: x=0, y=0 , w=50% , h=100%
+58      W-A-9           UnmaximizeFull; MoveResizeTo: x=center, y=center , w=50% , h=50%
+59      W-A-Return      ToggleMaximizeFull
+60      W-A-F12         ToggleFullscreen
+61      W-A-m           UnmaximizeFull; MoveToEdge: direction=west
+62      W-A-0x3B        UnmaximizeFull; MoveToEdge: direction=east
+63      W-A-0x30        UnmaximizeFull; MoveToEdge: direction=south
+64      W-A-0x22        UnmaximizeFull; MoveToEdge: direction=north
+65      W-A-0x3D        UnmaximizeFull; GrowToEdge: direction=east
+66      W-A-0x33        UnmaximizeFull; GrowToEdge: direction=south
+67      W-A-0x3C        UnmaximizeFull; ShrinkToEdge: direction=west
+68      W-A-0x23        UnmaximizeFull; ShrinkToEdge: direction=north
+```
+
+## BUGS & REQUESTS ##
+
+Report it on https://github.com/D630/xwinreg/issues
+
+## ToDO ##
+
+All is work in progress. See file `TODO`, which comes along with this programm.
+
 ## At last ##
