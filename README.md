@@ -42,11 +42,12 @@ Required: bc, GNU bash, GNU grep, GNU sed, wmctrl, Xorg, xprop, xwininfo,
   download it on https://github.com/D630/xwinreg/releases
 * Copy the scripts in xwinreg/bin elsewhere into `<PATH>` and the manpages in
   xwinreg/doc/man/*.1 into `$MANPATH`. Or do the following:
-        ```bash
-        $ cd -- ./xwinreg
-        $ sudo install -m 755 -D ./bin/* /usr/local/bin/
-        $ sudo for i in ./doc/man/*.1 ; do gzip -c "$i" > /usr/share/man/man1/${i##*/}.gz ; done
-        ```
+
+```bash
+$ cd -- ./xwinreg
+$ sudo install -m 755 -D ./bin/* /usr/local/bin/
+$ sudo for i in ./doc/man/*.1 ; do gzip -c "$i" > /usr/share/man/man1/${i##*/}.gz ; done
+```
 
 ## Usage ##
 
