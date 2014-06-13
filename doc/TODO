@@ -15,7 +15,6 @@ TODO:
 - insert picture in the readme
 - give much more comments in the scripts
 - reimplement action size and move
-- give option to install with install
 - rename all variables and then use set "$ set -o posix ; set" with another grep script
 - give all subcommands long options, when using directly
 - insert copyright head into every script
@@ -30,3 +29,4 @@ DONE:
 - give an example in doc, how to use xwinreg with openbox
 - include some example commands in doc
 - create a readme to show what layouts make sense
+- figure out, how to install with install
