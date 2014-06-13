@@ -23,17 +23,120 @@ as wrapper):
 * `xwinreg-move-to-desk`(1) - move windows of specified regions to another
   desktop.
 
-There are many tiling window managers and third party applications for the X
-Window System. Only use `xwinreg`(1), if you have a stacking window manager like
-`openbox`(1), but sometimes you want to tile all windows without the mouse and
-arrange them in different "layouts". Do not use it, if you do not like to do
-things in `bash`(1): `bash`(1) is relative slow (and there are well known other
-reasons). I chose it, because I am a kind of newbie. Anyway, most people can
-understand its code and `xwinreg`(1) does not need to process much data; it is
-still going faster than the blink of my slow eyes. So, for me it is still
-usefull.
+There are [many](https://en.wikipedia.org/wiki/Tiling_window_manager) tiling
+window managers and third party applications for the X Window System. Only use
+`xwinreg`(1), if you have a stacking window manager like `openbox`(1), but
+sometimes you want to tile all windows without the mouse and arrange them in
+different "layouts". Do not use it, if you do not like to do things in
+`bash`(1): `bash`(1) is relative slow (and there are well known other reasons).
+I chose it, because I am a kind of newbie. Anyway, most people can understand
+its code and `xwinreg`(1) does not need to process much data; it is still going
+faster than the blink of my slow eyes. So, for me it is still usefull.
 
 ## Install ##
+
+## Usage ##
+
+```bash
+xwinreg
+        [-I]
+        [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
+        (-c|-f|-H|-h|[-l ...|-L ...]|-M|-v|-y)
+
+OPTIONS
+-------
+    OPT                             ARG
+    ---                             ---
+    -a,  --frame-alias=             <FRAMEALIAS>
+    -C,  --conf-file=               <FILE>
+    -fh, --frame-height=            <PX>
+    -fw, --frame-width=             <PX>
+    -fx, --frame-x=                 <PX>
+    -fy, --frame-y=                 <PX>
+    -h,  --help
+    -I,  --input-file=              <FILE> or hyphen (-)
+    -N,  --number-of-cols=          <INT>
+    -n,  --number-of-rows=          <INT>
+    -T,  --tmp-file=                <FILE>
+    -v,  --version
+    -wh, --workarea-height=         <PX>
+    -ww, --workarea-width=          <PX>
+    -wx, --workarea-x=              <PX>
+    -wy, --workarea-y=              <PX>
+
+SUBCOMMANDS
+-----------
+    ACTION                          REQUIRED
+    ------                          --------
+    -c,  --close                    <REG>
+    -f,  --focus                    <REG>
+    -H,  --hide                     <REG> <HACT>
+    -l,  --layout                   <REGN> <WINN> <LACT> <LENT> <GRAV>
+                                    <GEO>
+    -M,  --move-to-desk             <REG> <DESK> -W
+    -o,  --focus-toggle             <ODIREC>
+    -y,  --cycle                    <REG> <YDIREC> -w -k -j
+
+    ACTION                          ARG
+    ------                          ---
+    -L,  --layout-abbrev=           <REGN>,<WINN>,<LACT>,<LENT>:<GRAV>,
+                                    <GEO>
+
+    OPT                             ARG
+    ---                             ---
+    -A,  --action=                  ( <HACT> | <LACT> )
+    -D,  --desk=                    <DESK>
+    -d,  --direction=               ( <ODIREC> | <YDIREC>  )
+    -e,  --entity=                  <LENT>
+    -g,  --geo=                     <GEO>
+    -G,  --gravity=                 <GRAV>
+    -j,  --join
+    -k,  --stack
+    -r,  --region=                  ( <REG> | <REGN> )
+    -W,  --switch
+    -w,  --window
+    -x,  --maximum=                 <WINN>
+
+ARGUMENTS
+---------
+    <DESK>          'curr' or relative to the current desktop 'next' or
+                    'preview'. To specify a desktop number (starts at 0)
+                    use the prefix 'i:'; a desktop name is prefixed with
+                    's:'. Examples: 'i:1'; 's:web'; '"s:some stuff"'.
+    <FILE>          Regular file or named pipe.
+    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
+                    'southeast', 'south', 'southwest' or 'west'.
+    <GEO>
+                    <X>        Pixel x size specified by an integer.
+                    <Y>        Pixel y size specified by an integer.
+                    <W>        Pixel width size specified by an integer.
+                    <H>        Pixel height size specified by an integer.
+                    <PRO>      Procent size specified by an integer.
+                    <REGALIAS> 'northwest', 'north', 'northeast','east',
+                               'southeast', 'south', 'southwest' or
+                               'west'.
+                    Samples:
+                               '<REGALIAS>',
+                               '<PRO>,<PRO>,<PRO>,<PRO>',
+                               '<X>,<Y>,<W>,<H>'.
+    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
+                    'east', 'southwest', 'south', 'southeast' or
+                    'static'. Additional: '[0-10]'.
+    <HACT>          'add' or 'remove'.
+    <INT>           Default is '2'.
+    <LACT>          'maximize', 'horizontal', 'vertical',
+                    'grid-horizontal', 'grid-vertical',
+                    'grid-square-horizontal' or 'grid-square-vertical'.
+    <LENT>          'alias', 'px' or 'pro'.
+    <ODIREC>        'next' or 'preview'.
+    <PX>            Pixel size specified by an integer.
+    <REF>           'window', 'region' or 'frame'.
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'all'.
+    <REGN>          Region number specified by an integer.
+    <WINN>          Window number specified by an integer or 'max'.
+    <YDIREC>        'clock', 'anticlock' or 'reverse'.
+```
 
 ## Examples ##
 
@@ -42,7 +145,7 @@ and the subscripts.
 
 Lets say, we have this situation:
 
-```shell
+```bash
 $ Xorg -version
 
 X.Org X Server 1.15.1
@@ -54,7 +157,7 @@ xorg-server 2:1.15.1-0ubuntu2 (For technical support please see http://www.ubunt
 [...]
 ```
 
-```shell
+```bash
 $ openbox --version
 Openbox 3.5.2
 Copyright (c) 2004   Mikael Magnusson
@@ -67,7 +170,7 @@ under certain conditions. See the file COPYING for details.
 
 We have two screens, two desktops and current desktop is "0":
 
-```shell
+```bash
 $ echo $DISPLAY ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ; xrandr ; printf
 '%*s\n' "$(tput cols)" ' ' | tr ' ' . ; xprop -root -notype | egrep -e
 '^_NET_(NUMBER_OF_DESKTOPS|DESKTOP_NAMES|CURRENT_DESKTOP|WORKAREA)'
@@ -102,7 +205,7 @@ _NET_NUMBER_OF_DESKTOPS = 2
 
 On desktop "0" we have five visible and maximized X windows with no decorations:
 
-```shell
+```bash
 $ __get_win_xids() { read -r _ _ _ _ xids < <(xprop -root _NET_CLIENT_LIST) &&
 printf '%s\n' ${xids//,/} ; } ; __get_win_xids ; printf '%*s\n' "$(tput cols)" '
 ' | tr ' ' . ; wmctrl -lxG ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ;
@@ -141,7 +244,7 @@ into two regions with same width and height, but different x and y position. To
 do this, there are two ways. The method with the wrapper `xwinreg`(1) could be
 one of these lines:
 
-```shell
+```bash
 $ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I - --layout --region=1
 --maximum=1 --action=maximize --entity=alias --gravity=0 --geo=west --layout
 --region=2 --maximum=max --action=horizontal --entity=alias --gravity=0
@@ -159,7 +262,7 @@ $ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I - -L
 To use the same layout with the subscripts `xwinreg-id`(1),
 `xwinreg-calculate`(1) and `xwinreg-layout` (last with layout-abbrev) directly:
 
-```shell
+```bash
 $ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg-id -I -
 $ xwinreg-calculate
 $ xwinreg-layout -L 1,1,maximize,alias:0,west -L 2,max,horizontal,alias:0,east
@@ -170,20 +273,20 @@ usefull is window cycling:
 
 To cycle clockwisely all windows between all regions:
 
-```shell
+```bash
 $ xwinreg cycle -w -r all -d clock
 ```
 
 To cycle clockwisely all regions:
 
-```shell
+```bash
 $ xwinreg cycle -d clock -k
 ```
 
 If we arrange three regions and fill them up with windows, we could also do
 cycling like this:
 
-```shell
+```bash
 $ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I - -L
 1,1,maximize,alias:0,west -L 2,1,maximize,alias:0,northeast -L
 3,max,horizontal,alias:0,southeast
@@ -193,7 +296,7 @@ $ xwinreg cycle -d clock
 ```
 
 Another nice thing is focus toggling with a kind of visual bell:
-```shell
+```bash
 $ xwinreg focus-toggle -d next
 $ xwinreg focus-toggle -d preview
 ```
@@ -348,5 +451,3 @@ Report it on https://github.com/D630/xwinreg/issues
 ## ToDO ##
 
 All is work in progress. See file `TODO`, which comes along with this programm.
-
-## At last ##
