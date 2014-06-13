@@ -35,6 +35,19 @@ faster than the blink of my slow eyes. So, for me it is still usefull.
 
 ## Install ##
 
+Required: bc, GNU bash, GNU grep, GNU sed, wmctrl, Xorg, xprop, xwininfo,
+[xwinpp](https://github.com/D630/xwinpp)
+
+* Get `xwinreg`(1) with `git clone https://github.com/D630/xwinreg.git` or
+  download it on https://github.com/D630/xwinreg/releases
+* Copy the scripts in xwinreg/bin elsewhere into `<PATH>` and the manpages in
+  xwinreg/doc/man/*.1 into `$MANPATH`. Or do the following:
+        ```bash
+        $ cd -- ./xwinreg
+        $ sudo install -m 755 -D ./bin/* /usr/local/bin/
+        $ sudo for i in ./doc/man/*.1 ; do gzip -c "$i" > /usr/share/man/man1/${i##*/}.gz ; done
+        ```
+
 ## Usage ##
 
 ```bash
@@ -359,6 +372,8 @@ following parameters:
 * You can specify region aliases in a Conf File, which will be read by action
   `l` and `L` and written to a Tmp File.
 * If you use action `-l`, actually, the first option needs to be `-r`.
+* In the docs there is a script called `get_xids.sh`, which you can use instead
+  `wmctrl -l` for getting the x window ids.
 
 ## Openbox ##
 

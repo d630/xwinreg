@@ -11,15 +11,13 @@ TODO:
 - if region change its size, then this should have an effect on region b
 - revise split-functions: determine empty space
 - revise sed and grep code and try to translate it into bash code
-- correct the English
-- create a readme with pictures to show what layouts make sense
+- correct the english
+- insert picture in the readme
 - give much more comments in the scripts
 - reimplement action size and move
-- include some example commands in doc
-- give an example in doc, how to use xwinreg with openbox
 - give option to install with install
 - rename all variables and then use set "$ set -o posix ; set" with another grep script
-- give all subcommand long options, when using directly
+- give all subcommands long options, when using directly
 - insert copyright head into every script
 
 DONE:
@@ -29,3 +27,6 @@ DONE:
 - cycling of windows in a specific region
 - variables in the temp file, which are not imported from xwinpp, should be stored in an associative array instead using several sorted indexed arrays to avoid eval
 - create new main manpage and one for every action
+- give an example in doc, how to use xwinreg with openbox
+- include some example commands in doc
+- create a readme to show what layouts make sense

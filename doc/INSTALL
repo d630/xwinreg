@@ -1,1 +1,5 @@
-1. make scripts in ../bin executable and cp it to /usr/local/bin or $HOME/bin
+
+$ git clone https://github.com/D630/xwinreg.git
+$ cd -- ./xwinreg
+$ sudo install -m 755 -D ./bin/* /usr/local/bin/
+$ sudo for i in ./doc/man/*.1 ; do gzip -c "$i" > /usr/share/man/man1/${i##*/}.gz ; done
