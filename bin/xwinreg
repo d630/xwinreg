@@ -17,7 +17,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_version() { echo "0.1.9.6" ; }
+__xwr_xwinreg_version() { echo "0.1.9.7" ; }
 
 __xwr_xwinreg_usage()
 {
@@ -154,55 +154,54 @@ for arg
 do
     arg=${arg#--}
     case $arg in
-        action)             args="${args}-A ${arg#*=} "             ;;
-        "")                 args="${args}-- "                       ;;
-        close)              args="${args}-c "                       ;;
-        conf-file=*)        args="${args}-C ${arg#*=} "             ;;
-        cycle)              args="${args}-y "                       ;;
-        desk)               args="${args}-D ${arg#*=} "             ;;
-        direction=*)        args="${args}-d ${arg#*=} "             ;;
-        entity)             args="${args}-e ${arg#*=} "             ;;
-        -fh)                args="${args}-2 "                       ;;
-        focus)              args="${args}-f "                       ;;
-        focus-toggle)       args="${args}-o "                       ;;
-        frame-alias=*)      args="${args}-a ${arg#*=} "             ;;
-        frame-height=*)     args="${args}-2 ${arg#*=} "             ;;
-        frame-width=*)      args="${args}-1 ${arg#*=} "             ;;
-        frame-x=*)          args="${args}-3 ${arg#*=} "             ;;
-        frame-y=*)          args="${args}-4 ${arg#*=} "             ;;
-        -fw)                args="${args}-1 "                       ;;
-        -fx)                args="${args}-3 "                       ;;
-        -fy)                args="${args}-4 "                       ;;
-        geo)                args="${args}-g ${arg#*=} "             ;;
-        gravity)            args="${args}-G ${arg#*=} "             ;;
-        help)               args="${args}-h "                       ;;
-        hide)               args="${args}-H "                       ;;
-        input-file=*)       args="${args}-I ${arg#*=} "             ;;
-        join)               args="${args}-j "                       ;;
-        layout-abbrev=*)    args="${args}-L ${arg#*=} "             ;;
-        layout)             args="${args}-l "                       ;;
-        maximum)            args="${args}-x ${arg#*=} "             ;;
-        move-to-desk)       args="${args}-M "                       ;;
-        number-of-cols=*)   args="${args}-N ${arg#*=} "             ;;
-        number-of-rows=*)   args="${args}-n ${arg#*=} "             ;;
-        region=*)           args="${args}-r ${arg#*=} "             ;;
-        stack)              args="${args}-k "                       ;;
-        switch)             args="${args}-W "                       ;;
-        tmp-file=*)         args="${args}-T ${arg#*=} "             ;;
-        version)            args="${args}-v "                       ;;
-        -wh)                args="${args}-8 "                       ;;
-        window)             args="${args}-w "                       ;;
-        workarea-height=*)  args="${args}-8 ${arg#*=} "             ;;
-        workarea-width=*)   args="${args}-7 ${arg#*=} "             ;;
-        workarea-x=*)       args="${args}-5 ${arg#*=} "             ;;
-        workarea-y=*)       args="${args}-6 ${arg#*=} "             ;;
-        -ww)                args="${args}-7 "                       ;;
-        -wx)                args="${args}-5 "                       ;;
-        -wy)                args="${args}-6 "                       ;;
+        action=*)             args="${args}-A ${arg#*=} "             ;;
+        "")                 args="${args}-- "                         ;;
+        close)              args="${args}-c "                         ;;
+        conf-file=*)        args="${args}-C ${arg#*=} "               ;;
+        cycle)              args="${args}-y "                         ;;
+        desk)               args="${args}-D ${arg#*=} "               ;;
+        direction=*)        args="${args}-d ${arg#*=} "               ;;
+        entity=*)             args="${args}-e ${arg#*=} "             ;;
+        -fh)                args="${args}-2 "                         ;;
+        focus)              args="${args}-f "                         ;;
+        focus-toggle)       args="${args}-o "                         ;;
+        frame-alias=*)      args="${args}-a ${arg#*=} "               ;;
+        frame-height=*)     args="${args}-2 ${arg#*=} "               ;;
+        frame-width=*)      args="${args}-1 ${arg#*=} "               ;;
+        frame-x=*)          args="${args}-3 ${arg#*=} "               ;;
+        frame-y=*)          args="${args}-4 ${arg#*=} "               ;;
+        -fw)                args="${args}-1 "                         ;;
+        -fx)                args="${args}-3 "                         ;;
+        -fy)                args="${args}-4 "                         ;;
+        geo=*)                args="${args}-g ${arg#*=} "             ;;
+        gravity=*)            args="${args}-G ${arg#*=} "             ;;
+        help)               args="${args}-h "                         ;;
+        hide)               args="${args}-H "                         ;;
+        input-file=*)       args="${args}-I ${arg#*=} "               ;;
+        join)               args="${args}-j "                         ;;
+        layout-abbrev=*)    args="${args}-L ${arg#*=} "               ;;
+        layout)             args="${args}-l "                         ;;
+        maximum=*)            args="${args}-x ${arg#*=} "             ;;
+        move-to-desk)       args="${args}-M "                         ;;
+        number-of-cols=*)   args="${args}-N ${arg#*=} "               ;;
+        number-of-rows=*)   args="${args}-n ${arg#*=} "               ;;
+        region=*)           args="${args}-r ${arg#*=} "               ;;
+        stack)              args="${args}-k "                         ;;
+        switch)             args="${args}-W "                         ;;
+        tmp-file=*)         args="${args}-T ${arg#*=} "               ;;
+        version)            args="${args}-v "                         ;;
+        -wh)                args="${args}-8 "                         ;;
+        window)             args="${args}-w "                         ;;
+        workarea-height=*)  args="${args}-8 ${arg#*=} "               ;;
+        workarea-width=*)   args="${args}-7 ${arg#*=} "               ;;
+        workarea-x=*)       args="${args}-5 ${arg#*=} "               ;;
+        workarea-y=*)       args="${args}-6 ${arg#*=} "               ;;
+        -ww)                args="${args}-7 "                         ;;
+        -wx)                args="${args}-5 "                         ;;
+        -wy)                args="${args}-6 "                         ;;
         *)                  [[ ${arg:0:1} != - ]] && delim=\"
                             args="${args}${arg} "
-                            delim=
-                            ;;
+                            delim=                                    ;;
     esac
 done
 
@@ -225,6 +224,8 @@ declare \
         workarea_y=
 
 eval set -- $args
+
+echo $args
 
 while getopts :1:2:3:4:5:6:7:8:a:A:cC:d:D:e:fg:G:hHI:jklLm:Mn:N:or:T:vwWx:y opt $args
 do
