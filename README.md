@@ -40,8 +40,8 @@ Required: bc, GNU bash, GNU grep, GNU sed, wmctrl, Xorg, xprop, xwininfo,
 
 * Get `xwinreg`(1) with `git clone https://github.com/D630/xwinreg.git` or
   download it on https://github.com/D630/xwinreg/releases
-* Copy the scripts in xwinreg/bin elsewhere into `<PATH>` and the manpages in
-  xwinreg/doc/man/*.1 into `$MANPATH`. Or do the following:
+* Copy the scripts in `xwinreg/bin` elsewhere into `<PATH>` and the manpages in
+  `xwinreg/doc/man/*.1` into `<MANPATH>`. Or do the following:
 
 ```bash
 $ cd -- ./xwinreg
