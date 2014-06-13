@@ -225,8 +225,6 @@ declare \
 
 eval set -- $args
 
-echo $args
-
 while getopts :1:2:3:4:5:6:7:8:a:A:cC:d:D:e:fg:G:hHI:jklLm:Mn:N:or:T:vwWx:y opt $args
 do
     case $opt in
