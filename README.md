@@ -68,7 +68,9 @@ under certain conditions. See the file COPYING for details.
 We have two screens, two desktops and current desktop is "0":
 
 ```shell
-$ echo $DISPLAY ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ; xrandr ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' - ; xprop -root -notype | egrep -e '^_NET_(NUMBER_OF_DESKTOPS|DESKTOP_NAMES|CURRENT_DESKTOP|WORKAREA)'
+$ echo $DISPLAY ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ; xrandr ; printf
+'%*s\n' "$(tput cols)" ' ' | tr ' ' - ; xprop -root -notype | egrep -e
+'^_NET_(NUMBER_OF_DESKTOPS|DESKTOP_NAMES|CURRENT_DESKTOP|WORKAREA)'
 :0.0
 ...............................................................................................................................................................................................................................................
 Screen 0: minimum 320 x 200, current 1680 x 1050, maximum 32767 x 32767
@@ -101,7 +103,10 @@ _NET_NUMBER_OF_DESKTOPS = 2
 On desktop "0" we have five visible and maximized X windows with no decorations:
 
 ```shell
-$ __get_win_xids() { read -r _ _ _ _ xids < <(xprop -root _NET_CLIENT_LIST) && printf '%s\n' ${xids//,/} ; } ; __get_win_xids ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ; wmctrl -lxG ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ; __get_win_xids | xwinpp - -s visible -P 1 -p
+$ __get_win_xids() { read -r _ _ _ _ xids < <(xprop -root _NET_CLIENT_LIST) &&
+printf '%s\n' ${xids//,/} ; } ; __get_win_xids ; printf '%*s\n' "$(tput cols)" '
+' | tr ' ' . ; wmctrl -lxG ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ;
+__get_win_xids | xwinpp - -s visible -P 1 -p
 0x32000a3
 0x2000022
 0x2200022
@@ -254,4 +259,4 @@ following parameters:
 
 ## Openbox ##
 
-
+## At last ##
