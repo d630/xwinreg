@@ -17,7 +17,6 @@ TODO:
 - reimplement action size and move
 - rename all variables and then use set "$ set -o posix ; set" with another grep script
 - give all subcommands long options, when using directly
-- insert copyright head into every script
 
 DONE:
 - revise frame-handling
@@ -30,3 +29,4 @@ DONE:
 - include some example commands in doc
 - create a readme to show what layouts make sense
 - figure out, how to install with install
+- insert copyright head into every script
