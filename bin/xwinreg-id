@@ -34,7 +34,7 @@ declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_id_version() { echo "0.1.0.3" ; }
+__xwr_xwinreg_id_version() { echo "0.1.0.4" ; }
 
 __xwr_xwinreg_id_usage()
 {
@@ -131,8 +131,7 @@ done
 if [[ $XWINREG_INPUT_FILE ]]
 then
     file_input=$XWINREG_INPUT_FILE
-
-    if [[ $XWINREG_INPUT_FILE == - ]]
+    if [[ $file_input == - ]]
     then
         if [[ -p /dev/stdin ]]
         then
@@ -144,12 +143,12 @@ then
             { echo "Stdin is not coming from a pipe." >&2 ; exit 1 ; }
         fi
     else
-        if [[ -p $XWINREG_INPUT_FILE || -f $XWINREG_INPUT_FILE ]]
+        if [[ -p $file_input || -f $file_input ]]
         then
             while read -r
             do
                 __xwr_xwinreg_id_check_variables_input "$REPLY"
-            done < "$XWINREG_INPUT_FILE"
+            done < "$file_input"
         else
             { echo "File does not exist or is neather a regular file nor a named pipe." >&2 ; exit 1 ; }
         fi
