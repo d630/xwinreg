@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_version() { echo "0.1.9.11" ; }
+__xwr_xwinreg_version() { echo "0.1.9.12" ; }
 
 __xwr_xwinreg_usage()
 {

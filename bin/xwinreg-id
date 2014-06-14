@@ -34,7 +34,7 @@ declare vars_base=$(set -o posix ; set)
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_id_version() { echo "0.1.0.2" ; }
+__xwr_xwinreg_id_version() { echo "0.1.0.3" ; }
 
 __xwr_xwinreg_id_usage()
 {
@@ -66,7 +66,7 @@ __xwr_xwinreg_id_check_variables_input()
     then
         eval "$1"
     else
-        { echo "Irregular variable inside input." >&2 ; exit 1 ; }
+        { echo "Irregular variable inside input." >&2 ; return 1 ; }
     fi
 }
 
