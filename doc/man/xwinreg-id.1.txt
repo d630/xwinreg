@@ -2,9 +2,6 @@ XWINREG-ID(1)                 User Manual                XWINREG-ID(1)
 
 
 
-NAME
-       xwinreg-id - get prepared X window ids from xwinpp(1).
-
 XWINREG
        Part of xwinreg(1).
 
@@ -12,7 +9,7 @@ SYNOPSIS
        xwinreg-id [-T] (-h|-I|-v)
 
 REQUIREMENT
-       GNU bash, grep, xwinpp
+       GNU bash, grep, xwinpp >= 0.1.1.0
 
 DESCRIPTION
        Just  as  xwinreg-calculate(1),  xwinreg-id(1)  is required for
@@ -40,16 +37,16 @@ ARGUMENTS
        FILE   Regular file or named pipe.
 
 EXAMPLES
-       xwinpp -F ./list -P 1 -p | xwinreg-id -I -
+       xwinpp -I ./list -P 0 -p | xwinreg-id -I -
 
-       xwinpp -F ./list -P 1 -p | xwinreg-id -I - -T ${Home}/tmp/xwin‐
+       xwinpp -I ./list -P 0 -p | xwinreg-id -I - -T ${Home}/tmp/xwin‐
        reg.tmp
 
-       xwinreg-id -I - < <(xwinpp -F ./list -P 1 -p)
+       xwinreg-id -I - < <(xwinpp -I ./list -P 1 -p)
 
        xwinreg-id -I ./output-of-xwinpp
 
-       xwinreg-id -I <(xwinpp -F ./list -P 1 -p)
+       xwinreg-id -I <(xwinpp -I ./list -P 1 -p)
 
 ENVIROMENT
        TMPDIR By default, Tmp File will  be  written  as  TMPDIR/xwin‐

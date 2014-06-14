@@ -4,9 +4,6 @@
 .
 .TH "XWINREG\-ID" "1" "2014-06-14" "0.1.0.3" "User Manual"
 .
-.SH "NAME"
-\fBxwinreg\-id\fR \- get prepared X window ids from xwinpp(1)\.
-.
 .SH "XWINREG"
 Part of \fBxwinreg\fR(1)\.
 .
@@ -14,7 +11,7 @@ Part of \fBxwinreg\fR(1)\.
 xwinreg\-id [\-T] (\-h|\-I|\-v)
 .
 .SH "REQUIREMENT"
-GNU bash, grep, xwinpp
+GNU bash, grep, xwinpp >= 0\.1\.1\.0
 .
 .SH "DESCRIPTION"
 Just as \fBxwinreg\-calculate\fR(1), \fBxwinreg\-id\fR(1) is required for layouting with \fBxwinreg\-layout\fR(1)\. Its purpose is to read the ouput of \fBxwinpp\fR(1) and to create a Tmp File with its variables\.
@@ -47,19 +44,19 @@ Print current version of \fBxwinreg\-id\fR(1)\.
 Regular file or named pipe\.
 .
 .SH "EXAMPLES"
-xwinpp \-F \./list \-P 1 \-p | xwinreg\-id \-I \-
+xwinpp \-I \./list \-P 0 \-p | xwinreg\-id \-I \-
 .
 .P
-xwinpp \-F \./list \-P 1 \-p | xwinreg\-id \-I \- \-T ${Home}/tmp/xwinreg\.tmp
+xwinpp \-I \./list \-P 0 \-p | xwinreg\-id \-I \- \-T ${Home}/tmp/xwinreg\.tmp
 .
 .P
-xwinreg\-id \-I \- < <(xwinpp \-F \./list \-P 1 \-p)
+xwinreg\-id \-I \- < <(xwinpp \-I \./list \-P 1 \-p)
 .
 .P
 xwinreg\-id \-I \./output\-of\-xwinpp
 .
 .P
-xwinreg\-id \-I <(xwinpp \-F \./list \-P 1 \-p)
+xwinreg\-id \-I <(xwinpp \-I \./list \-P 1 \-p)
 .
 .SH "ENVIROMENT"
 .

@@ -1,8 +1,8 @@
-.\" Manpage of xwinreg/v0.2.0.0
+.\" Manpage of xwinreg/v0.2.0.1
 .\" written with GNU Emacs/v24.3.1 and markdown-mode/v2.0
 .\" generated with Ronn/v0.7.3
 .
-.TH "XWINREG" "1" "2014-06-14" "0.2.0.0" "User Manual"
+.TH "XWINREG" "1" "2014-06-14" "0.2.0.1" "User Manual"
 .
 .SH "NAME"
 \fBxwinreg\fR \- organize X windows into regions and do tiling layouts\.
@@ -35,7 +35,7 @@
 \fBxwinreg move\-to\-desk [\-T] \-r \-D [\-W]\fR
 .
 .SH "REQUIREMENT"
-bc, GNU bash, GNU grep, GNU sed, wmctrl, X, xprop, xwininfo, xwinpp
+bc, GNU bash, GNU grep, GNU sed, wmctrl, X, xprop, xwininfo, xwinpp >= 0\.1\.1\.0
 .
 .SH "USE CASE"
 You use a stacking window manager like \fBopenbox\fR(1), but sometimes you want to tile all windows without the mouse and arrange them in different "layouts"\.
@@ -350,16 +350,16 @@ xwinreg hide \-r active \-A remove
 xwinreg hide \-T ${Home}/tmp/xwinreg\.tmp \-r 2 \-A add
 .
 .SS "layout"
-xwinpp \-F \./list \-P 1 \-p | xwinreg \-I \- \-L 1,max,horizontal,alias:0,all
+xwinpp \-I \./list \-P 0 \-p | xwinreg \-I \- \-L 1,max,horizontal,alias:0,all
 .
 .P
-xwinpp \-F \./list \-P 1 \-p | xwinreg \-I \- \-T ${Home}/tmp/xwinreg\.tmp \-L 1,max,horizontal,alias:0,all
+xwinpp \-I \./list \-P 0 \-p | xwinreg \-I \- \-T ${Home}/tmp/xwinreg\.tmp \-L 1,max,horizontal,alias:0,all
 .
 .P
-xwinreg \-I \- \-L 1,max,horizontal,alias:0,all < <(xwinpp \-F \./list \-P 1 \-p)
+xwinreg \-I \- \-L 1,max,horizontal,alias:0,all < <(xwinpp \-I \./list \-P 0 \-p)
 .
 .P
-xwinreg \-I <(xwinpp \-F \./list \-P 1 \-p) \-L 1,max,horizontal,alias:0,all
+xwinreg \-I <(xwinpp \-I \./list \-P 0 \-p) \-L 1,max,horizontal,alias:0,all
 .
 .P
 xwinreg \-I \./output\-of\-xwinpp \-L 1,max,horizontal,alias:0,all

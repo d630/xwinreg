@@ -29,7 +29,7 @@ SYNOPSIS
 
 REQUIREMENT
        bc, GNU bash, GNU grep, GNU sed, wmctrl,  X,  xprop,  xwininfo,
-       xwinpp
+       xwinpp >= 0.1.1.0
 
 USE CASE
        You  use  a  stacking window manager like openbox(1), but some‐
@@ -370,16 +370,16 @@ EXAMPLES
        xwinreg hide -T ${Home}/tmp/xwinreg.tmp -r 2 -A add
 
    layout
-       xwinpp  -F  ./list  -P  1  -p  | xwinreg -I - -L 1,max,horizon‐
+       xwinpp  -I  ./list  -P  0  -p  | xwinreg -I - -L 1,max,horizon‐
        tal,alias:0,all
 
-       xwinpp -F ./list -P 1 -p | xwinreg -I  -  -T  ${Home}/tmp/xwin‐
+       xwinpp -I ./list -P 0 -p | xwinreg -I  -  -T  ${Home}/tmp/xwin‐
        reg.tmp -L 1,max,horizontal,alias:0,all
 
-       xwinreg  -I  -  -L  1,max,horizontal,alias:0,all  < <(xwinpp -F
-       ./list -P 1 -p)
+       xwinreg  -I  -  -L  1,max,horizontal,alias:0,all  < <(xwinpp -I
+       ./list -P 0 -p)
 
-       xwinreg -I <(xwinpp  -F  ./list  -P  1  -p)  -L  1,max,horizon‐
+       xwinreg -I <(xwinpp  -I  ./list  -P  0  -p)  -L  1,max,horizon‐
        tal,alias:0,all
 
        xwinreg -I ./output-of-xwinpp -L 1,max,horizontal,alias:0,all
@@ -510,4 +510,4 @@ SEE ALSO
 
 
 
-0.2.0.0                       2014-06-14                    XWINREG(1)
+0.2.0.1                       2014-06-14                    XWINREG(1)

@@ -21,7 +21,7 @@ xwinreg(1) -- organize X windows into regions and do tiling layouts.
  **xwinreg move-to-desk [-T] -r -D [-W]**
 
 ## REQUIREMENT
-bc, GNU bash, GNU grep, GNU sed, wmctrl, X, xprop, xwininfo, xwinpp
+bc, GNU bash, GNU grep, GNU sed, wmctrl, X, xprop, xwininfo, xwinpp >= 0.1.1.0
 ## USE CASE
 You use a stacking window manager like `openbox`(1), but sometimes you want to tile all windows without the mouse and arrange them in different "layouts".
 ## DESCRIPTION
@@ -266,13 +266,13 @@ All layouting takes place in only one frame. That one frame may have the geometr
  xwinreg hide -T ${Home}/tmp/xwinreg.tmp -r 2 -A add
 
 ### layout
- xwinpp -F ./list -P 1 -p | xwinreg -I - -L 1,max,horizontal,alias:0,all
+ xwinpp -I ./list -P 0 -p | xwinreg -I - -L 1,max,horizontal,alias:0,all
 
- xwinpp -F ./list -P 1 -p | xwinreg -I - -T ${Home}/tmp/xwinreg.tmp -L 1,max,horizontal,alias:0,all
+ xwinpp -I ./list -P 0 -p | xwinreg -I - -T ${Home}/tmp/xwinreg.tmp -L 1,max,horizontal,alias:0,all
 
- xwinreg -I - -L 1,max,horizontal,alias:0,all < <(xwinpp -F ./list -P 1 -p)
+ xwinreg -I - -L 1,max,horizontal,alias:0,all < <(xwinpp -I ./list -P 0 -p)
 
- xwinreg -I <(xwinpp -F ./list -P 1 -p) -L 1,max,horizontal,alias:0,all
+ xwinreg -I <(xwinpp -I ./list -P 0 -p) -L 1,max,horizontal,alias:0,all
 
  xwinreg -I ./output-of-xwinpp -L 1,max,horizontal,alias:0,all
 

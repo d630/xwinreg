@@ -6,7 +6,7 @@ Part of `xwinreg`(1).
 ## SYNOPSIS
 xwinreg-id [-T] (-h|-I|-v)
 ## REQUIREMENT
-GNU bash, grep, xwinpp
+GNU bash, grep, xwinpp >= 0.1.1.0
 ## DESCRIPTION
 Just as `xwinreg-calculate`(1), `xwinreg-id`(1) is required for layouting with `xwinreg-layout`(1). Its purpose is to read the ouput of `xwinpp`(1) and to create a Tmp File with its variables.
 
@@ -29,15 +29,15 @@ In the wrapper script `xwinreg`(1) you may not call `xwinreg-id`(1) directly; it
  Regular file or named pipe.
 
 ## EXAMPLES
- xwinpp -F ./list -P 1 -p | xwinreg-id -I -
+ xwinpp -I ./list -P 0 -p | xwinreg-id -I -
 
- xwinpp -F ./list -P 1 -p | xwinreg-id -I - -T ${Home}/tmp/xwinreg.tmp
+ xwinpp -I ./list -P 0 -p | xwinreg-id -I - -T ${Home}/tmp/xwinreg.tmp
 
- xwinreg-id -I - < <(xwinpp -F ./list -P 1 -p)
+ xwinreg-id -I - < <(xwinpp -I ./list -P 1 -p)
 
  xwinreg-id -I ./output-of-xwinpp
 
- xwinreg-id -I <(xwinpp -F ./list -P 1 -p)
+ xwinreg-id -I <(xwinpp -I ./list -P 1 -p)
 
 ## ENVIROMENT
 * <TMPDIR>:
