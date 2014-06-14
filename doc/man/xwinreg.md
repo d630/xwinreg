@@ -351,4 +351,4 @@ See file **TODO**, which comes along with this programm.
 ## CHRONICLE
 First version (0.1.0.0) was finished on: 2014-02-10.
 ## SEE ALSO
-`bash`(1), `bc`(1), `grep`(1), `sed`(1), `wmctrl`(1), `x`(7), `xprop`(1), `xwininfo`(1), `xwinpp`(1), `xwinreg`(1), `xwinreg-calculate`(1), `xwinreg-close`(1), `xwinreg-cycle`(1), `xwinreg-focus`(1), `xwinreg-focus-toggle`(1), `xwinreg-hide`(1), `xwinreg-id`(1), `xwinreg-layout`(1), `xwinreg-move-to-desk`(1)
+`bash`(1), `bc`(1), `grep`(1), `sed`(1), `wmctrl`(1), `x`(7), `xorg`(1), `xprop`(1), `xwininfo`(1), `xwinpp`(1), `xwinreg`(1), `xwinreg-calculate`(1), `xwinreg-close`(1), `xwinreg-cycle`(1), `xwinreg-focus`(1), `xwinreg-focus-toggle`(1), `xwinreg-hide`(1), `xwinreg-id`(1), `xwinreg-layout`(1), `xwinreg-move-to-desk`(1)
