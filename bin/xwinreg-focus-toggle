@@ -107,9 +107,9 @@ __xwr_xwinreg_focus_toggle_focus_toggle()
     esac
 
     win_active=$win
-    mapfile -t xwininfo_win_active < <(xwininfo -id "$win_active")
 
     # visual bell instead colorize frame border of active window
+    mapfile -t xwininfo_win_active < <(xwininfo -id "$win_active")
     x=$((${xwininfo_win_active[3]##* }+${xwininfo_win_active[5]##* }))
     y=$((${xwininfo_win_active[4]##* }+${xwininfo_win_active[6]##* }))
     w=${xwininfo_win_active[7]##* }
