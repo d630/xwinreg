@@ -17,6 +17,7 @@ TODO:
 - reimplement action size and move
 - rename all variables and then use set "$ set -o posix ; set" with another grep script
 - give all subcommands long options, when using directly
+- checking for requiered software
 
 DONE:
 - revise frame-handling
