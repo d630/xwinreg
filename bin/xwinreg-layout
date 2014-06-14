@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_layout_version() { echo "0.1.0.3" ; }
+__xwr_xwinreg_layout_version() { echo "0.1.0.4" ; }
 
 __xwr_xwinreg_layout_usage()
 {
@@ -568,16 +568,16 @@ exec 3>>"$file_tmp"
 
 ((reg_number)) &&
 {
-        for ((i=1 ; i <= reg_number ; i++))
-        do
-            printf '%s\n' "layout[${i}:region_number]=${layout[${i}:region_number]}
+    for ((i=1 ; i <= reg_number ; i++))
+    do
+        printf '%s\n' "layout[${i}:region_number]=${layout[${i}:region_number]}
 layout[${i}:win_number_maximum]=${layout[${i}:win_number_maximum]}
 layout[${i}:layout_action]=${layout[${i}:layout_action]}
 layout[${i}:entity_region]=${layout[${i}:entity_region]}
 layout[${i}:gravity]=${layout[${i}:gravity]}
 layout[${i}:region_geo]=\"${layout[${i}:region_geo]}\""
-        done
-        printf '%s\n' "reg_number=$reg_number"
+    done
+    printf '%s\n' "reg_number=$reg_number"
 } >&3
 
 unset -v \
