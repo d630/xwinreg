@@ -60,7 +60,7 @@ xwinreg focus-toggle [-T] -d
 xwinreg hide [-T] -r -A
 xwinreg -I [-C|-T|-n|-N|-a|-1|-2|-3|-4|-5|-6|-7|-8] (layout -A -e -g -G -r -x) ...
 xwinreg -I [-C|-T|-n|-N|-a|-1|-2|-3|-4|-5|-6|-7|-8] layout-abbrev ...
-xwinreg move-to-desk [-T] -r -D [-W]'
+xwinreg move-to-desk [-T] -r -D [-W]
 
 OPTIONS
 -------
