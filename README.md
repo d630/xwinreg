@@ -1,4 +1,4 @@
-# xwinreg v0.1.9.7 [GNU GPLv3] #
+# xwinreg v0.2.0.0 [GNU GPLv3] #
 
 `xwinreg`(1) is a bash shell script, that acts like a stupid third party tiling
 application on `Xorg`(1). It lets you organize X windows into frames and regions
@@ -52,10 +52,15 @@ $ sudo for i in ./doc/man/*.1 ; do gzip -c "$i" > /usr/share/man/man1/${i##*/}.g
 ## Usage ##
 
 ```bash
-xwinreg
-        [-I]
-        [-C|-T|-n|-N|-a|-fx|-fy|-fw|-fh|-wx|-wy|-ww|-wh]
-        (-c|-f|-H|-h|[-l ...|-L ...]|-M|-v|-y)
+xwinreg (-h|-v)
+xwinreg close [-T] -r
+xwinreg cycle [-T] [-w -r] -d (-j|-k|)
+xwinreg focus [-T] -r
+xwinreg focus-toggle [-T] -d
+xwinreg hide [-T] -r -A
+xwinreg -I [-C|-T|-n|-N|-a|-1|-2|-3|-4|-5|-6|-7|-8] (layout -A -e -g -G -r -x) ...
+xwinreg -I [-C|-T|-n|-N|-a|-1|-2|-3|-4|-5|-6|-7|-8] layout-abbrev ...
+xwinreg move-to-desk [-T] -r -D [-W]'
 
 OPTIONS
 -------
@@ -230,11 +235,11 @@ __get_win_xids | xwinpp - -s visible -P 1 -p
 0x2400022
 0x2800022
 ....................................................................................
-0x032000a3  0 0    1    1680 1049 emacs24-x.Emacs24     ICH2 ~/code/source/xwinreg/README.md
-0x02000022  0 0    1    1680 1049 xterm.XTerm           ICH2 xterm
-0x02200022  0 0    1    1680 1049 xterm.XTerm           ICH2 xterm
-0x02400022  0 0    1    1680 1049 xterm.XTerm           ICH2 xterm
-0x02800022  0 0    1    1680 1049 xterm.XTerm           ICH2 xterm
+0x032000a3  0 0    1    1680 1049 emacs24-x.Emacs24     CP ~/code/source/xwinreg/README.md
+0x02000022  0 0    1    1680 1049 xterm.XTerm           CP xterm
+0x02200022  0 0    1    1680 1049 xterm.XTerm           CP xterm
+0x02400022  0 0    1    1680 1049 xterm.XTerm           CP xterm
+0x02800022  0 0    1    1680 1049 xterm.XTerm           CP xterm
 .............................................................................................
 desk_curr=0
 desk_select=( 0 )
@@ -252,7 +257,7 @@ win_tags=(  )
 ```
 
 Now we want to arrange these windows in a layout, for example in a layout, which
-we can call "master left". Therefore, we build a frame with the size of the
+we can call "master west". Therefore, we build a frame with the size of the
 workspace on the current desktop (desktop "0"); and that frame should be split
 into two regions with same width and height, but different x and y position. To
 do this, there are two ways. The method with the wrapper `xwinreg`(1) could be
@@ -428,8 +433,8 @@ rc.xml KEYBINDS
 36      W-space         dmenu_xwin_list.sh
 37      A-Tab           client-list-combined-menu
 38      A-space         root-menu
-39      W-Print         scrot '%Y-%m-%d--%s_$wx$h.png' -e 'mv $f ~/Bilder/ & viewnior ~/Bilder/$f'
-40      W-A-Print       scrot -d 10 '%Y-%m-%d--%s_$wx$h.png' -e 'mv $f ~/Bilder/ & viewnior ~/Bilder/$f'
+39      W-Print         scrot '%Y-%m-%d--%s_$wx$h.png' -e 'mv $f ~/pics/ & viewnior ~/pics/$f'
+40      W-A-Print       scrot -d 10 '%Y-%m-%d--%s_$wx$h.png' -e 'mv $f ~/pics/ & viewnior ~/pics/$f'
 41      W-b             gmrun
 42      W-t             xterm
 43      W-u             urxvt
