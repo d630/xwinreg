@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_focus_toggle_version() { echo "0.1.0.1" ; }
+__xwr_xwinreg_focus_toggle_version() { echo "0.1.0.2" ; }
 
 __xwr_xwinreg_focus_toggle_usage()
 {
@@ -76,64 +76,61 @@ __xwr_xwinreg_focus_toggle_focus_toggle()
             y=
 
     declare -a \
-                win_active_geo_w_h=() \
-                win_active_geo_x_y=() \
                 win_xid=() \
                 xwininfo_win_active=()
 
     while read -r
     do
         eval "$REPLY"
-    done < <(egrep -e "^win_active_geo_w_h=(.*)" \
-                   -e "^win_active_geo_x_y=(.*)" \
-                   -e "^win_active=.*" \
-                   -e "^win_xid=(.*)" \
+    done < <(egrep -e "^win_xid=(.*)" \
                    -e "^win_number=.*" "$file_tmp")
+
+    read -r _ _ _ _ win_active < <(xprop -root -notype _NET_ACTIVE_WINDOW)
 
     case $direction_focus in
         n|next)
-                if [[ ${win_xid[win_number-1]} =~ ${win_active:2} ]]
+                if [[ ${win_xid[win_number-1]} =~ $win_active ]]
                 then
                     win=${win_xid[0]}
                 else
-                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(printf '%s\n' "${win_xid[@]}") | sed -n '$p')
+                    read -r win < <(sed -n "/${win_active}/,+1 p" < <(printf '%s\n' "${win_xid[@]}") | sed -n '$p')
                 fi
                 ;;
         p|preview)
-                if [[ ${win_xid[0]} =~ ${win_active:2} ]]
+                if [[ ${win_xid[0]} =~ $win_active ]]
                 then
                     win=${win_xid[win_number-1]}
                 else
-                    read -r win < <(sed -n "/${win_active:2}/,+1 p" < <(__xwr_xwinreg_focus_toggle_order_reverse_array "${win_xid[@]}") | sed -n '$p')
+                    read -r win < <(sed -n "/${win_active}/,+1 p" < <(__xwr_xwinreg_focus_toggle_order_reverse_array "${win_xid[@]}") | sed -n '$p')
                 fi
                 ;;
     esac
 
     win_active=$win
     mapfile -t xwininfo_win_active < <(xwininfo -id "$win_active")
-    win_active_geo_x_y=($((${xwininfo_win_active[3]##* }+${xwininfo_win_active[5]##* })),$((${xwininfo_win_active[4]##* }+${xwininfo_win_active[6]##* })))
-    win_active_geo_w_h=(${xwininfo_win_active[7]##* },${xwininfo_win_active[8]##* })
 
     # visual bell instead colorize frame border of active window
-    x=${win_active_geo_x_y[0]%,*}
-    y=${win_active_geo_x_y[0]#*,}
-    w=${win_active_geo_w_h[0]%,*}
-    h=${win_active_geo_w_h[0]#*,}
+    x=$((${xwininfo_win_active[3]##* }+${xwininfo_win_active[5]##* }))
+    y=$((${xwininfo_win_active[4]##* }+${xwininfo_win_active[6]##* }))
+    w=${xwininfo_win_active[7]##* }
+    h=${xwininfo_win_active[8]##* }
     gravity=0
     (
-        w=$((${win_active_geo_w_h[0]%,*}*25/100))
-        h=$((${win_active_geo_w_h[0]#*,}*25/100))
+        w=$(($w*25/100))
+        h=$(($h*25/100))
         __xwr_xwinreg_focus_toggle_do_wmctrl
     )
     __xwr_xwinreg_focus_toggle_do_wmctrl
 
     wmctrl -i -a "$win"
 
-    sed -i -e "s/^win_active_geo_x_y=(.*/win_active_geo_x_y=(${win_active_geo_x_y[*]})/" \
-           -e "s/^win_active_geo_w_h=(.*/win_active_geo_w_h=(${win_active_geo_w_h[*]})/" \
-           -e "s/^win_active=.*/win_active=$win_active/" "$file_tmp"
-
-    #~ unset -v xwininfo_win_active win
+    #~ unset -v \
+             #~ xwininfo_win_active \
+             #~ win \
+             #~ x \
+             #~ y \
+             #~ w \
+             #~ h
 }
 
 __xwr_xwinreg_focus_toggle_do_wmctrl()
@@ -154,7 +151,7 @@ __xwr_xwinreg_focus_toggle_order_reverse_array()
 
 __xwr_xwinreg_focus_toggle_check_args()
 {
-    declare o
+    declare o=
     if [[ ! $OPTARG = -* ]]
     then
         for o

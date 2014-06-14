@@ -34,7 +34,7 @@
 
 # -- FUNCTIONS.
 
-__xwr_xwinreg_version() { echo "0.1.9.7" ; }
+__xwr_xwinreg_version() { echo "0.1.9.8" ; }
 
 __xwr_xwinreg_usage()
 {
@@ -171,14 +171,14 @@ for arg
 do
     arg=${arg#--}
     case $arg in
-        action=*)             args="${args}-A ${arg#*=} "             ;;
+        action=*)           args="${args}-A ${arg#*=} "               ;;
         "")                 args="${args}-- "                         ;;
         close)              args="${args}-c "                         ;;
         conf-file=*)        args="${args}-C ${arg#*=} "               ;;
         cycle)              args="${args}-y "                         ;;
         desk)               args="${args}-D ${arg#*=} "               ;;
         direction=*)        args="${args}-d ${arg#*=} "               ;;
-        entity=*)             args="${args}-e ${arg#*=} "             ;;
+        entity=*)           args="${args}-e ${arg#*=} "               ;;
         -fh)                args="${args}-2 "                         ;;
         focus)              args="${args}-f "                         ;;
         focus-toggle)       args="${args}-o "                         ;;
@@ -190,15 +190,15 @@ do
         -fw)                args="${args}-1 "                         ;;
         -fx)                args="${args}-3 "                         ;;
         -fy)                args="${args}-4 "                         ;;
-        geo=*)                args="${args}-g ${arg#*=} "             ;;
-        gravity=*)            args="${args}-G ${arg#*=} "             ;;
+        geo=*)              args="${args}-g ${arg#*=} "               ;;
+        gravity=*)          args="${args}-G ${arg#*=} "               ;;
         help)               args="${args}-h "                         ;;
         hide)               args="${args}-H "                         ;;
         input-file=*)       args="${args}-I ${arg#*=} "               ;;
         join)               args="${args}-j "                         ;;
         layout-abbrev=*)    args="${args}-L ${arg#*=} "               ;;
         layout)             args="${args}-l "                         ;;
-        maximum=*)            args="${args}-x ${arg#*=} "             ;;
+        maximum=*)          args="${args}-x ${arg#*=} "               ;;
         move-to-desk)       args="${args}-M "                         ;;
         number-of-cols=*)   args="${args}-N ${arg#*=} "               ;;
         number-of-rows=*)   args="${args}-n ${arg#*=} "               ;;
