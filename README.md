@@ -1,4 +1,4 @@
-# xwinreg v0.2.0.0 [GNU GPLv3] #
+# xwinreg v0.2.0.1 [GNU GPLv3] #
 
 `xwinreg`(1) is a bash shell script, that acts like a stupid third party tiling
 application on `Xorg`(1). It lets you organize X windows into frames and regions
@@ -36,7 +36,7 @@ faster than the blink of my slow eyes. So, for me it is still usefull.
 ## Install ##
 
 Required: bc, GNU bash, GNU grep, GNU sed, wmctrl, Xorg, xprop, xwininfo,
-[xwinpp](https://github.com/D630/xwinpp)
+[xwinpp](https://github.com/D630/xwinpp) >= 0.1.1.0
 
 * Get `xwinreg`(1) with `git clone https://github.com/D630/xwinreg.git` or
   download it on https://github.com/D630/xwinreg/releases
@@ -228,7 +228,7 @@ On desktop "0" we have five visible and maximized X windows with no decorations:
 $ __get_win_xids() { read -r _ _ _ _ xids < <(xprop -root _NET_CLIENT_LIST) &&
 printf '%s\n' ${xids//,/} ; } ; __get_win_xids ; printf '%*s\n' "$(tput cols)" '
 ' | tr ' ' . ; wmctrl -lxG ; printf '%*s\n' "$(tput cols)" ' ' | tr ' ' . ;
-__get_win_xids | xwinpp - -s visible -P 1 -p
+__get_win_xids | xwinpp print -I - --visible -P 0
 0x32000a3
 0x2000022
 0x2200022
@@ -264,17 +264,17 @@ do this, there are two ways. The method with the wrapper `xwinreg`(1) could be
 one of these lines:
 
 ```bash
-$ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I - --layout --region=1
+$ __get_win_xids | xwinpp -I - --visible -P 0 | xwinreg -I - --layout --region=1
 --maximum=1 --action=maximize --entity=alias --gravity=0 --geo=west --layout
 --region=2 --maximum=max --action=horizontal --entity=alias --gravity=0
 --geo=east
-$ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I - -l -r 1 -x 1 -A
+$ __get_win_xids | xwinpp -I - --visible -P 0 | xwinreg -I - -l -r 1 -x 1 -A
 maximize -e alias -G 0 -g west -l -r 2 -x max -A horizontal -e alias -G 0 -g
 east
-$ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I -
+$ __get_win_xids | xwinpp -I - --visible -P 0 | xwinreg -I -
 --layout-abbrev=1,1,maximize,alias:0,west
 --layout-abbrev=2,max,horizontal,alias:0,east
-$ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I - -L
+$ __get_win_xids | xwinpp -I - --visible -P 0 | xwinreg -I - -L
 1,1,maximize,alias:0,west -L 2,max,horizontal,alias:0,east
 ```
 
@@ -282,7 +282,7 @@ To use the same layout with the subscripts `xwinreg-id`(1),
 `xwinreg-calculate`(1) and `xwinreg-layout` (last with layout-abbrev) directly:
 
 ```bash
-$ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg-id -I -
+$ __get_win_xids | xwinpp -I - --visible -P 0 | xwinreg-id -I -
 $ xwinreg-calculate
 $ xwinreg-layout -L 1,1,maximize,alias:0,west -L 2,max,horizontal,alias:0,east
 ```
@@ -306,7 +306,7 @@ If we arrange three regions and fill them up with windows, we could also do
 cycling like this:
 
 ```bash
-$ __get_win_xids | xwinpp - -s visible -P 1 -p | xwinreg -I - -L
+$ __get_win_xids | xwinpp -I - --visible -P 0 | xwinreg -I - -L
 1,1,maximize,alias:0,west -L 2,1,maximize,alias:0,northeast -L
 3,max,horizontal,alias:0,southeast
 $ xwinreg cycle -w -r 3 -d clock
