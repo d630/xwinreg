@@ -1,0 +1,1493 @@
+#!/usr/bin/env bash
+
+# xwinreg
+# Copyright 2014 D630
+# https://github.com/D630/xwinreg
+
+# -- DEBUGGING.
+
+#printf '%s (%s)\n' "$BASH_VERSION" "${BASH_VERSINFO[5]}" && exit 0
+#set -o xtrace #; exec 2>> ~/xwinreg.log
+#set -o verbose
+#set -o noexec
+#set -o errexit
+#set -o nounset
+#set -o pipefail
+#trap '(read -p "[$BASH_SOURCE:$LINENO] $BASH_COMMAND?")' DEBUG
+
+# -- SETTINGS.
+
+#declare vars_base=$(set -o posix ; set)
+builtin shopt -s extglob
+
+# -- FUNCTIONS.
+
+__xwinreg_version() { builtin echo "0.3.0.0" ; }
+
+__xwinreg_usage()
+{
+    builtin printf '
+xwinreg [-I] (-c|-h|-v|-y|-o|-f|-H|-M)
+xwinreg -I [-C|-T] [-n|-N|-a|-1|-2|-3|-4|-5|-6|-7|-8] (-l -A -e -g -G -r -x ...)
+xwinreg -I [-C|-T] [-n|-N|-a|-1|-2|-3|-4|-5|-6|-7|-8] -L ...'
+}
+
+__xwinreg_help()
+{
+    builtin printf "$(__xwinreg_usage)
+
+OPTIONS
+-------
+    OPT                             ARG
+    ---                             ---
+    -C,  --conf-file=               <FILE>
+    -I,  --input-file=              <FILE> or hyphen (-)
+    -N,  --number-of-cols=          <INT>
+    -T,  --tmp-file=                <FILE>
+    -a,  --frame-alias=             <FRAMEALIAS>
+    -fh, --frame-h=                 <PX>
+    -fw, --frame-w=                  <PX>
+    -fx, --frame-x=                 <PX>
+    -fy, --frame-y=                 <PX>
+    -n,  --number-of-rows=          <INT>
+    -wh, --workarea-h=              <PX>
+    -ww, --workarea-w=              <PX>
+    -wx, --workarea-x=              <PX>
+    -wy, --workarea-y=              <PX>
+
+SUBCOMMANDS
+-----------
+    ACTION                          REQUIRED
+    ------                          --------
+    -H,  --hide                     <REG> <HACT>
+    -L,  --layout-abbrev=           <REGN>,<WINN>,<LACT>,<LENT>:<GRAV>,
+                                    <GEO>
+    -M,  --move-to-desk             <REG> <DESK> -W
+    -c,  --close                    <REG>
+    -f,  --focus                    <REG>
+    -h,  --help
+    -l,  --layout                   <REGN> <WINN> <LACT> <LENT> <GRAV>
+                                    <GEO>
+    -o,  --focus-toggle             <ODIREC>
+    -v,  --version
+    -y,  --cycle                    <REG> <YDIREC> -w -k -j
+
+    OPT                             ARG
+    ---                             ---
+    -A,  --action=                  ( <HACT> | <LACT> )
+    -D,  --desk=                    <DESK>
+    -G,  --gravity=                 <GRAV>
+    -W,  --switch
+    -d,  --direction=               ( <ODIREC> | <YDIREC>  )
+    -e,  --entity=                  <LENT>
+    -g,  --geo=                     <GEO>
+    -j,  --join
+    -k,  --stack
+    -r,  --region=                  ( <REG> | <REGN> )
+    -w,  --window
+    -x,  --maximum=                 <WINN>
+
+ARGUMENTS
+---------
+    <DESK>          'curr' or relative to the current desktop 'next' or
+                    'prev'. To specify a desktop number (starts at 0)
+                    use the prefix 'i:'; a desktop name is prefixed with
+                    's:'. Examples: 'i:1'; 's:web'; '\"s:some stuff\"'.
+    <FILE>          Regular file or named pipe.
+    <FRAMEALIAS>    'northwest', 'north', 'northeast', 'east',
+                    'southeast', 'south', 'southwest' or 'west'.
+    <GEO>
+                    <X>        Pixel x size specified by an integer.
+                    <Y>        Pixel y size specified by an integer.
+                    <W>        Pixel width size specified by an integer.
+                    <H>        Pixel height size specified by an integer.
+                    <PRO>      Procent size specified by an integer.
+                    <REGALIAS> 'northwest', 'north', 'northeast','east',
+                               'southeast', 'south', 'southwest' or
+                               'west'.
+                    Samples:
+                               '<REGALIAS>',
+                               '<PRO>,<PRO>,<PRO>,<PRO>',
+                               '<X>,<Y>,<W>,<H>'.
+    <GRAV>          'northwest', 'north', 'northeast', 'west', 'center',
+                    'east', 'southwest', 'south', 'southeast' or
+                    'static'. Additional: '[0-10]'.
+    <HACT>          'add' or 'remove'.
+    <INT>           Default is '2'.
+    <LACT>          'maxi', 'horiz', 'verti',
+                    'grid-horiz', 'grid-verti',
+                    'grid-square-horiz' or 'grid-square-verti'.
+    <LENT>          'alias', 'px' or 'pro'.
+    <ODIREC>        'next' or 'prev'.
+    <PX>            Pixel size specified by an integer.
+    <REG>           Up to this sample: '1', '1,3', '1-3' or '1,2-3'.
+                    Additional: 'active' or 'any'.
+    <REGN>          Region number specified by an integer.
+    <WINN>          Window number specified by an integer or 'max'.
+    <YDIREC>        'clock', 'aclock' or 'rev'.
+"
+}
+
+__xwinreg_read()
+case ${1%=*} in
+    _xwinpp_win_number)
+        _xwinreg_data[win_number]=${1#*=}
+        ;;
+    _xwinpp_win_xid)
+        builtin declare -a _xwinpp_win_xid="()"
+        builtin eval "$1"
+        _xwinreg_data[win_xid]=${_xwinpp_win_xid[@]}
+        ;;
+    #~ _xwinpp_win_geo_x_y)
+        #~ builtin declare -a _xwinpp_win_geo_x_y="()"
+        #~ builtin eval "$1"
+        #~ _xwinreg_data[win_geo_x_y]=${_xwinpp_win_geo_x_y[@]}
+        #~ ;;
+    #~ _xwinpp_win_geo_w_h)
+        #~ builtin declare -a _xwinpp_win_geo_w_h="()"
+        #~ builtin eval "$1"
+        #~ _xwinreg_data[win_geo_w_h]=${_xwinpp_win_geo_w_h[@]}
+        #~ ;;
+    *)
+        { builtin printf '%s\n' "Irregular variable inside input: '$1'" >&2 ; builtin return 1 ; }
+esac
+
+__xwinreg_calculate()
+{
+    # Check, if geo of workarea is manually set; if not, we use __NET_WORKAREA instead.
+    builtin declare -a workarea="()"
+
+    builtin read -a workarea < <(command xprop -root -notype _NET_WORKAREA) &&
+        workarea=(${workarea[@]//,}) &&
+        workarea=(${workarea[@]:2})
+
+    _xwinreg_data[workarea]=${workarea[@]}
+
+    builtin declare \
+        workarea_x="${_xwinreg_options[workarea_x]:-${workarea[0]}}" \
+        workarea_y="${_xwinreg_options[workarea_y]:-${workarea[1]}}" \
+        workarea_w="${_xwinreg_options[workarea_w]:-${workarea[2]}}" \
+        workarea_h="${_xwinreg_options[workarea_h]:-${workarea[3]}}"
+
+    _xwinreg_data[workarea_x]=$workarea_x
+    _xwinreg_data[workarea_y]=$workarea_y
+    _xwinreg_data[workarea_w]=$workarea_w
+    _xwinreg_data[workarea_h]=$workarea_h
+
+    # Check, if frame aliases have been set in a Conf File.
+    builtin declare -f __xwinreg_calculate_frame_alias >/dev/null && __xwinreg_calculate_frame_alias
+
+    # We use these aliases for frame geo. We also check, if aliases with same names have been set manually.
+    _xwinreg_frames[northwest]=${_xwinreg_frames[northwest]:-$workarea_x $workarea_y $((workarea_w/2)) $((workarea_h/2))}
+    _xwinreg_frames[north]=${_xwinreg_frames[north]:-$workarea_x $workarea_y $workarea_w $((workarea_h/2))}
+    _xwinreg_frames[northeast]=${_xwinreg_frames[northeast]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $((workarea_h/2))}
+    _xwinreg_frames[east]=${_xwinreg_frames[east]:-$((workarea_x+workarea_w/2)) $workarea_y $((workarea_w/2)) $workarea_h}
+    _xwinreg_frames[southeast]=${_xwinreg_frames[southeast]:-$((workarea_x+workarea_w/2)) $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
+    _xwinreg_frames[south]=${_xwinreg_frames[south]:-$workarea_x $((workarea_y+workarea_h/2)) $workarea_w $((workarea_h/2))}
+    _xwinreg_frames[southwest]=${_xwinreg_frames[southwest]:-$workarea_x $((workarea_y+workarea_h/2)) $((workarea_w/2)) $((workarea_h/2))}
+    _xwinreg_frames[west]=${_xwinreg_frames[west]:-$workarea_x $workarea_y $((workarea_w/2)) $workarea_h}
+    _xwinreg_frames[all]=${_xwinreg_frames[all]:-$workarea_x $workarea_y $workarea_w $workarea_h}
+
+    if [[ $frame_alias ]]
+    then
+        builtin declare -a frame_geo='(${_xwinreg_frames[$frame_alias]})'
+        builtin declare \
+            frame_x="${_xwinreg_options[frame_x]:-${frame_geo[0]}}" \
+            frame_y="${_xwinreg_options[frame_y]:-${frame_geo[1]}}" \
+            frame_w="${_xwinreg_options[frame_w]:-${frame_geo[2]}}" \
+            frame_h="${_xwinreg_options[frame_h]:-${frame_geo[3]}}"
+    else
+        builtin declare \
+            frame_x="${_xwinreg_options[frame_x]:-$workarea_x}" \
+            frame_y="${_xwinreg_options[frame_y]:-$workarea_y}" \
+            frame_w="${_xwinreg_options[frame_w]:-$workarea_w}" \
+            frame_h="${_xwinreg_options[frame_h]:-$workarea_h}"
+    fi
+
+    _xwinreg_data[frame_x]=$frame_x
+    _xwinreg_data[frame_y]=$frame_y
+    _xwinreg_data[frame_w]=$frame_w
+    _xwinreg_data[frame_h]=$frame_h
+
+    # To simplify matters, we alias _xwinreg_frames geo to _xwinreg_x,_xwinreg_y,_xwinreg_w and _xwinreg_h.
+    builtin declare \
+        _xwinreg_x="$frame_x" \
+        _xwinreg_y="$frame_y" \
+        _xwinreg_w="$frame_w" \
+        _xwinreg_h="$frame_h"
+
+    _xwinreg_data[_xwinreg_x]=$frame_x
+    _xwinreg_data[_xwinreg_y]=$frame_y
+    _xwinreg_data[_xwinreg_w]=$frame_w
+    _xwinreg_data[_xwinreg_h]=$frame_h
+
+    # Check, if region aliases have been set in a Conf File.
+    builtin declare -f __xwinreg_calculate_region_alias >/dev/null && __xwinreg_calculate_region_alias
+
+    # We use these aliases for _xwinreg_regions geo. We also check, if aliases with same names have been set manually.
+    _xwinreg_regions[northwest]=${_xwinreg_regions[northwest]:-$_xwinreg_x $_xwinreg_y $((_xwinreg_w/2)) $((_xwinreg_h/2))}
+    _xwinreg_regions[north]=${_xwinreg_regions[north]:-$_xwinreg_x $_xwinreg_y $_xwinreg_w $((_xwinreg_h/2))}
+    _xwinreg_regions[northeast]=${_xwinreg_regions[northeast]:-$((_xwinreg_x+_xwinreg_w/2)) $_xwinreg_y $((_xwinreg_w/2)) $((_xwinreg_h/2))}
+    _xwinreg_regions[east]=${_xwinreg_regions[east]:-$((_xwinreg_x+_xwinreg_w/2)) $_xwinreg_y $((_xwinreg_w/2)) $_xwinreg_h}
+    _xwinreg_regions[southeast]=${_xwinreg_regions[southeast]:-$((_xwinreg_x+_xwinreg_w/2)) $((_xwinreg_y+_xwinreg_h/2)) $((_xwinreg_w/2)) $((_xwinreg_h/2))}
+    _xwinreg_regions[south]=${_xwinreg_regions[south]:-$_xwinreg_x $((_xwinreg_y+_xwinreg_h/2)) $_xwinreg_w $((_xwinreg_h/2))}
+    _xwinreg_regions[southwest]=${_xwinreg_regions[southwest]:-$_xwinreg_x $((_xwinreg_y+_xwinreg_h/2)) $((_xwinreg_w/2)) $((_xwinreg_h/2))}
+    _xwinreg_regions[west]=${_xwinreg_regions[west]:-$_xwinreg_x $_xwinreg_y $((_xwinreg_w/2)) $_xwinreg_h}
+    _xwinreg_regions[all]=${_xwinreg_regions[all]:-$_xwinreg_x $_xwinreg_y $_xwinreg_w $_xwinreg_h}
+
+    # Here we declare row and column number, which are needed to perform grid layouting.
+    _xwinreg_data[row_number]=${_xwinreg_options[row_number]:-2}
+    _xwinreg_data[col_number]=${_xwinreg_options[col_number]:-2}
+}
+
+__xwinreg_layout()
+{
+    __xwinreg_layout_do()
+    {
+        builtin declare \
+            entity_region= \
+            gravity= \
+            layout_action= \
+            win= \
+            win_number_maximum=
+
+        builtin declare -i \
+            bottom_row_width= \
+            bottom_row_windows= \
+            current_column= \
+            current_column_windows= \
+            current_row= \
+            current_row_windows= \
+            i= \
+            j= \
+            k= \
+            l= \
+            m= \
+            n= \
+            normal_column_height= \
+            normal_column_windows= \
+            normal_row_width= \
+            normal_row_windows= \
+            nx= \
+            ny= \
+            o= \
+            p= \
+            region_number= \
+            right_column_height= \
+            right_column_windows= \
+            tiles= \
+            win_region_number= \
+            windows_not_in_bottom_column= \
+            windows_not_in_bottom_row= \
+            x= \
+            x_org= \
+            y= \
+            y_org=
+
+        builtin declare -a region_geo="()"
+
+        builtin declare -i \
+            col_number="${_xwinreg_data[col_number]}" \
+            h="${_xwinreg_data[_xwinreg_h]}" \
+            reg_number="${_xwinreg_data[reg_number]}" \
+            row_number="${_xwinreg_data[row_number]}" \
+            w="${_xwinreg_data[_xwinreg_w]}" \
+            win_number="${_xwinreg_data[win_number]}"
+
+        builtin declare -a win_xid='(${_xwinreg_data[win_xid]})'
+
+        ((win_number <= 1)) && { builtin printf '%s\n' "${0}: Not enough windows to work with" >&2 ; builtin exit 1 ; }
+
+        for ((i=1 ; i <= reg_number ; i++))
+        do
+            entity_region=${_xwinreg_options[entity_region ${i}]}
+            gravity=${_xwinreg_options[gravity ${i}]}
+            layout_action=${_xwinreg_options[layout_action ${i}]}
+            region_number=$i
+            win_number_maximum=${_xwinreg_options[win_number_maximum ${i}]}
+
+            case $entity_region in
+                alias)
+                        region_geo=(${_xwinreg_regions[${_xwinreg_options[region_geo ${i}]}]})
+                        _xwinreg_options[region_geo ${i}]=${region_geo[0]},${region_geo[1]},${region_geo[2]},${region_geo[3]}
+                        _xwinreg_options[entity_region ${i}]=px
+                        ;;
+                px)
+                        region_geo=(${_xwinreg_options[region_geo ${i}]//,/ })
+                        ;;
+                pro)
+                        region_geo=(${_xwinreg_options[region_geo ${i}]//,/ })
+                        region_geo[0]=$((w * ${region_geo[0]} / 100))
+                        region_geo[1]=$((h * ${region_geo[1]} / 100))
+                        region_geo[2]=$((w * ${region_geo[2]} / 100))
+                        region_geo[3]=$((h * ${region_geo[3]} / 100))
+            esac
+
+            x=${region_geo[0]}
+            y=${region_geo[1]}
+            w=${region_geo[2]}
+            h=${region_geo[3]}
+
+            __xwinreg_layout_check_gravity "$gravity"
+
+            if [[ $win_number_maximum == max ]]
+            then
+                win_region_number=$win_number
+            else
+                win_region_number=$win_number_maximum
+            fi
+
+            case $layout_action in
+                maxi)
+                        for ((j=0 ; j < win_region_number ; j++))
+                        do
+                            win=${win_xid[$j]}
+                            __xwinreg_layout_wmctrl &
+                            __xwinreg_layout_store_region
+                        done
+                        ;;
+                verti)
+                        w=$((w / win_region_number))
+                        for ((k=0 ; k <  win_region_number ; k++))
+                        do
+                            win=${win_xid[$k]}
+                            __xwinreg_layout_wmctrl &
+                            __xwinreg_layout_store_region
+                            x=$((x + w))
+                        done
+                        ;;
+                horiz)
+                        h=$((h / win_region_number))
+                        for ((l=0 ; l < win_region_number ; l++))
+                        do
+                            win=${win_xid[$l]}
+                            __xwinreg_layout_wmctrl &
+                            __xwinreg_layout_store_region
+                            y=$((y + h))
+                        done
+                        ;;
+                grid-verti)
+                        # Adapted. See for more details http://forum.ubuntuusers.de/topic/wmtiler-fuer-floating-wm-s/
+                        normal_column_windows=$((win_region_number / col_number))
+                        right_column_windows=$((normal_column_windows + win_region_number%col_number))
+                        windows_not_in_bottom_column=$((win_region_number - right_column_windows))
+                        y_org=$y
+                        w=$((w / col_number))
+                        normal_column_height=$((h / normal_column_windows))
+                        right_column_height=$((h / right_column_windows))
+                        for ((m=0 , current_column_windows=0 , current_column=1 ; m < win_region_number ; m++ , current_column_windows++))
+                        do
+                            ((current_column < col_number)) && {
+                                ((current_column_windows == normal_column_windows)) && {
+                                    ((current_column++))
+                                    if ((current_column == col_number))
+                                    then
+                                        x=$((x + w))
+                                        y=$y_org
+                                        h=$right_column_height
+                                    else
+                                        current_column_windows=0
+                                    fi
+                                }
+                                ((current_column_windows == 0)) && \
+                                y=$y_org && \
+                                h=$normal_column_height && \
+                                { ((current_column != 1)) && x=$((x + w)) ; }
+                            }
+                            win=${win_xid[$m]}
+                            __xwinreg_layout_wmctrl &
+                            __xwinreg_layout_store_region
+                            y=$((y + h))
+                        done
+                        ;;
+                grid-horiz)
+                        # Adapted. See for more details http://forum.ubuntuusers.de/topic/wmtiler-fuer-floating-wm-s/
+                        normal_row_windows=$((win_region_number / row_number))
+                        bottom_row_windows=$((normal_row_windows + win_region_number%row_number))
+                        windows_not_in_bottom_row=$((win_region_number - bottom_row_windows))
+                        x_org=$x
+                        h=$((h / row_number))
+                        normal_row_width=$(((w / normal_row_windows) - normal_row_windows))
+                        bottom_row_width=$(((w / bottom_row_windows) - normal_row_windows))
+                        for ((n=0 , current_row_windows=0 , current_row=1 ; n < win_region_number ; n++ , current_row_windows++))
+                        do
+                            ((current_row < row_number)) && {
+                                ((current_row_windows == normal_row_windows)) && {
+                                    ((current_row++))
+                                    if ((current_row == row_number))
+                                    then
+                                        x=$x_org
+                                        y=$((y + h))
+                                        w=$bottom_row_width
+                                    else
+                                        current_row_windows=0
+                                    fi
+                                }
+                                ((current_row_windows == 0)) && \
+                                x=$x_org && \
+                                w=$normal_row_width && \
+                                { ((current_row != 1)) && y=$((y + h)) ; }
+                            }
+                            win=${win_xid[$n]}
+                            __xwinreg_layout_wmctrl &
+                            __xwinreg_layout_store_region
+                            x=$((x + w))
+                        done
+                        ;;
+                grid-square-verti)
+                        # Adapted. See for more details http://bashscripts.org/forum/viewtopic.php?f=7&t=1568
+                        row_number=${row_number-$(command bc <<< "sqrt(${win_region_number})")}
+                        col_number=$row_number
+                        tiles=$((row_number * col_number))
+                        ((tiles < win_region_number)) && {
+                            ((row_number++))
+                            tiles=$((row_number * col_number))
+                            ((tiles < win_region_number)) && ((col_number++)) && tiles=$((row_number * col_number))
+                        }
+                        w=$((w / col_number))
+                        h=$((h / row_number))
+                        for ((o=0 , nx=0 , ny=0 ; o < win_region_number ; o++))
+                        do
+                            command wmctrl -i -r "${win_xid[$o]}" -b "remove,maximized_vert,maximized_horz" &
+                            command wmctrl -i -r "${win_xid[$o]}" -e "${gravity},$((x + nx * w)),$((y + ny * h)),${w},${h}" &
+                            ((ny++))
+                            ((ny > row_number - 1)) && ny=0 && ((nx++))
+                            __xwinreg_layout_store_region
+                        done
+                        ;;
+                grid-square-horiz)
+                        # Adapted. See for more details http://bashscripts.org/forum/viewtopic.php?f=7&t=1568
+                        col_number=${col_number-$(command bc <<< "sqrt(${win_region_number})")}
+                        row_number=$col_number
+                        tiles=$((row_number * col_number))
+                        ((tiles < win_region_number)) && {
+                            ((col_number++))
+                            tiles=$((row_number * col_number))
+                            ((tiles < win_region_number)) && ((row_number++)) && tiles=$((row_number * col_number))
+                        }
+                        w=$((w / col_number))
+                        h=$((h / row_number))
+                        for ((p=0 , nx=0 , ny=0 ; p < win_region_number ; p++))
+                        do
+                            command wmctrl -i -r "${win_xid[$p]}" -b "remove,maximized_vert,maximized_horz" &
+                            command wmctrl -i -r "${win_xid[$p]}" -e "${gravity},$((x + nx * w)),$((y + ny * h)),${w},${h}" &
+                            ((nx++))
+                            ((nx > col_number - 1)) && nx=0 && ((ny++))
+                            __xwinreg_layout_store_region
+                        done
+            esac
+
+            win_xid=(${win_xid[@]:$win_region_number})
+            ((win_number-=win_region_number))
+        done
+
+        command sed -i -e '/declare -A _xwinreg_options=.*/d' "${_xwinreg_options[file_tmp]}"
+
+        builtin declare -p _xwinreg_win_regions _xwinreg_options >> "${_xwinreg_options[file_tmp]}"
+    }
+
+    function __xwinreg_layout_check_gravity
+    case $1 in
+        0)
+            gravity=0
+            ;;
+        1|northwest*)
+            gravity=1
+            ;;
+        2|north|northgravity)
+            gravity=2
+            ;;
+        3|northeast*)
+            gravity=3
+            ;;
+        4|west|westgravity)
+            gravity=4
+            ;;
+        5|center|centergravity)
+            gravity=5
+            ;;
+        6|east|eastgravity)
+            gravity=6
+            ;;
+        7|southwest*)
+            gravity=7
+            ;;
+        8|south|southgravity)
+            gravity=8
+            ;;
+        9|southeast*)
+            gravity=9
+            ;;
+        10|static|staticgravity)
+            gravity=10
+            ;;
+        *)
+            { builtin printf '%s\n' "${0}: No valid value for gravity: '$1'" >&2 ; builtin exit 1 ; }
+    esac
+
+    function __xwinreg_layout_store_region
+    {
+        _xwinreg_win_regions[win_xids ${i}]="${_xwinreg_win_regions[win_xids ${i}]}${win} "
+        _xwinreg_win_regions[win_xids_number ${i}]=$win_region_number
+        _xwinreg_win_regions[x_y_w_h ${i}]="${_xwinreg_win_regions[x_y_w_h ${i}]}${x},${y},${w},${h} "
+    }
+
+    function __xwinreg_layout_wmctrl
+    {
+        command wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
+        command wmctrl -i -r "$win" -e "${gravity},${x},${y},${w},${h}"
+    }
+
+    ## -- START.
+
+    if [[ ${_xwinreg_options[action]} =~ (layout|layout-abbrev) && ${_xwinreg_data[reg_number]} ]]
+    then
+        builtin declare -p _xwinreg_options _xwinreg_frames _xwinreg_regions _xwinreg_data > "${_xwinreg_options[file_tmp]}"
+    else
+        builtin source "${_xwinreg_options[file_tmp]}"
+    fi
+
+    __xwinreg_layout_do
+}
+
+__xwinreg_close()
+{
+    builtin declare \
+        delete_win_active= \
+        m= \
+        win_active=
+
+    builtin declare -i i=
+
+    builtin declare -a \
+       reg_index="()" \
+       win_xid_selection="()" \
+       win_xid_selection_rest="()"
+
+    builtin declare \
+        file_tmp="${_xwinreg_options[file_tmp]}" \
+        region_selection="${_xwinreg_options[region_selection]}"
+
+    while builtin read -r
+    do
+        [[ $REPLY =~ ^declare\ \-A\ (_xwinreg_data|_xwinreg_options|_xwinreg_win_regions)= ]] &&
+        builtin eval "$REPLY"
+    done < "$file_tmp"
+
+    builtin declare command="${_xwinreg_options[command]}"
+
+    builtin declare -i reg_number="${_xwinreg_data[reg_number]}"
+
+    builtin declare -a win_xid='(${_xwinreg_data[win_xid]})'
+
+    reg_index=($(builtin eval "builtin printf '%s\n' {1..${reg_number}}"))
+    __xwinreg_utils_xprop_active_window
+
+    case $region_selection in
+        any)
+            for i in "${reg_index[@]}"
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        active)
+            for i in "${reg_index[@]}"
+            do
+                [[ ${_xwinreg_win_regions[win_xids ${i}]} =~ $win_active ]] && \
+                win_xid_selection=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        *)
+            for i in $(__xwinreg_utils_order_num_asc $(__xwinreg_utils_parse_region "$region_selection"))
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+    esac
+
+    builtin mapfile -t win_xid_selection_rest < <(__xwinreg_utils_comm "${win_xid[@]}" -- $(__xwinreg_utils_order_num_asc ${win_xid_selection[@]}))
+
+    for m in "${win_xid_selection[@]}"
+    do
+        if [[ $m == $win_active ]]
+        then
+            delete_win_active=delete_win_active
+        else
+            command wmctrl -i -c "$m"
+        fi
+    done
+
+    case ${#win_xid_selection_rest[@]} in
+        1)
+            command wmctrl -i -r "${win_xid_selection_rest[0]}" -b "toggle,maximized_vert,maximized_horz"
+            ;;
+        [^01])
+            builtin printf '%s\n' "${win_xid_selection_rest[@]}" | \
+            command xwinpp -I - -p | \
+            command xwinreg $command
+    esac
+
+    [[ $delete_win_active == delete_win_active ]] && command wmctrl -i -c "$win_active"
+}
+
+__xwinreg_cycle()
+{
+    function __xwinreg_cycle_region
+    {
+        builtin declare \
+            entity_region= \
+            gravity= \
+            region_geo=
+
+        builtin declare -i \
+            i=1 \
+            j=
+
+        builtin declare \
+            direction_cycle="${_xwinreg_options[direction_cycle]}" \
+            stack="${_xwinreg_options[stack]}" \
+            file_tmp="${_xwinreg_options[file_tmp]}"
+
+        while builtin read -r
+        do
+            [[ $REPLY =~ ^declare\ \-A\ (_xwinreg_data|_xwinreg_options)= ]] &&
+            builtin eval "$REPLY"
+        done < "$file_tmp"
+
+        builtin declare -i reg_number="${_xwinreg_data[reg_number]}"
+
+        case ${direction_cycle} in
+            clock)
+                    __xwinreg_cycle_do() { __xwinreg_utils_order_anticlock "$@" ; }
+                    ;;
+            aclock)
+                    __xwinreg_cycle_do() { __xwinreg_utils_order_clock "$@" ; }
+                    ;;
+            rev)
+                    __xwinreg_cycle_do() { __xwinreg_utils_order_reverse "$@" ; }
+        esac
+
+        if [[ $stack == stack ]]
+        then
+            while IFS=':' builtin read -r entity_region gravity region_geo
+            do
+                _xwinreg_options[entity_region ${i}]=$entity_region
+                _xwinreg_options[gravity ${i}]=$gravity
+                _xwinreg_options[region_geo ${i}]=$region_geo
+                ((i++))
+            done < <(__xwinreg_cycle_do $(\
+                for ((j=1 ; j <= reg_number ; j++))
+                do
+                    builtin printf '%s\n' "${_xwinreg_options[entity_region ${j}]}:${_xwinreg_options[gravity ${j}]}:${_xwinreg_options[region_geo ${j}]}"
+                done))
+        else
+            while builtin read -r
+            do
+                _xwinreg_options[region_geo ${i}]=${REPLY},${_xwinreg_options[region_geo ${i}]#*,*,}
+                ((i++))
+            done < <(__xwinreg_cycle_do $(\
+                for ((j=1 ; j <= reg_number ; j++))
+                do
+                    builtin printf '%s\n' "${_xwinreg_options[region_geo ${j}]%,*,*}"
+                done))
+        fi
+
+        command sed -i \
+            -e '/declare -A _xwinreg_options=.*/d' \
+            -e '/declare -A _xwinreg_win_regions=.*/d' "$file_tmp"
+
+        builtin declare -p _xwinreg_options >> "$file_tmp"
+    }
+
+    function __xwinreg_cycle_window
+    {
+        builtin declare \
+            reg_sel= \
+            win_active=
+
+        builtin declare -i \
+            i= \
+            j= \
+            k= \
+            l= \
+            m=
+
+        builtin declare -a win_xid_selection="()"
+
+        while builtin read -r
+        do
+            [[ $REPLY =~ ^declare\ \-A\ (_xwinreg_data|_xwinreg_win_regions)= ]] &&
+            builtin eval "$REPLY"
+        done < "${_xwinreg_options[file_tmp]}"
+
+        builtin declare -i reg_number="${_xwinreg_data[reg_number]}"
+
+        builtin declare -a win_xid='(${_xwinreg_data[win_xid]})'
+
+        case ${_xwinreg_options[direction_cycle]} in
+            clock)
+                __xwinreg_cycle_do() { __xwinreg_utils_order_clock "$@" ; }
+                ;;
+            aclock)
+                __xwinreg_cycle_do() { __xwinreg_utils_order_anticlock "$@" ; }
+                ;;
+            rev)
+                __xwinreg_cycle_do() { __xwinreg_utils_order_reverse "$@" ; }
+                ;;
+            *)
+                { builtin printf '%s\n' "${0}: No valid direction spezified: '${_xwinreg_options[direction_cycle]}'" >&2 ; builtin exit 1 ; }
+        esac
+
+        case ${_xwinreg_options[region_selection]} in
+            any)
+                    builtin mapfile -t win_xid < <(__xwinreg_cycle_do "${win_xid[@]}")
+                    ;;
+            active)
+                    __xwinreg_utils_xprop_active_window
+                    for ((i=1 ; i <= reg_number ; i++))
+                    do
+                        if [[ ${_xwinreg_win_regions[win_xids ${i}]} =~ $win_active ]]
+                        then
+                            win_xid_selection+=($(__xwinreg_cycle_do ${_xwinreg_win_regions[win_xids ${i}]}))
+                        else
+                            win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+                        fi
+                    done
+                    win_xid=(${win_xid_selection[@]})
+                    ;;
+            *)
+                    if [[ ${_xwinreg_options[join]} == join ]]
+                    then
+                        win_xid=()
+                        reg_sel=$(__xwinreg_utils_order_num_asc $(__xwinreg_utils_parse_region "${_xwinreg_options[region_selection]}"))
+                        for i in $reg_sel
+                        do
+                            win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+                        done
+                        win_xid_selection=($(__xwinreg_cycle_do ${win_xid_selection[@]}))
+                        for j in $reg_sel
+                        do
+                            _xwinreg_win_regions[win_xids ${j}]=
+                            for ((k=1 , l=${l:-0} ; k <= ${_xwinreg_win_regions[win_xids_number ${j}]} ; l++ , k++))
+                            do
+                                _xwinreg_win_regions[win_xids ${j}]="${_xwinreg_win_regions[win_xids ${j}]}${win_xid_selection[$l]} "
+                            done
+                            echo ${_xwinreg_win_regions[win_xids ${j}]}
+                        done
+                        win_xid_selection=()
+                    else
+                        for i in $(__xwinreg_utils_order_num_asc $(__xwinreg_utils_parse_region "${_xwinreg_options[region_selection]}"))
+                        do
+                            _xwinreg_win_regions[win_xids ${i}]="$(__xwinreg_cycle_do ${_xwinreg_win_regions[win_xids ${i}]})"
+                        done
+                    fi
+                    for ((m=1 ; m <= reg_number ; m++))
+                    do
+                         win_xid_selection+=(${_xwinreg_win_regions[win_xids ${m}]})
+                    done
+                    win_xid=(${win_xid_selection[@]})
+        esac
+
+        _xwinreg_data[win_xid]=${win_xid[@]}
+
+        command sed -i \
+            -e '/declare -A _xwinreg_data=.*/d' \
+            -e '/declare -A _xwinreg_win_regions=.*/d' "${_xwinreg_options[file_tmp]}"
+
+        builtin declare -p _xwinreg_data >> "${_xwinreg_options[file_tmp]}"
+    }
+
+    case $1 in
+        region)
+            __xwinreg_cycle_region
+            ;;
+        window)
+            __xwinreg_cycle_window
+    esac
+}
+
+__xwinreg_utils_order_clock()
+{
+    builtin declare -a array='($@)'
+    builtin declare i=
+
+    builtin printf '%s\n' "${array[-1]}"
+    for ((i=0 ; i <= ${#array[@]}-2 ; i++))
+    do
+        builtin printf '%s\n' "${array[i]}"
+    done
+}
+
+__xwinreg_utils_order_anticlock()
+{
+    builtin declare -a array='($@)'
+    builtin declare i=
+
+    for ((i=1 ; i <= ${#array[@]}-1 ; i++))
+    do
+        builtin printf '%s\n' "${array[i]}"
+    done
+
+    builtin printf '%s\n' "${array[0]}"
+}
+
+__xwinreg_utils_xprop_active_window()
+{
+    builtin declare -g win_active
+    builtin read -r _ _ _ _ win_active < <(command xprop -root -notype _NET_ACTIVE_WINDOW)
+}
+
+__xwinreg_utils_order_reverse()
+{
+    builtin declare -a array='($@)'
+    builtin declare i=
+
+    for ((i=${#array[@]}-1 ; i >= 0 ; --i))
+    do
+        builtin printf '%s\n' "${array[i]}"
+    done
+}
+
+__xwinreg_utils_order_num_asc()
+{
+    builtin declare -a array='($@)'
+    builtin declare \
+        i= \
+        j= \
+        element=
+
+    for ((i=1 ; i < ${#array[@]} ; ++i))
+    do
+        for ((j=i ; j > 0 ; --j))
+        do
+            element=${array[j]}
+            ((${element%%,*} < ${array[j-1]%%,*})) && { array[j]=${array[j-1]} ; array[j-1]=$element ; }
+        done
+    done
+
+    builtin printf '%s\n' "${array[@]}"
+}
+
+__xwinreg_utils_parse_region()
+{
+    builtin declare -a args="()"
+    builtin declare \
+        i= \
+        reg="$1"
+
+    for i in ${reg//,/ }
+    do
+        if [[ $i =~ - ]]
+        then
+            args+=(\{${i/-/..}\})
+        else
+            args+=($i)
+        fi
+    done
+
+    builtin eval "builtin printf '%s\n' "${args[@]}""
+}
+
+__xwinreg_utils_comm()
+{
+    builtin declare \
+        arg= \
+        counter= \
+        element_array_1= \
+        element_array_2= \
+        skip=
+
+    builtin declare -a \
+        array_1="()" \
+        array_2="()"
+
+    { (($#)) && counter=1 ; } || builtin return 1
+
+    for arg
+    do
+        [[ $arg == -- ]] && ((counter++))
+    done
+
+    for ((i=1 ; i <= $counter ; i++))
+    do
+        while [[ $# -gt 0 && $1 != -- ]]
+        do
+            builtin eval "array_${i}+=( "$1" )"
+            builtin shift 1
+        done
+        [[ $1 == -- ]] && builtin shift 1
+    done
+
+    for element_array_1 in "${array_1[@]}"
+    do
+        for element_array_2 in "${array_2[@]}"
+        do
+            [[ $element_array_1 == $element_array_2 ]] && { skip=1 ; break ; }
+        done
+        ((skip)) || builtin printf '%s\n' "$element_array_1"
+        skip=
+    done
+}
+
+__xwinreg_focus()
+{
+    builtin declare \
+        j= \
+        win_active=
+
+    builtin declare -i i=
+
+    builtin declare -a \
+        reg_index="()" \
+        win_xid_selection="()"
+
+    while builtin read -r
+    do
+        [[ $REPLY =~ ^declare\ \-A\ (_xwinreg_data|_xwinreg_win_regions)= ]] &&
+        builtin eval "$REPLY"
+    done < "${_xwinreg_options[file_tmp]}"
+
+    builtin declare -i reg_number="${_xwinreg_data[reg_number]}"
+
+    reg_index=($(builtin eval "builtin printf '%s\n' {1..${reg_number}}"))
+    __xwinreg_utils_xprop_active_window
+
+    case ${_xwinreg_options[region_selection]} in
+        any)
+            for i in "${reg_index[@]}"
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        active)
+            for i in "${reg_index[@]}"
+            do
+                [[ ${_xwinreg_win_regions[win_xids ${i}]} =~ $win_active ]] && \
+                win_xid_selection=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        *)
+            for i in $(__xwinreg_utils_order_num_asc $(__xwinreg_utils_parse_region "${_xwinreg_options[region_selection]}"))
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+    esac
+
+    for j in "${win_xid_selection[@]}"
+    do
+        command wmctrl -i -a "$j" &
+    done
+
+    command wmctrl -i -a "$win_active"
+}
+
+__xwinreg_focus_toggle()
+{
+    builtin declare \
+        win= \
+        win_active=
+
+    builtin declare -i \
+        h= \
+        w= \
+        x= \
+        y=
+
+    builtin declare -a \
+        win_xid="()" \
+        _xwininfo_win_active="()"
+
+    while builtin read -r
+    do
+        [[ $REPLY =~ ^declare\ \-A\ _xwinreg_data= ]] &&
+        builtin eval "$REPLY" && builtin break
+    done < "${_xwinreg_options[file_tmp]}"
+
+    builtin declare -i win_number="${_xwinreg_data[win_number]}"
+
+    builtin declare -a win_xid='(${_xwinreg_data[win_xid]})'
+
+    __xwinreg_utils_xprop_active_window
+
+    case ${_xwinreg_options[direction_focus]} in
+        n|next)
+            if [[ ${win_xid[$win_number - 1]} =~ $win_active ]]
+            then
+                win=${win_xid[0]}
+            else
+                builtin read -r win \
+                < <(command sed -n "/${win_active}/,+1 p" < <(builtin printf '%s\n' "${win_xid[@]}") | command sed -n '$p')
+            fi
+            ;;
+        p|prev)
+            if [[ ${win_xid[0]} =~ $win_active ]]
+            then
+                win=${win_xid[$win_number - 1]}
+            else
+                command read -r win \
+                < <(command sed -n "/${win_active}/,+1 p" < <(__xwinreg_utils_order_reverse "${win_xid[@]}") | command sed -n '$p')
+            fi
+    esac
+
+    builtin mapfile -t _xwininfo_win_active < <(command xwininfo -id "$win")
+    x=$((${_xwininfo_win_active[3]##* } + ${_xwininfo_win_active[5]##* }))
+    y=$((${_xwininfo_win_active[4]##* } + ${_xwininfo_win_active[6]##* }))
+    w=${_xwininfo_win_active[7]##* }
+    h=${_xwininfo_win_active[8]##* }
+
+    command wmctrl -i -r "$win" -b "remove,maximized_vert,maximized_horz"
+    command wmctrl -i -r "$win" -e "0,${x},${y},$((w * 50 / 100)),$((h * 50 / 100))"
+    command wmctrl -i -r "$win" -e "0,${x},${y},${w},${h}"
+    command wmctrl -i -a "$win"
+}
+
+__xwinreg_hide()
+{
+    builtin declare \
+        j= \
+        win_active=
+
+    builtin declare -i i=
+
+    builtin declare -a \
+        reg_index="()" \
+        win_xid_selection="()"
+
+    while builtin read -r
+    do
+        [[ $REPLY =~ ^declare\ \-A\ (_xwinreg_data|_xwinreg_win_regions)= ]] &&
+        builtin eval "$REPLY"
+    done < "${_xwinreg_options[file_tmp]}"
+
+    builtin declare -i reg_number="${_xwinreg_data[reg_number]}"
+
+    reg_index=($(builtin eval "builtin printf '%s\n' {1..${reg_number}}"))
+    __xwinreg_utils_xprop_active_window
+
+    case ${_xwinreg_options[region_selection]} in
+        any)
+            for i in "${reg_index[@]}"
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        active)
+            for i in "${reg_index[@]}"
+            do
+                [[ ${_xwinreg_win_regions[win_xids ${i}]} =~ $win_active ]] && \
+                win_xid_selection=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        *)
+            for i in $(__xwinreg_utils_order_num_asc $(__xwinreg_utils_parse_region "${_xwinreg_options[region_selection]}"))
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+    esac
+
+    for j in "${win_xid_selection[@]}"
+    do
+        command wmctrl -i -r "$j" -b "${_xwinreg_options[hide_action]},hidden" &
+    done
+}
+
+__xwinreg_move_to_desk()
+{
+    builtin declare \
+        atome= \
+        j= \
+        k= \
+        value= \
+        win_active=
+
+    builtin declare -i \
+        i= \
+        desk_number= \
+        desk_target= \
+        desk_curr=
+
+    builtin declare -a \
+        desk_names="()" \
+        desk_numbers="()" \
+        reg_index="()" \
+        win_xid_selection="()"
+
+    while builtin read -r
+    do
+        [[ $REPLY =~ ^declare\ \-A\ (_xwinreg_data|_xwinreg_win_regions)= ]] &&
+        builtin eval "$REPLY"
+    done < "${_xwinreg_options[file_tmp]}"
+
+    builtin declare -i reg_number="${_xwinreg_data[reg_number]}"
+
+    reg_index=($(builtin eval "builtin printf '%s\n' {1..${reg_number}}"))
+
+    while builtin read -r atome _ value
+    do
+        case $atome in
+            _NET_ACTIVE_WINDOW:)
+                win_active=${value##* }
+                ;;
+            _NET_CURRENT_DESKTOP)
+                desk_curr=$value
+                ;;
+            _NET_NUMBER_OF_DESKTOPS)
+                desk_number=$value
+                ;;
+            _NET_DESKTOP_NAMES)
+                desk_names=($value)
+        esac
+    done < <(command xprop -root -notype _NET_ACTIVE_WINDOW _NET_CURRENT_DESKTOP _NET_NUMBER_OF_DESKTOPS _NET_DESKTOP_NAMES)
+
+    for ((i=0 ; i < desk_number ; i++))
+    do
+        desk_numbers+=($i)
+    done
+
+    case ${_xwinreg_options[region_selection]} in
+        any)
+            for i in "${reg_index[@]}"
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        active)
+            for i in "${reg_index[@]}"
+            do
+                [[ ${_xwinreg_win_regions[win_xids ${i}]} =~ $win_active ]] && \
+                win_xid_selection=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+            ;;
+        *)
+            for i in $(__xwinreg_utils_order_num_asc $(__xwinreg_utils_parse_region "${_xwinreg_options[region_selection]}"))
+            do
+                win_xid_selection+=(${_xwinreg_win_regions[win_xids ${i}]})
+            done
+    esac
+
+    case ${_xwinreg_options[desk_target]} in
+        curr)
+            desk_target=$desk_curr
+            ;;
+        next)
+            desk_target=${desk_numbers[$desk_curr + 1]:-${desk_numbers[0]}}
+            ;;
+        prev)
+            desk_target=${desk_numbers[$desk_curr - 1]:-${desk_numbers[-1]}}
+            ;;
+        i:+([0-9]))
+            desk_target=${_xwinreg_options[desk_target]#*:}
+            ;;
+        s:?*)
+            desk_names=(${desk_names[@]:2})
+            desk_names=(${desk_names[@]//\",/\"})
+            for j in "${!desk_names[@]}"
+            do
+                [[ ${desk_names[$j]} == \"${_xwinreg_options[desk_target]#*:}\" ]] && \
+                desk_target=${desk_numbers[$j]} && \
+                builtin break
+            done
+            ;;
+        *)
+            { builtin printf '%s\n' "${0}: No valid desktop specified: '${_xwinreg_options[desk_target]}'" >&2 ; builtin exit 1 ; }
+    esac
+
+    for k in "${win_xid_selection[@]}"
+    do
+        command wmctrl -i -r "$k" -t "$desk_target"
+    done
+
+    [[ ${_xwinreg_options[switch_to_desk_target]} == switch_to_desk_target ]] && \
+    command wmctrl -i -a "${win_xid_selection[0]}"
+}
+
+__xwinreg_main()
+{
+    (($# == 0)) && \
+        { builtin printf '%s\n' "${0}: USAGE: $(__xwinreg_usage)" >&2 ; builtin exit 1 ; }
+
+    builtin declare \
+        arg= \
+        args= \
+        delim=\'
+
+    for arg
+    do
+        arg=${arg#--}
+        case $arg in
+            -fh)                args="${args}-2 "                            ;;
+            -fw)                args="${args}-1 "                            ;;
+            -fx)                args="${args}-3 "                            ;;
+            -fy)                args="${args}-4 "                            ;;
+            -wh)                args="${args}-8 "                            ;;
+            -ww)                args="${args}-7 "                            ;;
+            -wx)                args="${args}-5 "                            ;;
+            -wy)                args="${args}-6 "                            ;;
+            action=?*)          args="${args}-A ${delim}${arg#*=}${delim} "  ;;
+            close)              args="${args}-c "                            ;;
+            conf-file=?*)       args="${args}-C ${delim}${arg#*=}${delim} "  ;;
+            cycle)              args="${args}-y "                            ;;
+            desk)               args="${args}-D ${arg#*=} "                  ;;
+            direction=?*)       args="${args}-d ${delim}${arg#*=}${delim} "  ;;
+            entity=?*)          args="${args}-e ${delim}${arg#*=}${delim} "  ;;
+            focus)              args="${args}-f "                            ;;
+            focus-toggle)       args="${args}-o "                            ;;
+            frame-alias=?*)     args="${args}-a ${delim}${arg#*=}${delim} "  ;;
+            frame-h=?*)         args="${args}-2 ${delim}${arg#*=}${delim} "  ;;
+            frame-w=?*)         args="${args}-1 ${delim}${arg#*=}${delim} "  ;;
+            frame-x=?*)         args="${args}-3 ${delim}${arg#*=}${delim} "  ;;
+            frame-y=?*)         args="${args}-4 ${delim}${arg#*=}${delim} "  ;;
+            geo=?*)             args="${args}-g ${delim}${arg#*=}${delim} "  ;;
+            gravity=?*)         args="${args}-G ${delim}${arg#*=}${delim} "  ;;
+            help)               args="${args}-h "                            ;;
+            hide)               args="${args}-H "                            ;;
+            input-file=?*)      args="${args}-I ${delim}${arg#*=}${delim} "  ;;
+            join)               args="${args}-j "                            ;;
+            layout)             args="${args}-l "                            ;;
+            layout-abbrev=?*)   args="${args}-L ${delim}${arg#*=}${delim} "  ;;
+            maximum=?*)         args="${args}-x ${delim}${arg#*=}${delim} "  ;;
+            move-to-desk)       args="${args}-M "                            ;;
+            number-of-cols=?*)  args="${args}-N ${delim}${arg#*=}${delim} "  ;;
+            number-of-rows=?*)  args="${args}-n ${delim}${arg#*=}${delim} "  ;;
+            region=?*)          args="${args}-r ${delim}${arg#*=}${delim} "  ;;
+            stack)              args="${args}-k "                            ;;
+            switch)             args="${args}-W "                            ;;
+            tmp-file=?*)        args="${args}-T ${delim}${arg#*=}${delim} "  ;;
+            version)            args="${args}-v "                            ;;
+            window)             args="${args}-w "                            ;;
+            workarea-h=?*)      args="${args}-8 ${delim}${arg#*=}${delim} "  ;;
+            workarea-w=?*)      args="${args}-7 ${delim}${arg#*=}${delim} "  ;;
+            workarea-x=?*)      args="${args}-5 ${delim}${arg#*=}${delim} "  ;;
+            workarea-y=?*)      args="${args}-6 ${delim}${arg#*=}${delim} "  ;;
+            *)                  if [[ ${arg:0:1} == - ]]
+                                then
+                                    args="${args}${arg} "
+                                else
+                                    args="${args}${delim}${arg}${delim} "
+                                fi
+        esac
+    done
+
+    function __xwinreg_set_opts
+    if [[ $OPTARG == -?* ]]
+    then
+        { builtin printf '%s\n' "${0}: Option '-${opt}' requires an argument" 1>&2 ; builtin exit 1 ; }
+    else
+        _xwinreg_options[$1]=$2
+    fi
+
+    function __xwinreg_layout_abbrev
+    {
+        builtin declare \
+            l_l= \
+            l_r=
+
+        [[ $1 =~ [[:digit:]]+,([[:digit:]]+|max),.+,(px|pro|alias):.+,.+ ]] && {
+            IFS=: builtin read -r l_l l_r <<< "$1"
+            builtin set -- ${l_l//,/ }
+            _xwinreg_options[entity_region ${1}]=$4
+            _xwinreg_options[gravity ${1}]=${l_r%%,*}
+            _xwinreg_options[layout_action ${1}]=$3
+            _xwinreg_options[region_geo ${1}]=${l_r#*,}
+            _xwinreg_options[region_number ${1}]=$1
+            _xwinreg_options[win_number_maximum ${1}]=$2
+            _xwinreg_data[reg_number]=$((${_xwinreg_data[reg_number]} + 1))
+        }
+    }
+
+    builtin declare opt=
+
+    builtin declare -A \
+        _xwinreg_data \
+        _xwinreg_frames \
+        _xwinreg_options \
+        _xwinreg_regions \
+        _xwinreg_win_regions
+
+    builtin eval builtin set -- "$args"
+    while builtin getopts :1:2:3:4:5:6:7:8:a:A:cC:d:D:e:fg:G:hHI:jklL:m:Mn:N:or:T:vwWx:y opt
+    do
+        case $opt in
+            1)      __xwinreg_set_opts "frame_w" "$OPTARG"                  ;;
+            2)      __xwinreg_set_opts "frame_h" "$OPTARG"                  ;;
+            3)      __xwinreg_set_opts "frame_x" "$OPTARG"                  ;;
+            4)      __xwinreg_set_opts "frame_y" "$OPTARG"                  ;;
+            5)      __xwinreg_set_opts "workarea_x" "$OPTARG"               ;;
+            6)      __xwinreg_set_opts "workarea_y" "$OPTARG"               ;;
+            7)      __xwinreg_set_opts "workarea_w" "$OPTARG"               ;;
+            8)      __xwinreg_set_opts "workarea_h" "$OPTARG"               ;;
+            C)      XWINREG_CONF_FILE=$OPTARG                               ;;
+            D)      __xwinreg_set_opts "desk_target" "$OPTARG"              ;;
+            G)      __xwinreg_set_opts "gravity ${_xwinreg_options[region_selection]}" "$OPTARG" ;;
+            H)      _xwinreg_options[action]=hide                           ;;
+            I)      XWINREG_INPUT_FILE=$OPTARG                              ;;
+            M)      _xwinreg_options[action]=move-to-desk                   ;;
+            N)      __xwinreg_set_opts "col_number" "$OPTARG"               ;;
+            T)      XWINREG_TMP_FILE=$OPTARG                                ;;
+            W)      _xwinreg_options[switch_to_desk_target]=switch_to_desk_target ;;
+            a)      __xwinreg_set_opts "frame_alias" "$OPTARG"              ;;
+            c)      _xwinreg_options[action]=close                          ;;
+            e)      __xwinreg_set_opts "entity_region ${_xwinreg_options[region_selection]}" "$OPTARG" ;;
+            f)      _xwinreg_options[action]=focus                          ;;
+            g)      __xwinreg_set_opts "region_geo ${_xwinreg_options[region_selection]}" "$OPTARG" ;;
+            h)      _xwinreg_options[action]=help                           ;;
+            j)      _xwinreg_options[join]=join                             ;;
+            k)      _xwinreg_options[stack]=stack                           ;;
+            n)      __xwinreg_set_opts "row_number" "$OPTARG"               ;;
+            o)      _xwinreg_options[action]=focus-toggle                   ;;
+            v)      _xwinreg_options[action]=version                        ;;
+            w)      _xwinreg_options[entity_cycle]=window                   ;;
+            x)      __xwinreg_set_opts "win_number_maximum ${_xwinreg_options[region_selection]}" "$OPTARG" ;;
+            y)      _xwinreg_options[action]=cycle                          ;;
+            A)      __xwinreg_set_opts "layout_action ${_xwinreg_options[region_selection]}" "$OPTARG"
+                    __xwinreg_set_opts "hide_action" "$OPTARG"              ;;
+            l)      _xwinreg_options[action]=layout
+                    _xwinreg_data[reg_number]=$((${_xwinreg_data[reg_number]} + 1))
+                                                                            ;;
+            L)      _xwinreg_options[action]=layout-abbrev
+                    __xwinreg_layout_abbrev "$OPTARG"                       ;;
+            r)      __xwinreg_set_opts "region_selection" "$OPTARG"
+                    __xwinreg_set_opts "region_number ${OPTARG}" "$OPTARG"
+                                                                            ;;
+            d)      __xwinreg_set_opts "direction_cycle" "$OPTARG"
+                    __xwinreg_set_opts "direction_focus" "$OPTARG"          ;;
+            :)      builtin printf '%s\n' "${0}: Option '-${OPTARG}' requires an argument" 1>&2
+                    builtin exit 1                                          ;;
+            \?)     builtin printf '%s\n' "${0}: Unknown flag: '-${OPTARG}'" 1>&2
+                    builtin exit 1
+        esac
+    done
+
+    [[ $XWINREG_CONF_FILE ]] && {
+        if [[ -f $XWINREG_CONF_FILE ]]
+        then
+            _xwinreg_options[file_conf]=$XWINREG_CONF_FILE
+            builtin source "$XWINREG_CONF_FILE" >/dev/null 2>&1
+            builtin unset -v XWINREG_CONF_FILE
+        else
+            { builtin printf '%s\n' "${0}: Conf File does not exist or is not a regular file" >&2 ; builtin exit 1 ; }
+        fi
+    }
+
+    _xwinreg_options[file_tmp]=${XWINREG_TMP_FILE:-"${TMPDIR:-/tmp}/xwinreg_default.tmp"}
+    builtin unset -v XWINREG_TMP_FILE
+
+    [[ $XWINREG_INPUT_FILE ]] && {
+        _xwinreg_options[file_input]=$XWINREG_INPUT_FILE
+        builtin unset -v XWINREG_INPUT_FILE
+        if [[ ${_xwinreg_options[file_input]} == - ]]
+        then
+            if [[ -p /dev/stdin ]]
+            then
+                while builtin read -r
+                do
+                    __xwinreg_read "$REPLY"
+                done
+            else
+                { builtin printf '%s\n' "${0}: Stdin is not coming from a pipe" >&2 ; builtin exit 1 ; }
+            fi
+        else
+            if [[ -p ${_xwinreg_options[file_input]} || -f ${_xwinreg_options[file_input]} ]]
+            then
+                while builtin read -r
+                do
+                    __xwinreg_read "$REPLY"
+                done < "${_xwinreg_options[file_input]}"
+            else
+                { builtin printf '%s\n' "${0}: File does not exist or is neather a regular file nor a named pipe" >&2 ; builtin exit 1 ; }
+            fi
+        fi
+    }
+
+    builtin unset -v \
+        arg \
+        args \
+        delim \
+        opt
+
+    case ${_xwinreg_options[action]} in
+        close)
+                if [[ ${_xwinreg_options[region_selection]} ]]
+                then
+                    __xwinreg_close
+                else
+                    { builtin printf '%s\n' "${0}: No region specified" >&2 ; builtin exit 1 ; }
+                fi
+                ;;
+        cycle)
+                [[ ${_xwinreg_options[direction_cycle]} ]] || \
+                { builtin printf '%s\n' "${0}: No direction specified" >&2 ; builtin exit 1 ; }
+                if [[ ${_xwinreg_options[entity_cycle]} == window ]]
+                then
+                    if [[ ${_xwinreg_options[region_selection]} ]]
+                    then
+                        __xwinreg_cycle window
+                    else
+                        { builtin printf '%s\n' "${0}: No region specified" >&2 ; builtin exit 1 ; }
+                    fi
+                else
+                    __xwinreg_cycle region
+                fi
+                __xwinreg_layout
+                ;;
+        focus)
+                if [[ ${_xwinreg_options[region_selection]} ]]
+                then
+                    __xwinreg_focus
+                else
+                    { builtin printf '%s\n' "${0}: No region specified" >&2 ; builtin exit 1 ; }
+                fi
+                ;;
+        focus-toggle)
+                if [[ ${_xwinreg_options[direction_focus]} ]]
+                then
+                    __xwinreg_focus_toggle
+                else
+                    { builtin printf '%s\n' "${0}: No region specified" >&2 ; builtin exit 1 ; }
+                fi
+                ;;
+        help)
+                __xwinreg_help
+                ;;
+        hide)
+                if [[ ${_xwinreg_options[region_selection]} ]]
+                then
+                    if [[ ${_xwinreg_options[hide_action]} =~ ^(add|remove)$ ]]
+                    then
+                        __xwinreg_hide
+                    else
+                        { builtin printf '%s\n' "${0}: No action specified" >&2 ; builtin exit 1 ; }
+                    fi
+                else
+                    { builtin printf '%s\n' "${0}: No region specified" >&2 ; builtin exit 1 ; }
+                fi
+                ;;
+        layout|layout-abbrev)
+                _xwinreg_options[command]=$@
+                __xwinreg_calculate
+                __xwinreg_layout
+                ;;
+        move-to-desk)
+                if [[ ${_xwinreg_options[region_selection]} ]]
+                then
+                    if [[ ${_xwinreg_options[desk_target]} ]]
+                    then
+                        __xwinreg_move_to_desk
+                    else
+                        { builtin printf '%s\n' "${0}: No desktop specified" >&2 ; builtin exit 1 ; }
+                    fi
+                else
+                    { builtin printf '%s\n' "${0}: No region specified" >&2 ; builtin exit 1 ; }
+                fi
+                ;;
+        version)
+                __xwinreg_version
+                ;;
+        *)
+                { builtin printf '%s\n' "${0}: No valid action spezified" >&2 ; builtin exit 1 ; }
+    esac
+}
+
+# -- MAIN.
+
+__xwinreg_main "$@"
+
