@@ -22,7 +22,7 @@ builtin shopt -s extglob
 
 # -- FUNCTIONS.
 
-__xwinreg_version() { builtin echo "0.3.0.0" ; }
+__xwinreg_version() { builtin echo "0.3.0.1" ; }
 
 __xwinreg_usage()
 {
@@ -1226,7 +1226,7 @@ __xwinreg_main()
             close)              args="${args}-c "                            ;;
             conf-file=?*)       args="${args}-C ${delim}${arg#*=}${delim} "  ;;
             cycle)              args="${args}-y "                            ;;
-            desk)               args="${args}-D ${arg#*=} "                  ;;
+            desk=?*)            args="${args}-D ${delim}${arg#*=}${delim} "  ;;
             direction=?*)       args="${args}-d ${delim}${arg#*=}${delim} "  ;;
             entity=?*)          args="${args}-e ${delim}${arg#*=}${delim} "  ;;
             focus)              args="${args}-f "                            ;;
