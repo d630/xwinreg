@@ -299,6 +299,7 @@ following parameters:
 * You can specify region aliases in a Conf File, which will be read by action
   `l` and `L` and written to a Tmp File.
 * If you use action `-l`, actually, the first option needs to be `-r`.
+* You may write all long names without masking `--`. Instead of `--help` you may use `help`.
 
 #### See also
 
@@ -306,12 +307,14 @@ The best way to use `xwinreg`(1) is to create several shell scripts and call
 them with keybinds. See:
 
 https://github.com/D630/gist-bin-pub/tree/master/get-xids
+
 https://github.com/D630/gist-bin-pub/tree/master/xwinreg-scripts
+
 https://github.com/D630/stow-dot-pub/tree/master/openbox/etc/openbox
 
 #### To do
 
-See [file TODO](../master/doc/TODO.md)
+See file [TODO](../master/doc/TODO.md)
 
 #### Bugs & Requests
 
