@@ -1,4 +1,4 @@
-### xwinreg v0.3.0.0 [GNU GPLv3]
+### xwinreg v0.3.0.2 [GNU GPLv3]
 
 `xwinreg`(1) is a bash shell script, that acts like a stupid third party tiling
 application on `Xorg`(1). It lets you organize X windows into frames and regions
