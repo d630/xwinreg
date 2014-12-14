@@ -22,7 +22,7 @@ builtin shopt -s extglob
 
 # -- FUNCTIONS.
 
-__xwinreg_version() { builtin echo "0.3.0.1" ; }
+__xwinreg_version() { builtin echo "0.3.0.2" ; }
 
 __xwinreg_usage()
 {
@@ -138,6 +138,9 @@ case ${1%=*} in
         builtin eval "$1"
         _xwinreg_data[win_xid]=${_xwinpp_win_xid[@]}
         ;;
+    _xwinpp_desk_curr)
+        _xwinmo_data[desk_curr]=${1#*=}
+        ;;
     #~ _xwinpp_win_geo_x_y)
         #~ builtin declare -a _xwinpp_win_geo_x_y="()"
         #~ builtin eval "$1"
@@ -164,10 +167,10 @@ __xwinreg_calculate()
     _xwinreg_data[workarea]=${workarea[@]}
 
     builtin declare \
-        workarea_x="${_xwinreg_options[workarea_x]:-${workarea[0]}}" \
-        workarea_y="${_xwinreg_options[workarea_y]:-${workarea[1]}}" \
-        workarea_w="${_xwinreg_options[workarea_w]:-${workarea[2]}}" \
-        workarea_h="${_xwinreg_options[workarea_h]:-${workarea[3]}}"
+        workarea_x="${_xwinreg_options[workarea_x]:-${workarea[${_xwinmo_data[desk_curr]} * 4]}}" \
+        workarea_y="${_xwinreg_options[workarea_y]:-${workarea[${_xwinmo_data[desk_curr]} * 4 + 1]}}" \
+        workarea_w="${_xwinreg_options[workarea_w]:-${workarea[${_xwinmo_data[desk_curr]} * 4 + 2]}}" \
+        workarea_h="${_xwinreg_options[workarea_h]:-${workarea[${_xwinmo_data[desk_curr]} * 4 + 3]}}"
 
     _xwinreg_data[workarea_x]=$workarea_x
     _xwinreg_data[workarea_y]=$workarea_y
